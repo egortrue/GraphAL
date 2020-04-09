@@ -26,6 +26,7 @@ int main()
         Deijkstra(F, start);
         BellmanFord(F, start);
         FloydWarshall(F, 1);
+        MST_Prim(F, start);
         GraphDestroy(F);
     } 
     */
@@ -33,14 +34,15 @@ int main()
     ///* UX version
     GRAPH* F = FileRead(fr);
     NODE* start = F->nodes[0];
-    enum {exit, info, bfs, dfs, deijkstra, bellman, floyd} c;
+    enum {exit, info, bfs, dfs, deijkstra, bellman, floyd, prim} c;
     while (1)
     {
         system("cls");
         GraphPrint(F);
 
         puts("\nWhat you want to see:");
-        puts("1) General Info\n2) BFS\n3) DFS\n4) Deijkstra\n5) Bellman-Ford\n6) Floyd-Warshall\n\n0) Exit");
+        printf("1) General Info\n2) BFS\n3) DFS\n4) Deijkstra\n5) Bellman-Ford\n6) Floyd-Warshall\n");
+        printf("7) Prim's MST algorithm\n\n0)Exit");
 
         c = (int)_getch() - 48;
         system("cls");
@@ -72,6 +74,10 @@ int main()
         case floyd:
             puts("Floyd-Warshall:");
             FloydWarshall(F, 1);
+            break;
+        case prim:
+            puts("Prim's minimum-spanning-tree:");
+            MST_Prim(F, start);
             break;
         case exit:
             system("cls");

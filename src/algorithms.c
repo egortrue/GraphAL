@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 // Common help-functions
-int  Checker(NODE** arr, NODE* obj, int size_arr)
+int  Checker(void** arr, void* obj, int size_arr)
 {
 	for (int i = 0; i <= size_arr; i++)
 		if (arr[i] == obj)
@@ -483,6 +483,83 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 		return matrix;
 }
 
+
+//------------------------------------------------------------------------------------------------------
+// Minimum-spanning-tree (MST)
+
+EDGE* FindRelevantEdge(GRAPH* G, GRAPH* tree)
+{
+	NODE* source_general = NULL;
+	NODE* target_general = NULL;
+	 int  cost = INT_MAX;
+
+	for (int i = 0; i < tree->SIZE_N; i++)
+	{
+		NODE* source = tree->nodes[i];
+		NODE* target = NULL;
+		int edge_cost_source = INT_MAX;
+
+		for (int j = 0; j < source->SIZE_T; j++)
+		{
+			NODE* target_cur = source->targets[j];
+			if (!target_cur) continue;
+			if (Checker(tree->nodes, target_cur, tree->SIZE_N)) continue;
+
+			int edge_cost_source_cur = GraphEdgeWeight(G, source, target_cur);
+			if (edge_cost_source_cur < edge_cost_source)
+			{
+				edge_cost_source = edge_cost_source_cur;
+				target = target_cur;
+			}
+		}
+
+		if (edge_cost_source < cost)
+		{
+			source_general = source;
+			target_general = target;
+			cost = edge_cost_source;
+		}
+	}
+
+
+	for (int i = 0; i < G->SIZE_E; i++)
+	{
+		EDGE* edge = G->edges[i];
+		if (edge->source == source_general &&
+			edge->target == target_general)
+			return edge;
+	}
+	return NULL;
+}
+
+void MST_Prim(GRAPH* G, NODE* root)
+{
+	// Init the tree
+	GRAPH* tree = (GRAPH*)malloc(sizeof(GRAPH));
+	if (!tree) exit(EXIT_FAILURE);
+	tree->nodes = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
+	tree->edges = (EDGE**)calloc(G->SIZE_E, sizeof(EDGE*));
+	if (!tree->nodes | !tree->edges) exit(EXIT_FAILURE);
+	tree->SIZE_N = 0;
+	tree->SIZE_E = 0;
+
+	tree->nodes[tree->SIZE_N++] = root;
+	EDGE* new_edge = FindRelevantEdge(G, tree);
+
+	while (new_edge)
+	{
+		tree->nodes[tree->SIZE_N++] = new_edge->target;
+		tree->edges[tree->SIZE_E++] = new_edge;
+		new_edge = FindRelevantEdge(G, tree);
+	}
+
+	GraphPrint(tree);
+
+	free(tree->edges);
+	free(tree->nodes);
+	free(tree);
+	//return tree;
+}
 
 //------------------------------------------------------------------------------------------------------
 // General Info about Graph (Radius, Diameter, Center, etc.)
