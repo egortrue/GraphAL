@@ -1,4 +1,6 @@
-#include "graphs_.h"
+#include "graphs.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 NODE  NodeSet(int name, int val, int SIZE_)
 {
@@ -11,6 +13,7 @@ NODE  NodeSet(int name, int val, int SIZE_)
 
 	return V;
 }
+
 NODE* NodeAddress(NODE** arr, int name, int arr_size)
 {
 	int ok = 0;
@@ -30,6 +33,7 @@ NODE* NodeAddress(NODE** arr, int name, int arr_size)
 	printf("\nERROR *NodeAddress* --> Node doesn't define in [nodes]: (%d)\n", name);
 	exit(EXIT_FAILURE);
 }
+
 void  NodeIsolate(NODE* V)
 {
 	for (int i = 0; i < V->SIZE_S; i++)
@@ -38,6 +42,7 @@ void  NodeIsolate(NODE* V)
 		V->targets[i] = NULL;
 	return ;
 }
+
 void  NodePrint(const NODE* V)
 {
 	printf("NODE %d\n", V->name);
@@ -64,29 +69,32 @@ void  NodePrint(const NODE* V)
 	printf("%s", k == 0 ? "None\n" : "\n");
 }
 
-// Функция, прописывающая sources и targets узлам
 void NodeLink(NODE* source, NODE* target)
 {
 
 	int err1 = 0, err2 = 0;
+
+	// source already know about target
 	for (int k = 0; k < (source->SIZE_T); k++)
 		if (source->targets[k] == target)
 			err1 = 1;
 
+	// target already know about source
 	for (int k = 0; k < (target->SIZE_S); k++)
 		if (target->sources[k] == source)
 			err2 = 1;
 
+	// define first empty place in array
 	int i = 0, j = 0;
 	while (source->targets[i] != 0) i++;
 	while (target->sources[j] != 0) j++;
 
+	// link the nodes
 	if (!(err1 || err2))
 	{
 		source->targets[i] = target;
 		target->sources[j] = source;
 	}
-	// В случае утраты одной из половины связи, она восстановиться
 	else if ((err1 == 0) && (err2 == 1))
 		source->targets[i] = target;
 	else if ((err1 == 1) && (err2 == 0))
@@ -100,6 +108,7 @@ EDGE EdgeSet(NODE* source, NODE* target, int weight)
 	EDGE E = { weight, source, target };
 	return E;
 }
+
 void EdgePrint(const EDGE* E)
 {
 	printf("EDGE: (%d->%d) ", E->source->name, E->target->name);
@@ -116,6 +125,7 @@ GRAPH GraphSet(int num_nodes, int num_edges)
 			    (EDGE**)calloc(num_edges, sizeof(EDGE*)) };
 	return G;
 }
+
 void  GraphPrint(const GRAPH* G)
 {
 	int i = 0;
@@ -129,7 +139,9 @@ void  GraphPrint(const GRAPH* G)
 	printf("  Edges: ");
 	for (; i < G->SIZE_E; i++)
 		if (G->edges[i] != 0)
-			printf("(%2d->%2d)=%-2d%s", G->edges[i]->source->name, G->edges[i]->target->name, G->edges[i]->weight, ((i+1) % 5 != 0) ? " " : "\n\t ");
+			printf("(%2d->%2d)=%-2d%s", G->edges[i]->source->name, G->edges[i]->target->name,
+										G->edges[i]->weight,
+										((i+1) % 5 != 0) ? " " : "\n\t ");
 	printf("%s", i == 0 ? "None\n\n" : "\n");
 }
 
@@ -149,6 +161,7 @@ void GraphDestroy(GRAPH* G)
 
 	free(G);
 }
+
 int  GraphEdgeWeight(GRAPH* G, NODE* V1, NODE* V2)
 {
 	for (int i = 0; i < G->SIZE_E; i++)

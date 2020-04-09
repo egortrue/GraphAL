@@ -1,7 +1,8 @@
-#include "algorithms_.h"
+#include "algorithms.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 // Common help-functions
-
 int  Checker(NODE** arr, NODE* obj, int size_arr)
 {
 	for (int i = 0; i <= size_arr; i++)
@@ -28,8 +29,8 @@ void CostSet(EDGE** arr, NODE* obj, int size_arr, int new_cost)
 
 typedef struct queue  
 {
-	// last - порядковый указатель на первое свободное место в очереди
-	// если last == 0 то очередь пуста
+	// last - first empty place
+	// if last == 0 --> queue is empty
 	int last, SIZE_;
 	NODE** queue;
 } QUEUE;
@@ -67,18 +68,17 @@ NODE* QueuePop   (QUEUE* Q)
 
 void BFS(GRAPH* G, NODE* start)
 {
-	int V_NUM = G->SIZE_N; // Кол-во узлов в графе
+	int V_NUM = G->SIZE_N;
 
-	// Массив проверенных узлов
+	// checked nodes array
 	int check_num = 0;
 	NODE** checked = (NODE**)calloc(8 + V_NUM, sizeof(NODE*));
 	if (!checked) exit(EXIT_FAILURE);
 
-	// Структура для хранения удаленности от начального узла
 	EDGE** COST = (EDGE**)calloc(V_NUM, sizeof(EDGE*));
 	if (!COST) exit(EXIT_FAILURE);
 
-	// Расстояние до всех вершин - неизвестно, от начальной к начальной = 0
+	// begin -> any = inf | begin -> begin = 0
 	for (int i = 0; i < V_NUM; i++)
 	{
 		COST[i] = (EDGE*)malloc(sizeof(EDGE));
@@ -91,18 +91,18 @@ void BFS(GRAPH* G, NODE* start)
 			*COST[i] = EdgeSet(start, n, INT_MAX);
 	}	
 
-	// Сам алгоритм:
+	// The algorithm:
 	QUEUE Q = QueueSet(V_NUM * V_NUM);
 	QueueAdd(&Q, start);
 
 	printf("  Path: ");
 	while (Q.last != 0)
 	{
-
+		// current node as poped from queue
 		NODE* cur = QueuePop(&Q);
 		int wave = CostGet(COST, cur, V_NUM);
 
-		// Для каждого соседа обновим стоимость
+		// Update the costs for every neighbour
 		for (int i = 0; i < cur->SIZE_T; i++)
 		{
 			NODE* neighbour = cur->targets[i];
@@ -113,22 +113,22 @@ void BFS(GRAPH* G, NODE* start)
 				CostSet(COST, neighbour, V_NUM, wave + 1);
 		}
 	
-		// Если узел ещё не помечен
+		// if node not checked
 		if (!Checker(checked, cur, check_num))
 		{
 			printf("%d ", cur->name); // Part of path
 
-			// Добавим в очередь всех соседей
+			// append all the neighbours
 			for (int i = 0; i < cur->SIZE_T; i++)
 				if (cur->targets[i] != NULL)
 					QueueAdd(&Q, cur->targets[i]);
 
-			// Пометим узел
+			// check the node
 			checked[check_num++] = cur;
 		}
 	}
 
-	// Вывод результата
+	// Rezult
 	puts("");
 	for (int i = 0; i < V_NUM; i++)
 	{
@@ -139,7 +139,6 @@ void BFS(GRAPH* G, NODE* start)
 			printf("no way\n");
 	}
 
-	// Освобождение памяти
 	free(checked);
 	free(Q.queue);
 	for (int i = 0; i < V_NUM; i++)
@@ -152,8 +151,8 @@ void BFS(GRAPH* G, NODE* start)
 
 typedef struct stack 
 {
-	// last - порядковый указатель на первое свободное место в стеке
-	// если last == 0 то стек пуст
+	// last - first empty place
+	// if last == 0 --> stack is empty
 	int last, SIZE_;
 	NODE** stack;
 } STACK;
@@ -186,16 +185,15 @@ void DFS(GRAPH* G, NODE* start)
 {
 	int V_NUM = G->SIZE_N;
 
-	// Массив проверенных узлов
+	// checke node array
 	int check_num = 0;
 	NODE** checked = (NODE**)calloc(8 + V_NUM, sizeof(NODE*));
 	if (!checked) exit(EXIT_FAILURE);
 
-	// Структура для хранения удаленности от начального узла
 	EDGE** COST = (EDGE**)calloc(V_NUM, sizeof(EDGE*));
 	if (!COST) exit(EXIT_FAILURE);
 
-	// Расстояние до всех вершин - неизвестно, от начальной к начальной = 0
+	// begin -> any = inf | begin -> begin = 0
 	for (int i = 0; i < V_NUM; i++)
 	{
 		COST[i] = (EDGE*)malloc(sizeof(EDGE));
@@ -209,9 +207,7 @@ void DFS(GRAPH* G, NODE* start)
 	}
 
 
-
-
-	// Сам алгоритм:
+	// The algorithm:
 	STACK S = StackSet(V_NUM * V_NUM);
 	StackPush(&S, start);
 
@@ -221,7 +217,7 @@ void DFS(GRAPH* G, NODE* start)
 		NODE* cur = StackPop(&S);
 		int wave = CostGet(COST, cur, V_NUM);
 
-		// Для каждого соседа обновим стоимость
+		// update cost for every neighbour
 		for (int i = 0; i < cur->SIZE_T; i++)
 		{
 			NODE* neighbour = cur->targets[i];
@@ -231,23 +227,23 @@ void DFS(GRAPH* G, NODE* start)
 				CostSet(COST, neighbour, V_NUM, wave + 1);
 		}
 
-		// Если узел ещё не помечен
+		// if node not checked
 		if (!Checker(checked, cur, check_num))
 		{
 			printf("%d ", cur->name); // Part of path
 
-			// Добавим в очередь всех соседей
+			// append all the neighbours
 			for (int i = 0; i < cur->SIZE_T; i++)
 				if (cur->targets[i] != NULL)
 					StackPush(&S, cur->targets[i]);
 
-			// Пометим узел
+			// check the node
 			checked[check_num++] = cur;
 		}
 	}
 
 
-	// Вывод результата
+	// Rezult
 	puts("");
 	for (int i = 0; i < V_NUM; i++)
 	{
@@ -258,7 +254,7 @@ void DFS(GRAPH* G, NODE* start)
 			printf("no way\n");;
 	}
 
-	// Освобождение памяти
+
 	free(checked);
 	free(S.stack);
 	for (int i = 0; i < V_NUM; i++)
@@ -283,24 +279,21 @@ NODE* FindLowestCostNode(EDGE** cost, NODE** processed, int size)
 			V = cost[i]->target;
 		}
 	}
-
 	return V;
-
 }
 void Deijkstra(GRAPH* G, NODE* start)
 {
 	int V_NUM = G->SIZE_N;
 
-	// Массив проверенных узлов
+	// checked nodes array
 	int check_num = 0;
 	NODE** checked = (NODE**)calloc(8 + V_NUM, sizeof(NODE*));
 	if (!checked) exit(EXIT_FAILURE);
 
-	// Структура для хранения удаленности от начального узла
 	EDGE** COST = (EDGE**)calloc(V_NUM, sizeof(EDGE*));
 	if (!COST) exit(EXIT_FAILURE);
 
-	// Расстояние до всех вершин - неизвестно, от начальной к начальной = 0
+	// begin -> any = inf | begin -> begin = 0
 	for (int i = 0; i < V_NUM; i++)
 	{
 		COST[i] = (EDGE*)malloc(sizeof(EDGE));
@@ -313,7 +306,7 @@ void Deijkstra(GRAPH* G, NODE* start)
 			*COST[i] = EdgeSet(start, n, INT_MAX);
 	}
 
-	// Сам алгоритм
+	// The algorithm:
 	int cur_cost = 0, new_cost = 0;
 	NODE* cur = FindLowestCostNode(COST, checked, V_NUM);
 
@@ -341,7 +334,7 @@ void Deijkstra(GRAPH* G, NODE* start)
 		cur = FindLowestCostNode(COST, checked, V_NUM);
 	}
 
-	// Вывод результата
+	// Rezult
 	puts("");
 	for (int i = 0; i < V_NUM; i++)
 	{
@@ -352,7 +345,6 @@ void Deijkstra(GRAPH* G, NODE* start)
 			printf("no way\n");
 	}
 
-	// Освобождение памяти
 	free(checked);
 	for (int i = 0; i < V_NUM; i++)
 		free(COST[i]);
@@ -360,7 +352,7 @@ void Deijkstra(GRAPH* G, NODE* start)
 }
 
 //------------------------------------------------------------------------------------------------------
-// Bellman-Ford / relaxation
+// Bellman-Ford / Relaxation
 
 void Relax(EDGE** COST, EDGE* E, GRAPH* G, int size)
 {
@@ -377,11 +369,10 @@ void BellmanFord(GRAPH* G, NODE* start)
 {	
 	int V_NUM = G->SIZE_N;
 
-	// Структура для хранения удаленности от начального узла
 	EDGE** COST = (EDGE**)calloc(V_NUM, sizeof(EDGE*));
 	if (!COST) exit(EXIT_FAILURE);
 
-	// Расстояние до всех вершин - неизвестно, от начальной к начальной = 0
+	// begin -> any = inf | begin -> begin = 0
 	for (int i = 0; i < V_NUM; i++)
 	{
 		COST[i] = (EDGE*)malloc(sizeof(EDGE));
@@ -394,13 +385,13 @@ void BellmanFord(GRAPH* G, NODE* start)
 			*COST[i] = EdgeSet(start, n, INT_MAX);
 	}
 
-	// Сам алгоритм
+	// The algorithm:
 	for (int iter = 1; iter < V_NUM; iter++)
 		for (int i = 0; i < G->SIZE_E; i++)
 			Relax(COST, G->edges[i], G, V_NUM);
 
 
-	// Вывод результата
+	// Rezult
 	for (int i = 0; i < V_NUM; i++)
 	{
 		printf("  %d->%d = ", start->name, COST[i]->target->name);
@@ -410,7 +401,7 @@ void BellmanFord(GRAPH* G, NODE* start)
 			printf("no way\n");
 	}
 
-	// Освобождение памяти
+
 	for (int i = 0; i < V_NUM; i++)
 		free(COST[i]);
 	free(COST);
@@ -456,7 +447,7 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 	}
 
 
-	// Сам алгоритм
+	// The algorithm:
 	for (int k = 0; k < V_NUM; k++)
 		for (int i = 0; i < V_NUM; i++)
 			for (int j = 0; j < V_NUM; j++)
@@ -468,12 +459,9 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 					matrix[i][j]->weight = (int)new_cost;
 			}
 
-
+	// Rezult
 	if (output)
 	{
-
-
-		// Вывод результата
 		puts("");
 		for (int i = 0; i < V_NUM; i++)
 		{
@@ -488,14 +476,13 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 			puts("");
 		}
 		puts("\n    P.S. Name column equal name row / This's the square matrix");
-
-		// Освобождение памяти
 		FloydFree(G, matrix);
 		return NULL;
 	}
 	else
 		return matrix;
 }
+
 
 //------------------------------------------------------------------------------------------------------
 // General Info about Graph (Radius, Diameter, Center, etc.)

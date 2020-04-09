@@ -1,4 +1,7 @@
 #include "stdio_sh.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 int ArgLineCheck(const int given)
 {
@@ -40,34 +43,32 @@ int ConvertStrToInt(char* string)
 	return N * c;
 }
 
-// Парсинг строки на отдельные строки, разделенные пробелом
+// Parsing of string on 2 or 3 strings
 char** ObjectRead(FILE* fr, long file_size, char* string, int flag)
 {
-	// Парсим строку, запсывая данные в obj
+	// block of data which will be returned
 	char** obj = (char**)calloc(3, sizeof(char*));
-
 	obj[0] = (char*)calloc(STR_LEN_MAX+1, sizeof(char));
 	obj[1] = (char*)calloc(STR_LEN_MAX+1, sizeof(char));
 	obj[2] = (char*)calloc(STR_LEN_MAX+1, sizeof(char));
-
 	if (!obj || !obj[0] || !obj[1] || !obj[2]) exit(EXIT_FAILURE);
 
 
-	// До 1 пробела
+	// before first whitespace
 	char* begin = string;
 	
 	while (*string != 32 && *string != 10) string++;
 	memmove(obj[0], begin, string-begin);
 	string++;
 
-	// С 1 до 2 пробела
+	// after first and before seconf whitespace
 	char* first_space = string;
 
 	while (*string != 32 && *string != 10) string++;
 	memmove(obj[1], first_space, string - first_space);
 	string++;
 
-	// Cо 2 до 3 пробела (конца)
+	// after second whitespace
 	if (flag)
 	{
 		char* second_space = string;
@@ -78,22 +79,23 @@ char** ObjectRead(FILE* fr, long file_size, char* string, int flag)
 	return obj;
 }
 
-// Кол-во элементов в блоке
+// this needs to FIX
+// because global var is a bad practice
 int count = 0;
 
-// Чтение блока, обозначенного ключевой строкой ( [nodes] или [edges] )
+// Read the block of data which includes some strings ( block names: [nodes] and [edges] )
 char*** BlockRead(FILE* fr, char* str, long file_size)
 {
 	fseek(fr, 0, SEEK_SET);
 	char* string = (char*)calloc(STR_LEN_MAX, sizeof(char));
 	if (!string) exit(EXIT_FAILURE);
 
-	// Читаем все строки пока не найдем ключевую строку
+	// Skip the strings while it is not a block name 
 	while (strcmp(string, str))
 	{
 		fgets(string, STR_LEN_MAX, fr);
 
-		// Если дошли до конца файла, то ключевой строчки нет
+		// if the end of file
 		if (ftell(fr) == file_size)
 		{
 			printf("\nERROR: the read file doesn't have key string: %s", str);
@@ -101,29 +103,28 @@ char*** BlockRead(FILE* fr, char* str, long file_size)
 		}
 	}
 
-	// Если нашли ключевую строку, парсим строки после неё
-	// Парсинг зависит от ключевой строки
+	// Parsing depends on block name
 	int flag = 0;
-	if (*(++str) == 'e')
+	if (*(++str) == 'e') // 'e' means "edges"
 		flag = 1;
 
-	// Массив с массивами строк / Кол-во объектов в блоке
 	char*** data = (char***)calloc(OBJ_COUNT_MAX, sizeof(char**));
 	if (!data) exit(EXIT_FAILURE);
-	count = 0;
 
-	// Читаем первую строку после ключевой строки
+	count = 0; // this is global var | NEEDS TO FIX
+
 	fgets(string, STR_LEN_MAX, fr);
-
-	while (*string == 0 || *string != 10) // Если строка содержит толко \n это конец блока
+	while (*string == 0 || *string != 10)
 	{
-		// Парсинг конкретной строки
+		// Parsing the current string
 		char** obj = ObjectRead(fr, file_size, string, flag);
 		data[count++] = obj;
 
-		// Если не последняя строка в файле, читаем дальше
+		// if the end of file
 		if (ftell(fr) == file_size)
 			break;
+
+		// read again
 		fgets(string, STR_LEN_MAX, fr);
 	}
 
@@ -133,27 +134,27 @@ char*** BlockRead(FILE* fr, char* str, long file_size)
 
 GRAPH* FileRead(FILE* fr)
 {
-	// Узнаeм размер файла в байтах
+	// size of file (bytes)
 	fseek(fr, 0, SEEK_END);
 	long file_size = ftell(fr);
 
-	// Здесь временно храниться имя блока
+	// block name
 	char* block = (char*)calloc(9, sizeof(char));
 	if (!block) exit(EXIT_FAILURE);
 
-	// Чтение блока [nodes]
+	// read block [nodes]
 	char str1[] = "[nodes]\n";	 
 	char*** nodes_data = BlockRead(fr, memmove(block, &str1, 9), file_size);
 	int nodes_num = count;
 
-	// Чтение блока [edges]
+	// read block [edges]
 	char str2[] = "[edges]\n";
 	char*** edges_data = BlockRead(fr, memmove(block, &str2, 9), file_size);
 	int edges_num = count;
 
 	free(block);
 	 
-	// Создание графа
+	// Create the graph 
 	GRAPH* G = (GRAPH*)malloc(sizeof(GRAPH));
 	if (!G) exit(EXIT_FAILURE);
 
@@ -163,7 +164,7 @@ GRAPH* FileRead(FILE* fr)
 		*G = GraphSet(nodes_num, (edges_num << 1));
 
 
-	// Инициализация узлов
+	// nodes init
 	for (int i = 0; i < nodes_num; i++)
 	{
 		G->nodes[i] = (NODE*)malloc(sizeof(NODE));
@@ -175,7 +176,7 @@ GRAPH* FileRead(FILE* fr)
 	}
 
 
-	// Инициализация рёбер
+	// edges init
 	NODE* source = NULL;
 	NODE* target = NULL;
 
@@ -204,7 +205,7 @@ GRAPH* FileRead(FILE* fr)
 			NodeLink(source, target);
 		}
 
-	// Освобождение памяти из под большого блока char'ов
+	// Clear big blocks of data
 	for (int i = 0; i < nodes_num; i++)
 	{
 		for (int j = 0; j < 3; j++)

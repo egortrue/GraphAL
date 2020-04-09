@@ -1,17 +1,20 @@
-#include "stdio_sh.h"
-#include "graphs_.h"
-#include "algorithms_.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <conio.h>
 
+#include "stdio_sh.h"
+#include "graphs.h"
+#include "algorithms.h"
 
 int main()
 {
-    // Подготовка
-
+    // Preparation
     FILE* fr = FileOpen("input.txt", "r");
     FILE* fw = FileOpen("output.txt", "w");
 
     /*
     // Debug version
+    // *for memory leak*
     while (1) 
     {
         GRAPH* F = FileRead(fr);
@@ -27,62 +30,63 @@ int main()
     } 
     */
 
-
     ///* UX version
-    // Считывание данных, создание графа
     GRAPH* F = FileRead(fr);
     NODE* start = F->nodes[0];
-
-    // Немного интерактива:
+    enum {exit, info, bfs, dfs, deijkstra, bellman, floyd} c;
     while (1)
     {
         system("cls");
         GraphPrint(F);
+
         puts("\nWhat you want to see:");
         puts("1) General Info\n2) BFS\n3) DFS\n4) Deijkstra\n5) Bellman-Ford\n6) Floyd-Warshall\n\n0) Exit");
-        int c = (int)_getch() - 48;
+
+        c = (int)_getch() - 48;
         system("cls");
         GraphPrint(F);
         puts("");
+
         switch (c)
         {
-        case 1:
+        case info:
             puts("General Info:");
             GeneralInfo(F);
             break;
-        case 2:
+        case bfs:
             puts("BFS:");
             BFS(F, start);
             break;
-        case 3:
+        case dfs:
             puts("DFS:");
             DFS(F, start);
             break;
-        case 4:
+        case deijkstra:
             puts("Deijkstra:");
             Deijkstra(F, start);
             break;
-        case 5:
+        case bellman:
             puts("Bellman-Ford:");
             BellmanFord(F, start);
             break;
-        case 6:
+        case floyd:
             puts("Floyd-Warshall:");
             FloydWarshall(F, 1);
             break;
-        case 0:
+        case exit:
             system("cls");
             break;
         default:
             continue;
         }
-        if (c == 0)
+
+        if (c == exit)
             break;
+
         printf("\nContinue?... ");
         c = _getch();
     }
 
-    //Завершение работы
     GraphDestroy(F);
     //*/
     _fcloseall();

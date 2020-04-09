@@ -1,9 +1,7 @@
 #ifndef ALGORITHMS_H
 #define ALGORITHMS_H
 
-#include "graphs_.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include "graphs.h"
 
 // Walk on the non-weighted graph
 void  BFS (GRAPH* G, NODE* start);
@@ -14,7 +12,7 @@ void    Deijkstra     (GRAPH* G, NODE* start);
 void    BellmanFord   (GRAPH* G, NODE* start);
 EDGE*** FloydWarshall (GRAPH* G, int output);
 
-
-void  GeneralInfo (GRAPH* G);
+// Other algorithms
+void  GeneralInfo(GRAPH* G);
 
 #endif
