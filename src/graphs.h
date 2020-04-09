@@ -8,7 +8,7 @@
 typedef struct node
 {
 			int    name;	  // ID  
-			int    value;     // not used yet
+			int    value;     // Kruskal use it
 				
 			int	   SIZE_S;    // size of sources
 			int	   SIZE_T;	  // size of targets

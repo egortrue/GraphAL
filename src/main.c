@@ -34,7 +34,7 @@ int main()
     ///* UX version
     GRAPH* F = FileRead(fr);
     NODE* start = F->nodes[0];
-    enum {exit, info, bfs, dfs, deijkstra, bellman, floyd, prim} c;
+    enum {exit, info, bfs, dfs, deijkstra, bellman, floyd, prim, kruskal} c;
     while (1)
     {
         system("cls");
@@ -42,7 +42,7 @@ int main()
 
         puts("\nWhat you want to see:");
         printf("1) General Info\n2) BFS\n3) DFS\n4) Deijkstra\n5) Bellman-Ford\n6) Floyd-Warshall\n");
-        printf("7) Prim's MST algorithm\n\n0)Exit");
+        printf("7) Prim's MST algorithm\n8) Kruskal's MST algorithm\n\n0)Exit");
 
         c = (int)_getch() - 48;
         system("cls");
@@ -77,7 +77,11 @@ int main()
             break;
         case prim:
             puts("Prim's minimum-spanning-tree:");
-            MST_Prim(F, start);
+            Prim(F, start);
+            break;
+        case kruskal:
+            puts("Kruskal's minimum-spanning-tree:");
+            Kruskal(F);
             break;
         case exit:
             system("cls");

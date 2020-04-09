@@ -70,7 +70,7 @@ void BFS(GRAPH* G, NODE* start)
 {
 	int V_NUM = G->SIZE_N;
 
-	// checked nodes array
+	// Checked nodes array
 	int check_num = 0;
 	NODE** checked = (NODE**)calloc(8 + V_NUM, sizeof(NODE*));
 	if (!checked) exit(EXIT_FAILURE);
@@ -98,7 +98,7 @@ void BFS(GRAPH* G, NODE* start)
 	printf("  Path: ");
 	while (Q.last != 0)
 	{
-		// current node as poped from queue
+		// Current node as poped from queue
 		NODE* cur = QueuePop(&Q);
 		int wave = CostGet(COST, cur, V_NUM);
 
@@ -113,17 +113,17 @@ void BFS(GRAPH* G, NODE* start)
 				CostSet(COST, neighbour, V_NUM, wave + 1);
 		}
 	
-		// if node not checked
+		// If node not checked
 		if (!Checker(checked, cur, check_num))
 		{
 			printf("%d ", cur->name); // Part of path
 
-			// append all the neighbours
+			// Append all the neighbours
 			for (int i = 0; i < cur->SIZE_T; i++)
 				if (cur->targets[i] != NULL)
 					QueueAdd(&Q, cur->targets[i]);
 
-			// check the node
+			// Check the node
 			checked[check_num++] = cur;
 		}
 	}
@@ -185,7 +185,7 @@ void DFS(GRAPH* G, NODE* start)
 {
 	int V_NUM = G->SIZE_N;
 
-	// checke node array
+	// Checked node array
 	int check_num = 0;
 	NODE** checked = (NODE**)calloc(8 + V_NUM, sizeof(NODE*));
 	if (!checked) exit(EXIT_FAILURE);
@@ -217,7 +217,7 @@ void DFS(GRAPH* G, NODE* start)
 		NODE* cur = StackPop(&S);
 		int wave = CostGet(COST, cur, V_NUM);
 
-		// update cost for every neighbour
+		// Update cost for every neighbour
 		for (int i = 0; i < cur->SIZE_T; i++)
 		{
 			NODE* neighbour = cur->targets[i];
@@ -227,17 +227,17 @@ void DFS(GRAPH* G, NODE* start)
 				CostSet(COST, neighbour, V_NUM, wave + 1);
 		}
 
-		// if node not checked
+		// If node not checked
 		if (!Checker(checked, cur, check_num))
 		{
 			printf("%d ", cur->name); // Part of path
 
-			// append all the neighbours
+			// Append all the neighbours
 			for (int i = 0; i < cur->SIZE_T; i++)
 				if (cur->targets[i] != NULL)
 					StackPush(&S, cur->targets[i]);
 
-			// check the node
+			// Check the node
 			checked[check_num++] = cur;
 		}
 	}
@@ -285,7 +285,7 @@ void Deijkstra(GRAPH* G, NODE* start)
 {
 	int V_NUM = G->SIZE_N;
 
-	// checked nodes array
+	// Checked nodes array
 	int check_num = 0;
 	NODE** checked = (NODE**)calloc(8 + V_NUM, sizeof(NODE*));
 	if (!checked) exit(EXIT_FAILURE);
@@ -483,7 +483,6 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 		return matrix;
 }
 
-
 //------------------------------------------------------------------------------------------------------
 // Minimum-spanning-tree (MST)
 
@@ -531,8 +530,7 @@ EDGE* FindRelevantEdge(GRAPH* G, GRAPH* tree)
 	}
 	return NULL;
 }
-
-void MST_Prim(GRAPH* G, NODE* root)
+void Prim(GRAPH* G, NODE* root)
 {
 	// Init the tree
 	GRAPH* tree = (GRAPH*)malloc(sizeof(GRAPH));
@@ -543,9 +541,9 @@ void MST_Prim(GRAPH* G, NODE* root)
 	tree->SIZE_N = 0;
 	tree->SIZE_E = 0;
 
+	// The algorithm
 	tree->nodes[tree->SIZE_N++] = root;
 	EDGE* new_edge = FindRelevantEdge(G, tree);
-
 	while (new_edge)
 	{
 		tree->nodes[tree->SIZE_N++] = new_edge->target;
@@ -553,12 +551,113 @@ void MST_Prim(GRAPH* G, NODE* root)
 		new_edge = FindRelevantEdge(G, tree);
 	}
 
-	GraphPrint(tree);
+	// Rezult
+	if (tree->SIZE_N != G->SIZE_N)
+		printf("\nThere are not exist spanning tree in this graph.\n");
+	else
+	{
+		GraphPrint(tree);
+		int weight = 0;
+		for (int i = 0; i < tree->SIZE_E; i++)
+			weight += tree->edges[i]->weight;
+		printf("\n  Weight of tree: %d\n", weight);
+	}
 
 	free(tree->edges);
 	free(tree->nodes);
 	free(tree);
 	//return tree;
+}
+
+int edges_compare(const void* val1, const void* val2)
+{
+	const EDGE* e1 = *((const EDGE**)val1);
+	const EDGE* e2 = *((const EDGE**)val2);
+
+	if (e1->weight < e2->weight)  return -1;
+	if (e1->weight == e2->weight) return  0;
+	if (e1->weight > e2->weight)  return  1;
+	return 0;
+}
+void Kruskal(GRAPH* G)
+{
+	// Init the tree
+	GRAPH* tree = (GRAPH*)malloc(sizeof(GRAPH));
+	if (!tree) exit(EXIT_FAILURE);
+	tree->nodes = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
+	tree->edges = (EDGE**)calloc(G->SIZE_E, sizeof(EDGE*));
+	if (!tree->nodes | !tree->edges) exit(EXIT_FAILURE);
+	tree->SIZE_N = 0;
+	tree->SIZE_E = 0;
+
+	// Remember old values of nodes
+	int* old_values = (int*)calloc(G->SIZE_N, sizeof(int));
+	if (!old_values) exit(EXIT_FAILURE);
+	for (int i = 0; i < G->SIZE_N; i++)
+		old_values[i] = G->nodes[i]->value;
+
+	// One node = one set with current id
+	for (int i = 0; i < G->SIZE_N; i++)
+		G->nodes[i]->value = i + 100;
+
+	// Sort the edges
+	EDGE** edges = (EDGE**)calloc(G->SIZE_E / 2, sizeof(EDGE*));
+	if (!edges) exit(EXIT_FAILURE);
+	for (int i = 0; i < G->SIZE_E / 2; i++)
+		edges[i] = G->edges[i];
+	qsort(edges, G->SIZE_E / 2, sizeof(EDGE*), edges_compare);
+
+	// Check the set's id
+	for (int i = 0; i < G->SIZE_E / 2; i++)
+	{
+		NODE* source = edges[i]->source;
+		NODE* target = edges[i]->target;
+
+		if (source->value != target->value)
+		{
+			// Update set's id
+			for (int j = 0; j < G->SIZE_N; j++)
+				if (G->nodes[j]->value == target->value)
+					G->nodes[j]->value = source->value;
+
+			// Append new edge to tree
+			tree->edges[tree->SIZE_E++] = edges[i];
+
+			// Append new nodes to tree
+			int source_skip = 0, target_skip = 0;
+			for (int j = 0; j < tree->SIZE_N; j++)
+			{
+				if (tree->nodes[j] == source) source_skip = 1;
+				if (tree->nodes[j] == target) target_skip = 1;
+			}
+			if (tree->SIZE_N < G->SIZE_N)
+			{
+				if (!source_skip) tree->nodes[tree->SIZE_N++] = source;
+				if (!target_skip) tree->nodes[tree->SIZE_N++] = target;
+			}
+		}
+	}
+
+	// Restore old values
+	for (int i = 0; i < G->SIZE_N; i++)
+		G->nodes[i]->value = old_values[i];
+
+	// Rezult
+	if (tree->SIZE_N != G->SIZE_N)
+		printf("\nThere are not exist spanning tree in this graph.\n");
+	else
+	{
+		GraphPrint(tree);
+		int weight = 0;
+		for (int i = 0; i < tree->SIZE_E; i++)
+			weight += tree->edges[i]->weight;
+		printf("\n  Weight of tree: %d\n", weight);
+	}
+
+	free(tree->edges);
+	free(tree->nodes);
+	free(tree);
+	// return tree;
 }
 
 //------------------------------------------------------------------------------------------------------

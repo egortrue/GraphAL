@@ -134,7 +134,7 @@ void  GraphPrint(const GRAPH* G)
 	for (; i < G->SIZE_N; i++)
 		if (G->nodes[i] != 0)
 			printf("(%2d)=%2d%s", G->nodes[i]->name, G->nodes[i]->value, ((i+1) % 7 != 0) ? " " : "\n\t ");
-	printf("%s", i == 0 ? "None\n\n" : "\n\n");
+	printf("%s", i == 0 ? "None\n" : "\n");
 	i = 0;
 	printf("  Edges: ");
 	for (; i < G->SIZE_E; i++)
