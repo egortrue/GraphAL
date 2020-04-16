@@ -9,8 +9,8 @@
 int main()
 {
     // Preparation
-    FILE* fr = FileOpen("input.txt", "r");
-    FILE* fw = FileOpen("output.txt", "w");
+    FILE* fr = FileOpen("data/input.txt", "r");
+    FILE* fw = FileOpen("data/output.txt", "w");
 
     /*
     // Debug version

@@ -43,8 +43,8 @@ int ConvertStrToInt(char* string)
 	return N * c;
 }
 
-// Parsing of string on 2 or 3 strings
-char** ObjectRead(FILE* fr, long file_size, char* string, int flag)
+// Parsing of string on 2 or 3 substrings
+char** ObjectRead(FILE* fr, char* string, int flag)
 {
 	// block of data which will be returned
 	char** obj = (char**)calloc(3, sizeof(char*));
@@ -79,52 +79,70 @@ char** ObjectRead(FILE* fr, long file_size, char* string, int flag)
 	return obj;
 }
 
-// this needs to FIX
+// --------------------------------------------------------
+// this is needed to FIX
 // because global var is a bad practice
+// this var counts number of nodes and edges
 int count = 0;
+// --------------------------------------------------------
 
-// Read the block of data which includes some strings ( block names: [nodes] and [edges] )
-char*** BlockRead(FILE* fr, char* str, long file_size)
+int StringFind(FILE* fr, char* str, long file_size)
 {
+	// Go to the begin of file
 	fseek(fr, 0, SEEK_SET);
+
+	// Buffer for checking
 	char* string = (char*)calloc(STR_LEN_MAX, sizeof(char));
 	if (!string) exit(EXIT_FAILURE);
 
-	// Skip the strings while it is not a block name 
+	// Skip the strings while it is not a neccessary string
 	while (strcmp(string, str))
 	{
+		// Read a string from file
 		fgets(string, STR_LEN_MAX, fr);
 
 		// if the end of file
 		if (ftell(fr) == file_size)
 		{
-			printf("\nERROR: the read file doesn't have key string: %s", str);
-			exit(EXIT_FAILURE);
+			free(string);
+			return 0;
 		}
 	}
 
+	free(string);
+	return 1;
+}
+
+// Read the block of data which includes some strings ( block names: [nodes] and [edges] )
+char*** BlockRead(FILE* fr, char* str, long file_size)
+{
 	// Parsing depends on block name
 	int flag = 0;
 	if (*(++str) == 'e') // 'e' means "edges"
 		flag = 1;
 
+	// Common buffer of all the data nodes/edges
 	char*** data = (char***)calloc(OBJ_COUNT_MAX, sizeof(char**));
 	if (!data) exit(EXIT_FAILURE);
 
-	count = 0; // this is global var | NEEDS TO FIX
+	count = 0; // This is global var **** NEED TO FIX *****
+
+	// Local buffer
+	char* string = (char*)calloc(STR_LEN_MAX, sizeof(char));
+	if (!string) exit(EXIT_FAILURE);
 
 	fgets(string, STR_LEN_MAX, fr);
 	while (*string == 0 || *string != 10)
 	{
 		// Parsing the current string
-		char** obj = ObjectRead(fr, file_size, string, flag);
+		char** obj = ObjectRead(fr, string, flag);
 		data[count++] = obj;
 
-		// if the end of file
+		// If the end of file
 		if (ftell(fr) == file_size)
 			break;
 
-		// read again
+		// Read again
 		fgets(string, STR_LEN_MAX, fr);
 	}
 
@@ -134,52 +152,46 @@ char*** BlockRead(FILE* fr, char* str, long file_size)
 
 GRAPH* FileRead(FILE* fr)
 {
-	// size of file (bytes)
+	// Size of file in bytes
 	fseek(fr, 0, SEEK_END);
 	long file_size = ftell(fr);
 
-	// block name
-	char* block = (char*)calloc(9, sizeof(char));
-	if (!block) exit(EXIT_FAILURE);
-
-	// read block [nodes]
-	char str1[] = "[nodes]\n";	 
-	char*** nodes_data = BlockRead(fr, memmove(block, &str1, 9), file_size);
+	// --------------------------------------------------------
+	// Read block [nodes]
+	if (!StringFind(fr, "[nodes]\n", file_size))
+	{
+		printf("\nERROR: the read file doesn't have key string: [nodes]\n");
+		exit(EXIT_FAILURE);
+	}
+	char*** nodes_data = BlockRead(fr, "[nodes]\n", file_size);
 	int nodes_num = count;
 
-	// read block [edges]
-	char str2[] = "[edges]\n";
-	char*** edges_data = BlockRead(fr, memmove(block, &str2, 9), file_size);
+	// --------------------------------------------------------
+	// Read block [edges]
+	if (!StringFind(fr, "[edges]\n", file_size))
+	{
+		printf("\nERROR: the read file doesn't have key string: [edges]\n");
+		exit(EXIT_FAILURE);
+	}
+	char*** edges_data = BlockRead(fr, "[edges]\n", file_size);
 	int edges_num = count;
 
-	free(block);
-	 
-	// Create the graph 
-	GRAPH* G = (GRAPH*)malloc(sizeof(GRAPH));
-	if (!G) exit(EXIT_FAILURE);
+	// --------------------------------------------------------
+	// Init the graph 
+	GRAPH* G = GraphSet(nodes_num, edges_num, StringFind(fr, "[directed]\n", file_size));
 
-	if (ORIENTED_GRAPH)
-		*G = GraphSet(nodes_num, edges_num);
-	else
-		*G = GraphSet(nodes_num, (edges_num << 1));
-
-
-	// nodes init
+	// --------------------------------------------------------
+	// Init the nodes
 	for (int i = 0; i < nodes_num; i++)
-	{
-		G->nodes[i] = (NODE*)malloc(sizeof(NODE));
-		if (!(G->nodes[i])) exit(EXIT_FAILURE);
+		G->nodes[i] = NodeSet(ConvertStrToInt(nodes_data[i][0]),
+							  ConvertStrToInt(nodes_data[i][1]),
+							  nodes_num,
+							  G->directed);
 
-		*G->nodes[i] = NodeSet(ConvertStrToInt(nodes_data[i][0]),
-							   ConvertStrToInt(nodes_data[i][1]),
-							   nodes_num);
-	}
-
-
-	// edges init
+	// --------------------------------------------------------
+	// Init the edges
 	NODE* source = NULL;
 	NODE* target = NULL;
-
 	for (int i = 0; i < edges_num; i++)
 	{
 		G->edges[i] = (EDGE*)malloc(sizeof(EDGE));
@@ -190,21 +202,10 @@ GRAPH* FileRead(FILE* fr)
 
 		*G->edges[i] = EdgeSet(source, target, ConvertStrToInt(edges_data[i][2]));
 		NodeLink(source, target);
+
 	}
 
-	if (!ORIENTED_GRAPH)
-		for (int i = edges_num; i < (edges_num << 1); i++)
-		{
-			G->edges[i] = (EDGE*)malloc(sizeof(EDGE));
-			if (!(G->edges[i])) exit(EXIT_FAILURE);
-
-			source = G->edges[i - edges_num]->target;
-			target = G->edges[i - edges_num]->source;
-
-			*G->edges[i] = EdgeSet(source, target, G->edges[i - edges_num]->weight);
-			NodeLink(source, target);
-		}
-
+	// --------------------------------------------------------
 	// Clear big blocks of data
 	for (int i = 0; i < nodes_num; i++)
 	{

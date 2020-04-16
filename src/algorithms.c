@@ -422,18 +422,16 @@ void FloydFree(GRAPH* G, EDGE*** matrix)
 }
 EDGE*** FloydWarshall(GRAPH* G, int output)
 {
-	int V_NUM = G->SIZE_N;
-
-	EDGE*** matrix = (EDGE***)calloc(V_NUM, sizeof(EDGE**));
+	// This is a matrix which includes weight between each two nodes
+	EDGE*** matrix = (EDGE***)calloc(G->SIZE_N, sizeof(EDGE**));
 	if (!matrix) exit(EXIT_FAILURE);
-
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
-		matrix[i] = (EDGE**)calloc(V_NUM, sizeof(EDGE*));
+		matrix[i] = (EDGE**)calloc(G->SIZE_N, sizeof(EDGE*));
 		if (!matrix[i]) exit(EXIT_FAILURE);
 
 		NODE* source = G->nodes[i];
-		for (int j = 0; j < V_NUM; j++)
+		for (int j = 0; j < G->SIZE_N; j++)
 		{
 			matrix[i][j] = (EDGE*)malloc(sizeof(EDGE));
 			if (!matrix[i][j]) exit(EXIT_FAILURE);
@@ -446,11 +444,11 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 		}
 	}
 
-
+	// --------------------------------------------------------
 	// The algorithm:
-	for (int k = 0; k < V_NUM; k++)
-		for (int i = 0; i < V_NUM; i++)
-			for (int j = 0; j < V_NUM; j++)
+	for (int k = 0; k < G->SIZE_N; k++)
+		for (int i = 0; i < G->SIZE_N; i++)
+			for (int j = 0; j < G->SIZE_N; j++)
 			{
 				int old_cost = matrix[i][j]->weight;
 				long long new_cost = (long long)matrix[i][k]->weight + (long long)matrix[k][j]->weight;
@@ -459,14 +457,23 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 					matrix[i][j]->weight = (int)new_cost;
 			}
 
+	// --------------------------------------------------------
 	// Rezult
 	if (output)
 	{
 		puts("");
-		for (int i = 0; i < V_NUM; i++)
+		printf("       ");
+		for (int i = 0; i < G->SIZE_N; i++)
+			printf("%3d  ", matrix[i][0]->source->name);
+		puts("");
+		printf("     ");
+		for (int i = 0; i < G->SIZE_N; i++)
+			printf("-----");
+		puts("");
+		for (int i = 0; i < G->SIZE_N; i++)
 		{
 			printf("  %3d| ", matrix[i][0]->source->name);
-			for (int j = 0; j < V_NUM; j++)
+			for (int j = 0; j < G->SIZE_N; j++)
 			{
 				if (matrix[i][j]->weight != INT_MAX)
 					printf("%3d  ", matrix[i][j]->weight);
@@ -541,6 +548,7 @@ void Prim(GRAPH* G, NODE* root)
 	tree->SIZE_N = 0;
 	tree->SIZE_E = 0;
 
+	// --------------------------------------------------------
 	// The algorithm
 	tree->nodes[tree->SIZE_N++] = root;
 	EDGE* new_edge = FindRelevantEdge(G, tree);
@@ -551,6 +559,7 @@ void Prim(GRAPH* G, NODE* root)
 		new_edge = FindRelevantEdge(G, tree);
 	}
 
+	// --------------------------------------------------------
 	// Rezult
 	if (tree->SIZE_N != G->SIZE_N)
 		printf("\nThere are not exist spanning tree in this graph.\n");
@@ -569,7 +578,7 @@ void Prim(GRAPH* G, NODE* root)
 	//return tree;
 }
 
-int edges_compare(const void* val1, const void* val2)
+int edges_compare(const void* val1, const void* val2) // for qsort
 {
 	const EDGE* e1 = *((const EDGE**)val1);
 	const EDGE* e2 = *((const EDGE**)val2);
@@ -590,25 +599,29 @@ void Kruskal(GRAPH* G)
 	tree->SIZE_N = 0;
 	tree->SIZE_E = 0;
 
+	// --------------------------------------------------------
 	// Remember old values of nodes
 	int* old_values = (int*)calloc(G->SIZE_N, sizeof(int));
 	if (!old_values) exit(EXIT_FAILURE);
 	for (int i = 0; i < G->SIZE_N; i++)
 		old_values[i] = G->nodes[i]->value;
 
+	// --------------------------------------------------------
 	// One node = one set with current id
 	for (int i = 0; i < G->SIZE_N; i++)
 		G->nodes[i]->value = i + 100;
 
+	// --------------------------------------------------------
 	// Sort the edges
-	EDGE** edges = (EDGE**)calloc(G->SIZE_E / 2, sizeof(EDGE*));
+	EDGE** edges = (EDGE**)calloc(G->SIZE_E, sizeof(EDGE*));
 	if (!edges) exit(EXIT_FAILURE);
-	for (int i = 0; i < G->SIZE_E / 2; i++)
+	for (int i = 0; i < G->SIZE_E; i++)
 		edges[i] = G->edges[i];
-	qsort(edges, G->SIZE_E / 2, sizeof(EDGE*), edges_compare);
+	qsort(edges, G->SIZE_E, sizeof(EDGE*), edges_compare);
 
+	// --------------------------------------------------------
 	// Check the set's id
-	for (int i = 0; i < G->SIZE_E / 2; i++)
+	for (int i = 0; i < G->SIZE_E; i++)
 	{
 		NODE* source = edges[i]->source;
 		NODE* target = edges[i]->target;
@@ -638,10 +651,12 @@ void Kruskal(GRAPH* G)
 		}
 	}
 
+	// --------------------------------------------------------
 	// Restore old values
 	for (int i = 0; i < G->SIZE_N; i++)
 		G->nodes[i]->value = old_values[i];
 
+	// --------------------------------------------------------
 	// Rezult
 	if (tree->SIZE_N != G->SIZE_N)
 		printf("\nThere are not exist spanning tree in this graph.\n");
@@ -662,44 +677,44 @@ void Kruskal(GRAPH* G)
 
 //------------------------------------------------------------------------------------------------------
 // General Info about Graph (Radius, Diameter, Center, etc.)
-
 void GeneralInfo(GRAPH* G)
 {
-	int V_NUM = G->SIZE_N;
-
 	EDGE*** matrix = FloydWarshall(G, 0);
-	int Radius = INT_MAX, Diametr = INT_MIN;
+	int Radius = INT_MAX, Diameter = INT_MIN;
 
 	typedef struct eccs { NODE* node; int ecc; } ECCs;
-	ECCs* arr = (ECCs*)calloc(V_NUM, sizeof(ECCs));
+	ECCs* arr = (ECCs*)calloc(G->SIZE_N, sizeof(ECCs));
 	if (!arr) exit(EXIT_FAILURE);
 
-	for (int i = 0; i < V_NUM; i++)
+	// --------------------------------------------------------
+	// Define the eccentricities of each node
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		int cur_ecc = INT_MIN;
-		for (int j = 0; j < V_NUM; j++)
+		for (int j = 0; j < G->SIZE_N; j++)
 			if (matrix[i][j]->weight > cur_ecc && matrix[i][j]->weight != INT_MAX)
 				cur_ecc = matrix[i][j]->weight;
 		arr[i] = (ECCs){ matrix[i][0]->source, cur_ecc };
 	}
 
-	for (int i = 0; i < V_NUM; i++)
+	// --------------------------------------------------------
+	// Define the radius and diameter
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
-		//printf("%d: %d\n", arr[i].node->name, arr[i].ecc);
 		if (arr[i].ecc < Radius)
 			Radius = arr[i].ecc;
-		if (arr[i].ecc > Diametr)
-			Diametr = arr[i].ecc;
+		if (arr[i].ecc > Diameter)
+			Diameter = arr[i].ecc;
 	}
 
-	printf("  This is %s\n", (ORIENTED_GRAPH) ? "Oriented Graph" : "Non-Oriented Graph");
-	printf("  Radius: %d\n  Diameter: %d\n", Radius, Diametr);
+	// --------------------------------------------------------
+	// Rezult
+	printf("  This is %s graph\n", (G->directed) ? "directed" : "undirected");
+	printf("  Radius: %d\n  Diameter: %d\n", Radius, Diameter);
 	printf("  Center: ");
-	for (int i = 0; i < V_NUM; i++)
-	{
+	for (int i = 0; i < G->SIZE_N; i++)
 		if (arr[i].ecc == Radius)
 			printf("(%d) ", arr[i].node->name);
-	}
 	puts("");
 
 	free(arr);

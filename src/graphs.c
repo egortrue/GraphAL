@@ -2,14 +2,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-NODE  NodeSet(int name, int val, int SIZE_)
+NODE* NodeSet(int name, int val, int SIZE_, int directed)
 {
-	NODE V = { name,
-			   val,
-			   SIZE_,
-			   SIZE_,
-			   (NODE**)calloc(SIZE_, sizeof(NODE*)),
-			   (NODE**)calloc(SIZE_, sizeof(NODE*)) };
+	NODE* V = (NODE*)malloc(sizeof(NODE));
+	if (!V) exit(EXIT_FAILURE);
+	if (!directed)
+	{
+		V->sources = (NODE**)calloc(SIZE_, sizeof(NODE*));
+		if (!V->sources) exit(EXIT_FAILURE);
+	}
+	else
+		V->sources = NULL;
+	V->targets = (NODE**)calloc(SIZE_, sizeof(NODE*));
+	if (!V->targets) exit(EXIT_FAILURE);
+
+	V->name = name;
+	V->SIZE_S = SIZE_;
+	V->SIZE_T = SIZE_;
 
 	return V;
 }
@@ -36,8 +45,9 @@ NODE* NodeAddress(NODE** arr, int name, int arr_size)
 
 void  NodeIsolate(NODE* V)
 {
-	for (int i = 0; i < V->SIZE_S; i++)
-		V->sources[i] = NULL;
+	if (V->sources)
+		for (int i = 0; i < V->SIZE_S; i++)
+			V->sources[i] = NULL;
 	for (int i = 0; i < V->SIZE_T; i++)
 		V->targets[i] = NULL;
 	return ;
@@ -47,18 +57,20 @@ void  NodePrint(const NODE* V)
 {
 	printf("NODE %d\n", V->name);
 	printf("  Value:   %d\n", V->value);
-	printf("  Sources: ");
-
 	int k = 0;
-	for (int i = 0; i < V->SIZE_S; i++)
-		if (V->sources[i] != 0)
-		{
-			printf("%d ", V->sources[i]->name);
-			k++;
-		}
-	printf("%s", k == 0 ? "None\n" : "\n");
-	printf("  Targets: ");
+	if (V->sources)
+	{
+		printf("  Sources: ");
+		for (int i = 0; i < V->SIZE_S; i++)
+			if (V->sources[i] != 0)
+			{
+				printf("%d ", V->sources[i]->name);
+				k++;
+			}
+		printf("%s", k == 0 ? "None\n" : "\n");
+	}
 
+	printf("  Targets: ");
 	k = 0;
 	for (int i = 0; i < V->SIZE_T; i++)
 		if (V->targets[i] != 0)
@@ -111,20 +123,28 @@ EDGE EdgeSet(NODE* source, NODE* target, int weight)
 
 void EdgePrint(const EDGE* E)
 {
-	printf("EDGE: (%d->%d) ", E->source->name, E->target->name);
+	printf("EDGE: (%d<->%d) ", E->source->name, E->target->name);
 	printf("Weight: %d\n", E->weight);
 }
 
 //------------------------------------------------------------------------------------------------------
 
-GRAPH GraphSet(int num_nodes, int num_edges)
+GRAPH* GraphSet(int nodes_num, int edges_num, short directed)
 {
-	GRAPH G = {	num_nodes,
-				num_edges,
-				(NODE**)calloc(num_nodes, sizeof(NODE*)),
-			    (EDGE**)calloc(num_edges, sizeof(EDGE*)) };
+	GRAPH* G = (GRAPH*)malloc(sizeof(GRAPH));
+	if (!G) exit(EXIT_FAILURE);
+	G->nodes = (NODE**)calloc(nodes_num, sizeof(NODE*));
+	if (!G->nodes) exit(EXIT_FAILURE);
+	G->edges = (EDGE**)calloc(edges_num, sizeof(EDGE*));
+	if (!G->nodes) exit(EXIT_FAILURE);
+	
+	G->SIZE_N = nodes_num;
+	G->SIZE_E = edges_num;
+	G->directed = directed;
+
 	return G;
 }
+
 
 void  GraphPrint(const GRAPH* G)
 {
@@ -139,9 +159,9 @@ void  GraphPrint(const GRAPH* G)
 	printf("  Edges: ");
 	for (; i < G->SIZE_E; i++)
 		if (G->edges[i] != 0)
-			printf("(%2d->%2d)=%-2d%s", G->edges[i]->source->name, G->edges[i]->target->name,
-										G->edges[i]->weight,
-										((i+1) % 5 != 0) ? " " : "\n\t ");
+			printf("(%2d<->%2d)=%-2d%s", G->edges[i]->source->name, G->edges[i]->target->name,
+										 G->edges[i]->weight,
+										 ((i+1) % 5 != 0) ? " " : "\n\t ");
 	printf("%s", i == 0 ? "None\n\n" : "\n");
 }
 
@@ -150,7 +170,7 @@ void GraphDestroy(GRAPH* G)
 	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		NodeIsolate(G->nodes[i]);
-		free(G->nodes[i]->sources);
+		if (!G->directed) free(G->nodes[i]->sources);
 		free(G->nodes[i]->targets);
 		free(G->nodes[i]);
 	}
@@ -165,7 +185,12 @@ void GraphDestroy(GRAPH* G)
 int  GraphEdgeWeight(GRAPH* G, NODE* V1, NODE* V2)
 {
 	for (int i = 0; i < G->SIZE_E; i++)
+	{
 		if (G->edges[i]->source == V1 && G->edges[i]->target == V2)
 			return G->edges[i]->weight;
+		if (G->edges[i]->source == V2 && G->edges[i]->target == V1 && G->directed == 0)
+			return G->edges[i]->weight;
+	}
+
 	return INT_MAX;
 } 
