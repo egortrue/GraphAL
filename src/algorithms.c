@@ -68,31 +68,32 @@ NODE* QueuePop   (QUEUE* Q)
 
 void BFS(GRAPH* G, NODE* start)
 {
-	int V_NUM = G->SIZE_N;
-
 	// Checked nodes array
 	int check_num = 0;
-	NODE** checked = (NODE**)calloc(8 + V_NUM, sizeof(NODE*));
+	NODE** checked = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
 	if (!checked) exit(EXIT_FAILURE);
 
-	EDGE** COST = (EDGE**)calloc(V_NUM, sizeof(EDGE*));
+	// --------------------------------------------------------
+
+	EDGE** COST = (EDGE**)calloc(G->SIZE_N, sizeof(EDGE*));
 	if (!COST) exit(EXIT_FAILURE);
 
 	// begin -> any = inf | begin -> begin = 0
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		COST[i] = (EDGE*)malloc(sizeof(EDGE));
 		if (!COST[i]) exit(EXIT_FAILURE);
 
 		NODE* n = G->nodes[i];
 		if (n == start)
-			*COST[i] = EdgeSet(start, n, 0);
+			COST[i] = EdgeSet(start, n, 0);
 		else
-			*COST[i] = EdgeSet(start, n, INT_MAX);
+			COST[i] = EdgeSet(start, n, INT_MAX);
 	}	
 
+	// --------------------------------------------------------
 	// The algorithm:
-	QUEUE Q = QueueSet(V_NUM * V_NUM);
+	QUEUE Q = QueueSet(G->SIZE_N * G->SIZE_N);
 	QueueAdd(&Q, start);
 
 	printf("  Path: ");
@@ -100,7 +101,7 @@ void BFS(GRAPH* G, NODE* start)
 	{
 		// Current node as poped from queue
 		NODE* cur = QueuePop(&Q);
-		int wave = CostGet(COST, cur, V_NUM);
+		int wave = CostGet(COST, cur, G->SIZE_N);
 
 		// Update the costs for every neighbour
 		for (int i = 0; i < cur->SIZE_T; i++)
@@ -109,8 +110,8 @@ void BFS(GRAPH* G, NODE* start)
 			//if (neighbour == NULL || Checker(checked, neighbour, check_num)) continue;
 			if (neighbour == NULL) continue;
 
-			if ( (wave + 1) < CostGet(COST, neighbour, V_NUM))
-				CostSet(COST, neighbour, V_NUM, wave + 1);
+			if ( (wave + 1) < CostGet(COST, neighbour, G->SIZE_N))
+				CostSet(COST, neighbour, G->SIZE_N, wave + 1);
 		}
 	
 		// If node not checked
@@ -130,7 +131,7 @@ void BFS(GRAPH* G, NODE* start)
 
 	// Rezult
 	puts("");
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		printf("  %d->%d = ", start->name, COST[i]->target->name);		
 		if (COST[i]->weight != INT_MAX)
@@ -141,7 +142,7 @@ void BFS(GRAPH* G, NODE* start)
 
 	free(checked);
 	free(Q.queue);
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 		free(COST[i]);
 	free(COST);
 }
@@ -183,39 +184,37 @@ NODE* StackPop  (STACK* S)
 
 void DFS(GRAPH* G, NODE* start)
 {
-	int V_NUM = G->SIZE_N;
-
 	// Checked node array
 	int check_num = 0;
-	NODE** checked = (NODE**)calloc(8 + V_NUM, sizeof(NODE*));
+	NODE** checked = (NODE**)calloc(8 + G->SIZE_N, sizeof(NODE*));
 	if (!checked) exit(EXIT_FAILURE);
 
-	EDGE** COST = (EDGE**)calloc(V_NUM, sizeof(EDGE*));
+	EDGE** COST = (EDGE**)calloc(G->SIZE_N, sizeof(EDGE*));
 	if (!COST) exit(EXIT_FAILURE);
 
 	// begin -> any = inf | begin -> begin = 0
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		COST[i] = (EDGE*)malloc(sizeof(EDGE));
 		if (!COST[i]) exit(EXIT_FAILURE);
 
 		NODE* n = G->nodes[i];
 		if (n == start)
-			*COST[i] = EdgeSet(start, n, 0);
+			COST[i] = EdgeSet(start, n, 0);
 		else
-			*COST[i] = EdgeSet(start, n, INT_MAX);
+			COST[i] = EdgeSet(start, n, INT_MAX);
 	}
 
 
 	// The algorithm:
-	STACK S = StackSet(V_NUM * V_NUM);
+	STACK S = StackSet(G->SIZE_N * G->SIZE_N);
 	StackPush(&S, start);
 
 	printf("  Path: ");
 	while (S.last != 0)
 	{
 		NODE* cur = StackPop(&S);
-		int wave = CostGet(COST, cur, V_NUM);
+		int wave = CostGet(COST, cur, G->SIZE_N);
 
 		// Update cost for every neighbour
 		for (int i = 0; i < cur->SIZE_T; i++)
@@ -223,8 +222,8 @@ void DFS(GRAPH* G, NODE* start)
 			NODE* neighbour = cur->targets[i];
 			if (neighbour == NULL) continue;
 
-			if ( (wave + 1) < CostGet(COST, neighbour, V_NUM) )
-				CostSet(COST, neighbour, V_NUM, wave + 1);
+			if ( (wave + 1) < CostGet(COST, neighbour, G->SIZE_N) )
+				CostSet(COST, neighbour, G->SIZE_N, wave + 1);
 		}
 
 		// If node not checked
@@ -245,7 +244,7 @@ void DFS(GRAPH* G, NODE* start)
 
 	// Rezult
 	puts("");
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		printf("  %d->%d = ", start->name, COST[i]->target->name);
 		if (COST[i]->weight != INT_MAX)
@@ -257,7 +256,7 @@ void DFS(GRAPH* G, NODE* start)
 
 	free(checked);
 	free(S.stack);
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 		free(COST[i]);
 	free(COST);
 }
@@ -283,39 +282,37 @@ NODE* FindLowestCostNode(EDGE** cost, NODE** processed, int size)
 }
 void Deijkstra(GRAPH* G, NODE* start)
 {
-	int V_NUM = G->SIZE_N;
-
 	// Checked nodes array
 	int check_num = 0;
-	NODE** checked = (NODE**)calloc(8 + V_NUM, sizeof(NODE*));
+	NODE** checked = (NODE**)calloc(8 + G->SIZE_N, sizeof(NODE*));
 	if (!checked) exit(EXIT_FAILURE);
 
-	EDGE** COST = (EDGE**)calloc(V_NUM, sizeof(EDGE*));
+	EDGE** COST = (EDGE**)calloc(G->SIZE_N, sizeof(EDGE*));
 	if (!COST) exit(EXIT_FAILURE);
 
 	// begin -> any = inf | begin -> begin = 0
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		COST[i] = (EDGE*)malloc(sizeof(EDGE));
 		if (!COST[i]) exit(EXIT_FAILURE);
 
 		NODE* n = G->nodes[i];
 		if (n == start)
-			*COST[i] = EdgeSet(start, n, 0);
+			COST[i] = EdgeSet(start, n, 0);
 		else
-			*COST[i] = EdgeSet(start, n, INT_MAX);
+			COST[i] = EdgeSet(start, n, INT_MAX);
 	}
 
 	// The algorithm:
 	int cur_cost = 0, new_cost = 0;
-	NODE* cur = FindLowestCostNode(COST, checked, V_NUM);
+	NODE* cur = FindLowestCostNode(COST, checked, G->SIZE_N);
 
 	printf("  Path: ");
 	while (cur != NULL)
 	{
 		printf("%d ", cur->name); // Part of path
 
-		cur_cost = CostGet(COST, cur, V_NUM);
+		cur_cost = CostGet(COST, cur, G->SIZE_N);
 
 		for (int i = 0; i < cur->SIZE_T; i++)
 		{
@@ -325,18 +322,18 @@ void Deijkstra(GRAPH* G, NODE* start)
 			NODE* neighbour = cur->targets[i];
 
 			new_cost = cur_cost + GraphEdgeWeight(G, cur, neighbour);
-			if (new_cost < CostGet(COST, neighbour, V_NUM))
-				CostSet(COST, neighbour, V_NUM, new_cost);
+			if (new_cost < CostGet(COST, neighbour, G->SIZE_N))
+				CostSet(COST, neighbour, G->SIZE_N, new_cost);
 
 		}
 
 		checked[check_num++] = cur;
-		cur = FindLowestCostNode(COST, checked, V_NUM);
+		cur = FindLowestCostNode(COST, checked, G->SIZE_N);
 	}
 
 	// Rezult
 	puts("");
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		printf("  %d->%d = ", start->name, COST[i]->target->name);
 		if (COST[i]->weight != INT_MAX)
@@ -346,7 +343,7 @@ void Deijkstra(GRAPH* G, NODE* start)
 	}
 
 	free(checked);
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 		free(COST[i]);
 	free(COST);
 }
@@ -367,32 +364,30 @@ void Relax(EDGE** COST, EDGE* E, GRAPH* G, int size)
 }
 void BellmanFord(GRAPH* G, NODE* start)
 {	
-	int V_NUM = G->SIZE_N;
-
-	EDGE** COST = (EDGE**)calloc(V_NUM, sizeof(EDGE*));
+	EDGE** COST = (EDGE**)calloc(G->SIZE_N, sizeof(EDGE*));
 	if (!COST) exit(EXIT_FAILURE);
 
 	// begin -> any = inf | begin -> begin = 0
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		COST[i] = (EDGE*)malloc(sizeof(EDGE));
 		if (!COST[i]) exit(EXIT_FAILURE);
 
 		NODE* n = G->nodes[i];
 		if (n == start)
-			*COST[i] = EdgeSet(start, n, 0);
+			COST[i] = EdgeSet(start, n, 0);
 		else
-			*COST[i] = EdgeSet(start, n, INT_MAX);
+			COST[i] = EdgeSet(start, n, INT_MAX);
 	}
 
 	// The algorithm:
-	for (int iter = 1; iter < V_NUM; iter++)
+	for (int iter = 1; iter < G->SIZE_N; iter++)
 		for (int i = 0; i < G->SIZE_E; i++)
-			Relax(COST, G->edges[i], G, V_NUM);
+			Relax(COST, G->edges[i], G, G->SIZE_N);
 
 
 	// Rezult
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		printf("  %d->%d = ", start->name, COST[i]->target->name);
 		if (COST[i]->weight != INT_MAX)
@@ -402,7 +397,7 @@ void BellmanFord(GRAPH* G, NODE* start)
 	}
 
 
-	for (int i = 0; i < V_NUM; i++)
+	for (int i = 0; i < G->SIZE_N; i++)
 		free(COST[i]);
 	free(COST);
 }
@@ -438,9 +433,9 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 
 			NODE* target = G->nodes[j];
 			if (i == j)
-				*matrix[i][j] = EdgeSet(source, target, 0);
+				matrix[i][j] = EdgeSet(source, target, 0);
 			else
-				*matrix[i][j] = EdgeSet(source, target, GraphEdgeWeight(G, source, target));
+				matrix[i][j] = EdgeSet(source, target, GraphEdgeWeight(G, source, target));
 		}
 	}
 
@@ -531,9 +526,7 @@ EDGE* FindRelevantEdge(GRAPH* G, GRAPH* tree)
 	for (int i = 0; i < G->SIZE_E; i++)
 	{
 		EDGE* edge = G->edges[i];
-		if (edge->source == source_general &&
-			edge->target == target_general)
-			return edge;
+		if (edge->target == target_general) return edge;
 	}
 	return NULL;
 }

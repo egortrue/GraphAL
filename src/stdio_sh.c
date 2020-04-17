@@ -79,13 +79,6 @@ char** ObjectRead(FILE* fr, char* string, int flag)
 	return obj;
 }
 
-// --------------------------------------------------------
-// this is needed to FIX
-// because global var is a bad practice
-// this var counts number of nodes and edges
-int count = 0;
-// --------------------------------------------------------
-
 int StringFind(FILE* fr, char* str, long file_size)
 {
 	// Go to the begin of file
@@ -114,7 +107,7 @@ int StringFind(FILE* fr, char* str, long file_size)
 }
 
 // Read the block of data which includes some strings ( block names: [nodes] and [edges] )
-char*** BlockRead(FILE* fr, char* str, long file_size)
+char*** BlockRead(FILE* fr, char* str, long file_size, int* count)
 {
 	// Parsing depends on block name
 	int flag = 0;
@@ -125,7 +118,7 @@ char*** BlockRead(FILE* fr, char* str, long file_size)
 	char*** data = (char***)calloc(OBJ_COUNT_MAX, sizeof(char**));
 	if (!data) exit(EXIT_FAILURE);
 
-	count = 0; // This is global var **** NEED TO FIX *****
+	*count = 0; // counter of objects
 
 	// Local buffer
 	char* string = (char*)calloc(STR_LEN_MAX, sizeof(char));
@@ -136,7 +129,7 @@ char*** BlockRead(FILE* fr, char* str, long file_size)
 	{
 		// Parsing the current string
 		char** obj = ObjectRead(fr, string, flag);
-		data[count++] = obj;
+		data[(*count)++] = obj;
 
 		// If the end of file
 		if (ftell(fr) == file_size)
@@ -156,25 +149,28 @@ GRAPH* FileRead(FILE* fr)
 	fseek(fr, 0, SEEK_END);
 	long file_size = ftell(fr);
 
+	int count_buf = 0;
 	// --------------------------------------------------------
 	// Read block [nodes]
+	// nodes_data[i] <===> [ name, value ]
 	if (!StringFind(fr, "[nodes]\n", file_size))
 	{
 		printf("\nERROR: the read file doesn't have key string: [nodes]\n");
 		exit(EXIT_FAILURE);
 	}
-	char*** nodes_data = BlockRead(fr, "[nodes]\n", file_size);
-	int nodes_num = count;
+	char*** nodes_data = BlockRead(fr, "[nodes]\n", file_size, &count_buf);
+	int nodes_num = count_buf;
 
 	// --------------------------------------------------------
 	// Read block [edges]
+	// edges_data[i] <===> [ source, target, weight ]
 	if (!StringFind(fr, "[edges]\n", file_size))
 	{
 		printf("\nERROR: the read file doesn't have key string: [edges]\n");
 		exit(EXIT_FAILURE);
 	}
-	char*** edges_data = BlockRead(fr, "[edges]\n", file_size);
-	int edges_num = count;
+	char*** edges_data = BlockRead(fr, "[edges]\n", file_size, &count_buf);
+	int edges_num = count_buf;
 
 	// --------------------------------------------------------
 	// Init the graph 
@@ -184,9 +180,7 @@ GRAPH* FileRead(FILE* fr)
 	// Init the nodes
 	for (int i = 0; i < nodes_num; i++)
 		G->nodes[i] = NodeSet(ConvertStrToInt(nodes_data[i][0]),
-							  ConvertStrToInt(nodes_data[i][1]),
-							  nodes_num,
-							  G->directed);
+							  ConvertStrToInt(nodes_data[i][1]));
 
 	// --------------------------------------------------------
 	// Init the edges
@@ -194,15 +188,10 @@ GRAPH* FileRead(FILE* fr)
 	NODE* target = NULL;
 	for (int i = 0; i < edges_num; i++)
 	{
-		G->edges[i] = (EDGE*)malloc(sizeof(EDGE));
-		if (!(G->edges[i])) exit(EXIT_FAILURE);
+		source = NodeGetAddress(G->nodes, ConvertStrToInt(edges_data[i][0]), nodes_num);
+		target = NodeGetAddress(G->nodes, ConvertStrToInt(edges_data[i][1]), nodes_num);
 
-		source = NodeAddress(G->nodes, ConvertStrToInt(edges_data[i][0]), nodes_num);
-		target = NodeAddress(G->nodes, ConvertStrToInt(edges_data[i][1]), nodes_num);
-
-		*G->edges[i] = EdgeSet(source, target, ConvertStrToInt(edges_data[i][2]));
-		NodeLink(source, target);
-
+		G->edges[i] = EdgeSet(source, target, ConvertStrToInt(edges_data[i][2]));
 	}
 
 	// --------------------------------------------------------
