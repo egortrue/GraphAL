@@ -6,7 +6,7 @@
 typedef struct node
 {
 	int name;  // ID  
-	int value; // Kruskal use it
+	int value; // only Kruskal use it
 }NODE;
 
 NODE* NodeSet        (int name, int val);
@@ -37,11 +37,14 @@ typedef struct graph
 	unsigned char directed : 1;
 }GRAPH;
 
-GRAPH* GraphSet        (int nodes_num, int edges_num, int directed);
- void  GraphPrint      (const GRAPH* G);
- void  GraphDestroy    (GRAPH* G);
-  int  GraphEdgeWeight (GRAPH* G, NODE* V1, NODE* V2);  // return weight between two nodes if it exist
+GRAPH* GraphSet           (int nodes_num, int edges_num, int info);
+ void  GraphPrint         (const GRAPH* G);
+ void  GraphDestroy       (GRAPH* G);
 
+
+int    GraphGetEdgeWeight     (GRAPH* G, NODE* V1, NODE* V2);  // return weight between two nodes if it exist
+EDGE*  GraphGetEdge           (GRAPH* G, NODE* V1, NODE* V2);
+NODE** GraphGetNodeNeighbours (GRAPH* G, NODE* node);
 //------------------------------------------------------------------------------------------------------
 
 #endif

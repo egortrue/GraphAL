@@ -1,15 +1,14 @@
-#include "graphs.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "graphs.h"
 
 NODE* NodeSet(int name, int val)
 {
 	NODE* V = (NODE*)malloc(sizeof(NODE));
 	if (!V) exit(EXIT_FAILURE);
-
 	V->name = name;
 	V->value = val;
-
 	return V;
 }
 
@@ -37,13 +36,13 @@ EDGE* EdgeSet(NODE* source, NODE* target, int weight)
 
 void EdgePrint(const EDGE* E)
 {
-	printf("EDGE: (%d<->%d) ", E->source->name, E->target->name);
+	printf("EDGE: (%c<->%c) ", E->source->name + 64, E->target->name + 64);
 	printf("Weight: %d\n", E->weight);
 }
 
 //------------------------------------------------------------------------------------------------------
 
-GRAPH* GraphSet(int nodes_num, int edges_num, int directed)
+GRAPH* GraphSet(int nodes_num, int edges_num, int info)
 {
 	GRAPH* G = (GRAPH*)malloc(sizeof(GRAPH));
 	if (!G) exit(EXIT_FAILURE);
@@ -54,7 +53,7 @@ GRAPH* GraphSet(int nodes_num, int edges_num, int directed)
 	
 	G->SIZE_N = nodes_num;
 	G->SIZE_E = edges_num;
-	G->directed = directed & 1;
+	G->directed = info & 1;
 
 	return G;
 }
@@ -62,17 +61,17 @@ GRAPH* GraphSet(int nodes_num, int edges_num, int directed)
 void GraphPrint(const GRAPH* G)
 {
 	int i = 0;
-	printf("GRAPH\n");
+	printf("GRAPH (%s)\n", G->directed ? "directed" : "undirected");
 	printf("  Nodes: ");
 	for (; i < G->SIZE_N; i++)
 		if (G->nodes[i] != 0)
-			printf("(%2d)=%2d%s", G->nodes[i]->name, G->nodes[i]->value, ((i+1) % 7 != 0) ? " " : "\n\t ");
+			printf("(%2c)=%2d%s", G->nodes[i]->name + 64, G->nodes[i]->value, ((i+1) % 7 != 0) ? " " : "\n\t ");
 	printf("%s", i == 0 ? "None\n" : "\n");
 	i = 0;
 	printf("  Edges: ");
 	for (; i < G->SIZE_E; i++)
 		if (G->edges[i] != 0)
-			printf("(%2d<->%2d)=%-2d%s", G->edges[i]->source->name, G->edges[i]->target->name,
+			printf("(%2c<->%2c)=%-2d%s", G->edges[i]->source->name + 64, G->edges[i]->target->name + 64,
 										 G->edges[i]->weight,
 										 ((i+1) % 5 != 0) ? " " : "\n\t ");
 	printf("%s", i == 0 ? "None\n\n" : "\n");
@@ -89,7 +88,7 @@ void GraphDestroy(GRAPH* G)
 	free(G);
 }
 
-int GraphEdgeWeight(GRAPH* G, NODE* V1, NODE* V2)
+int GraphGetEdgeWeight(GRAPH* G, NODE* V1, NODE* V2)
 {
 	for (int i = 0; i < G->SIZE_E; i++)
 	{
@@ -100,3 +99,43 @@ int GraphEdgeWeight(GRAPH* G, NODE* V1, NODE* V2)
 	}
 	return INT_MAX;
 } 
+
+EDGE* GraphGetEdge(GRAPH* G, NODE* V1, NODE* V2)
+{
+	for (int i = 0; i < G->SIZE_E; i++)
+	{
+		if (G->edges[i]->source == V1 && G->edges[i]->target == V2)
+			return G->edges[i];
+		if (G->edges[i]->source == V2 && G->edges[i]->target == V1 && G->directed == 0)
+			return G->edges[i];
+	}
+	return NULL;
+}
+
+NODE** GraphGetNodeNeighbours(GRAPH* G, NODE* node)
+{
+	NODE** buffer = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
+	if (!buffer) exit(EXIT_FAILURE);
+
+	int count = 0;
+	for (int i = 0; i < G->SIZE_E; i++)
+	{
+		if (G->edges[i]->source == node)
+			buffer[count++] = G->edges[i]->target;
+		else if ((G->edges[i]->target == node && G->directed == 0))
+			buffer[count++] = G->edges[i]->source;
+	}
+
+	if (!count)
+	{
+		free(buffer);
+		return NULL;
+	}
+		
+	NODE** neighbours = (NODE**)calloc(count, sizeof(NODE*));
+	if (!neighbours) exit(EXIT_FAILURE);
+	for (int i = 0; i < count; i++)
+		neighbours[i] = buffer[i];
+	free(buffer);
+	return neighbours;
+}

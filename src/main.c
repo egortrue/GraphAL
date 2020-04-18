@@ -12,9 +12,7 @@ int main()
     FILE* fr = FileOpen("data/input.txt", "r");
     FILE* fw = FileOpen("data/output.txt", "w");
 
-    /*
-    // Debug version
-    // *for memory leak*
+    /* Memory leaks test
     while (1) 
     {
         GRAPH* F = FileRead(fr);
@@ -26,7 +24,8 @@ int main()
         Deijkstra(F, start);
         BellmanFord(F, start);
         FloydWarshall(F, 1);
-        MST_Prim(F, start);
+        Prim(F, start);
+        Kruskal(F);
         GraphDestroy(F);
     } 
     */
@@ -99,6 +98,7 @@ int main()
 
     GraphDestroy(F);
     //*/
+    
     _fcloseall();
 	return 0;
 }

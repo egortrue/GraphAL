@@ -1,7 +1,8 @@
-#include "stdio_sh.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "stdio_sh.h"
 
 int ArgLineCheck(const int given)
 {
