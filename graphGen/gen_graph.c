@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "../graphData/AMatrix.h"
 
-void printGraph(int **graph, int v, FILE *output){
-
+void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
+{
     fprintf(output, "Adjacency matrix: \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
-            fprintf(output, "%d ", graph[i][j]);
+            fprintf(output, "%d ", graph->adj[i][j]);
         }
         fprintf(output, "\n");
     }
@@ -17,7 +18,7 @@ void printGraph(int **graph, int v, FILE *output){
     fprintf(output, "\nAdjacency list: \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
-            if (graph[i][j] == 1) {
+            if (graph->adj[i][j] == 1) {
                 if (flag == 0) {
                     fprintf(output, "%d - ", i);
                     flag = 1;
@@ -34,13 +35,14 @@ void printGraph(int **graph, int v, FILE *output){
     fprintf(output, "\nVertex List \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
-            if (graph[i][j] == 1)
+            if (graph->adj[i][j] == 1)
                 fprintf(output, "%d %d \n", i, j);
         }
     }
 }
 
-void randomGraph(int e, int v, int **graph){
+void RandomGraph(int e, int v, AMATRIX *graph)
+{
     int i, j;
     int counter = 0;
     srand(time(0));
@@ -49,16 +51,17 @@ void randomGraph(int e, int v, int **graph){
         i = rand() % v;
         j = rand() % v;
 
-        if ((graph[i][j] != 1) && (i != j)){
-            graph[i][j] = 1;
-            graph[j][i] = 1;
+        if ((graph->adj[i][j] != 1) && (i != j)){
+            graph->adj[i][j] = 1;
+            graph->adj[j][i] = 1;
             counter++;
         }
     }
 }
 
-void randomorientedGraph(int e, int v, int **graph){
-    int i, j;
+void RandomOrientedGraph(int e, int v, AMATRIX *graph)
+{
+    int i = 0, j = 0;
     int counter = 0;
     srand(time(0));
     while (counter < e){
@@ -66,24 +69,24 @@ void randomorientedGraph(int e, int v, int **graph){
         i = rand() % v;
         j = rand() % v;
 
-        if ((graph[i][j] != 1) && (i != j) && (graph[j][i] == 0)){
-            graph[i][j] = 1;
+        if ((graph->adj[i][j] != 1) && (i != j) && (graph->adj[j][i] == 0)){
+            graph->adj[i][j] = 1;
             counter++;
         }
 
-        else if ((graph[i][j] != 1) && (i != j) && (graph[j][i] == 1)){
-            graph[i][j] = 1;
+        else if ((graph->adj[j][i] != 1) && (i != j) && (graph->adj[i][j] == 1)){
+            graph->adj[j][i] = 1;
+            counter++;
         }
     }
 }
 
 int main() {
     int v=0, e=0;
-    int **graph = NULL;
     FILE *input;
     FILE *output;
-    input = fopen("argv[1].txt", "rt");
-    output = fopen("argv[2].txt", "wt");
+    input = fopen("RandomGrInput.txt", "rt");
+    output = fopen("RandomGrOutput.txt", "wt");
     if (!input)
     {
         puts("Error open file for reading");
@@ -97,34 +100,20 @@ int main() {
 
     fscanf(input, "%d %d", &v, &e);
     if (e > v*(v - 1)/2){
-        fprintf(output, "wrong number of vertex");
+        fprintf(output, "Wrong number of vertex");
         return 0;
     }
 
-    graph = (int**)malloc(v * sizeof(int*));
-    for(int i = 0; i < v; i++)
-        graph[i] = (int*)malloc(sizeof(int*) * v);
+    AMATRIX *graph = AMatrixSet(v);
 
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            graph[i][j] = 0;
-        }
-    }
-
-    randomGraph(e, v, graph);
-    printGraph(graph, v, output);
+    RandomGraph(e, v, graph);
+    RandomGraphPrint(graph, v, output);
     fprintf(output, "\nOriented graph:\n\n");
+    graph = AMatrixDelete(graph);
 
-    graph = (int**)malloc(v * sizeof(int*));
-    for(int i = 0; i < v; i++)
-        graph[i] = (int*)malloc(sizeof(int*) * v);
-
-    randomorientedGraph(e, v, graph);
-    printGraph(graph, v, output);
-
-    for(int i = 0; i < v; i++)
-        free(graph[i]);
-    free(graph);
+    RandomOrientedGraph(e, v, graph);
+    RandomGraphPrint(graph, v, output);
+    graph = AMatrixDelete(graph);
 
     fclose(input);
     fclose(output);

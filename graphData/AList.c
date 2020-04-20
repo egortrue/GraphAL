@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "alist.h"
+#include "AList.h"
 
 //------------------------------------------------------------------------------------------------------
-void AListAddValue(Alist **pphead, int val)
+void AListAddValue(ALIST **pphead, int val)
 {
-    Alist **pp = pphead, *pnew;
+    ALIST **pp = pphead, *pnew;
 
     while(*pp)
     {
@@ -15,15 +15,15 @@ void AListAddValue(Alist **pphead, int val)
             pp = &((*pp)->pnext);
     }
 
-    pnew = (Alist*)malloc(sizeof(Alist));
+    pnew = (ALIST*)malloc(sizeof(ALIST));
     pnew->value = val;
     pnew->pnext = *pp;
     *pp = pnew;
 }
 
-void AListPrint(Alist *phead, FILE *output)
+void AListPrint(ALIST *phead, FILE *output)
 {
-    Alist* p = phead;
+    ALIST* p = phead;
     while(p)
     {
         fprintf(output,"%d ", p->value);
@@ -32,7 +32,7 @@ void AListPrint(Alist *phead, FILE *output)
     fprintf(output, "\n");
 }
 
-void AListDelete(Alist *phead)
+void AListDelete(ALIST *phead)
 {
     if(phead)
     {
@@ -47,7 +47,7 @@ void AListDelete(Alist *phead)
 //4-3 1 5
 void AListRead(FILE* input, FILE* output)
 {
-    Alist **graph= (Alist**)calloc(AListCountVertex(input), sizeof(Alist*));
+    ALIST **graph= (ALIST**)calloc(AListCountVertex(input), sizeof(ALIST*));
     int j = 0;
     char *chr = (char*)malloc(sizeof(char*));
     int line = 0;
@@ -108,9 +108,9 @@ double AListDensity(int v, int e)
     return ((double)e/(double)(v*(v-1)));
 }
 
-int AListDegree(Alist *phead)
+int AListDegree(ALIST *phead)
 {
-    Alist* p = phead;
+    ALIST* p = phead;
     int count = 0;
     while(p)
     {

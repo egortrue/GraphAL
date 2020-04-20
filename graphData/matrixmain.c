@@ -18,7 +18,7 @@ int main()
         return -2;
     }
 
-    AMATRIX *d = AMatrixSet(input);
+    AMATRIX *d = AMatrixRead(input, AMatrixSet(AMatrixCountNodes(input)));
     AMatrixPrint(d, output);
     fprintf(output, "\nDegree of v #%d is %d", 1, AMatrixDegree(d, 1));
     fprintf(output, "\nDensity is %.2lf", AMatrixDensity(d));

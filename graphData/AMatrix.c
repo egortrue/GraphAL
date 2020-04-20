@@ -30,7 +30,7 @@ void AMatrixPrint(AMATRIX *m, FILE *output)
 }
 
 //PARSER
-void AMatrixRead(FILE *input, AMATRIX *adj_matrix)
+AMATRIX *AMatrixRead(FILE *input, AMATRIX *adj_matrix)
 {
     char str_new = fgetc(input);
     char *chr = NULL;
@@ -67,6 +67,8 @@ void AMatrixRead(FILE *input, AMATRIX *adj_matrix)
     adj_matrix->adj[line][column] = atoi(chr);
     if (adj_matrix->adj[line][column] != 0)
         adj_matrix->e++;
+
+    return adj_matrix;
 }
 
 int AMatrixCountNodes(FILE *input)
@@ -84,18 +86,23 @@ int AMatrixCountNodes(FILE *input)
     return count_lines;
 }
 
-AMATRIX *AMatrixSet(FILE *input)
+AMATRIX *AMatrixSet(int nodes)
 {
-    int nodes = AMatrixCountNodes(input);
     AMATRIX * tmp = (AMATRIX*)malloc(nodes * sizeof(AMATRIX));
     tmp->adj = (int**)malloc(nodes*sizeof(int*));
     tmp->n = nodes;
     tmp->e = 0;
-    for (int i = 0; i<tmp->n; i++){
-        tmp->adj[i] = (int*)malloc(nodes*sizeof(int));
+    for (int i = 0; i < tmp->n; i++){
+        tmp->adj[i] = (int*)calloc(nodes, sizeof(int));
     }
 
-    AMatrixRead(input, tmp);
     return tmp;
+}
+
+AMATRIX *AMatrixDelete(AMATRIX *m){
+    for (int i = 0; i < m->e; i++)
+        for (int j = 0; j < m->e; j++)
+            m->adj[i][j] = 0;
+    return m;
 }
 //------------------------------------------------------------------------------------------------------

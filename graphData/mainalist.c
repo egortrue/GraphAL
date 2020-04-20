@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "alist.h"
+#include "AList.h"
 
 int main(){
     FILE *input;
     FILE *output;
-    input = fopen("adjListInput.txt", "rt");
-    output = fopen("adjListOutput.txt", "wt");
+    input = fopen("AdjListInput.txt", "rt");
+    output = fopen("AdjListOutput.txt", "wt");
     if (!input)
     {
         puts("Error open file for reading");
