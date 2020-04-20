@@ -37,14 +37,14 @@ typedef struct graph
 	unsigned char directed : 1;
 }GRAPH;
 
-GRAPH* GraphSet           (int nodes_num, int edges_num, int info);
- void  GraphPrint         (const GRAPH* G);
- void  GraphDestroy       (GRAPH* G);
+GRAPH* GraphSet     (int nodes_num, int edges_num, int info);
+void  GraphPrint    (const GRAPH* G);
+void  GraphDestroy  (GRAPH* G);
 
 
-int    GraphGetEdgeWeight     (GRAPH* G, NODE* V1, NODE* V2);  // return weight between two nodes if it exist
+int    GraphGetEdgeWeight     (GRAPH* G, NODE* V1, NODE* V2);
 EDGE*  GraphGetEdge           (GRAPH* G, NODE* V1, NODE* V2);
-NODE** GraphGetNodeNeighbours (GRAPH* G, NODE* node);
+NODE** GraphGetNodeNeighbors  (GRAPH* G, NODE* node);
 //------------------------------------------------------------------------------------------------------
 
 #endif

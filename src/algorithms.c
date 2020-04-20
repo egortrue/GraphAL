@@ -101,18 +101,18 @@ void BFS(GRAPH* G, NODE* start)
 		NODE* cur = QueuePop(&Q);
 		int wave = CostGet(COST, cur, G->SIZE_N);
 
-		// Get neighbours info
-		NODE** neighbours_array = GraphGetNodeNeighbours(G, cur);
-		if (!neighbours_array) continue;
-		int neighbours_count = _msize(neighbours_array) / sizeof(neighbours_array[0]);
+		// Get neighbors info
+		NODE** neighbors_array = GraphGetNodeNeighbors(G, cur);
+		if (!neighbors_array) continue;
+		int neighbors_count = _msize(neighbors_array) / sizeof(neighbors_array[0]);
 
-		// Update the costs for every neighbour
-		for (int i = 0; i < neighbours_count; i++)
+		// Update the costs for every neighbor
+		for (int i = 0; i < neighbors_count; i++)
 		{
-			NODE* neighbour = neighbours_array[i];
+			NODE* neighbor = neighbors_array[i];
 
-			if ( (wave + 1) < CostGet(COST, neighbour, G->SIZE_N))
-				CostSet(COST, neighbour, G->SIZE_N, wave + 1);
+			if ( (wave + 1) < CostGet(COST, neighbor, G->SIZE_N))
+				CostSet(COST, neighbor, G->SIZE_N, wave + 1);
 		}
 	
 		// If node not checked
@@ -120,15 +120,15 @@ void BFS(GRAPH* G, NODE* start)
 		{
 			printf("%d ", cur->name); // Path
 
-			// Append all the neighbours
-			for (int i = 0; i < neighbours_count; i++)
-					QueueAdd(&Q, neighbours_array[i]);
+			// Append all the neighbors
+			for (int i = 0; i < neighbors_count; i++)
+					QueueAdd(&Q, neighbors_array[i]);
 
 			// Check the node
 			checked[check_num++] = cur;
 		}
 
-		free(neighbours_array);
+		free(neighbors_array);
 	}
 
 	// --------------------------------------------------------
@@ -218,18 +218,18 @@ void DFS(GRAPH* G, NODE* start)
 		NODE* cur = StackPop(&S);
 		int wave = CostGet(COST, cur, G->SIZE_N);
 
-		// Get neighbours info
-		NODE** neighbours_array = GraphGetNodeNeighbours(G, cur);
-		if (!neighbours_array) continue;
-		int neighbours_count = _msize(neighbours_array) / sizeof(neighbours_array[0]);
+		// Get neighbors info
+		NODE** neighbors_array = GraphGetNodeNeighbors(G, cur);
+		if (!neighbors_array) continue;
+		int neighbors_count = _msize(neighbors_array) / sizeof(neighbors_array[0]);
 
-		// Update cost for every neighbour
-		for (int i = 0; i < neighbours_count; i++)
+		// Update cost for every neighbor
+		for (int i = 0; i < neighbors_count; i++)
 		{
-			NODE* neighbour = neighbours_array[i];
+			NODE* neighbor = neighbors_array[i];
 
-			if ( (wave + 1) < CostGet(COST, neighbour, G->SIZE_N) )
-				CostSet(COST, neighbour, G->SIZE_N, wave + 1);
+			if ( (wave + 1) < CostGet(COST, neighbor, G->SIZE_N) )
+				CostSet(COST, neighbor, G->SIZE_N, wave + 1);
 		}
 
 		// If node not checked
@@ -237,15 +237,15 @@ void DFS(GRAPH* G, NODE* start)
 		{
 			printf("%d ", cur->name); // Path
 
-			// Append all the neighbours
-			for (int i = 0; i < neighbours_count; i++)
-					StackPush(&S, neighbours_array[i]);
+			// Append all the neighbors
+			for (int i = 0; i < neighbors_count; i++)
+					StackPush(&S, neighbors_array[i]);
 
 			// Check the node
 			checked[check_num++] = cur;
 		}
 
-		free(neighbours_array);
+		free(neighbors_array);
 	}
 
 	// --------------------------------------------------------
@@ -320,28 +320,28 @@ void Deijkstra(GRAPH* G, NODE* start)
 		printf("%d ", cur->name); // Path
 		cur_cost = CostGet(COST, cur, G->SIZE_N);
 
-		// Get neighbours info
-		NODE** neighbours_array = GraphGetNodeNeighbours(G, cur);
-		if (!neighbours_array)
+		// Get neighbors info
+		NODE** neighbors_array = GraphGetNodeNeighbors(G, cur);
+		if (!neighbors_array)
 		{
 			checked[check_num++] = cur;
 			cur = FindLowestCostNode(COST, checked, G->SIZE_N);
 			continue;
 		}
-		int neighbours_count = _msize(neighbours_array) / sizeof(neighbours_array[0]);
+		int neighbors_count = _msize(neighbors_array) / sizeof(neighbors_array[0]);
 
-		for (int i = 0; i < neighbours_count; i++)
+		for (int i = 0; i < neighbors_count; i++)
 		{
-			NODE* neighbour = neighbours_array[i];
+			NODE* neighbor = neighbors_array[i];
 
-			new_cost = cur_cost + GraphGetEdgeWeight(G, cur, neighbour);
-			if (new_cost < CostGet(COST, neighbour, G->SIZE_N))
-				CostSet(COST, neighbour, G->SIZE_N, new_cost);
+			new_cost = cur_cost + GraphGetEdgeWeight(G, cur, neighbor);
+			if (new_cost < CostGet(COST, neighbor, G->SIZE_N))
+				CostSet(COST, neighbor, G->SIZE_N, new_cost);
 		}
 
 		checked[check_num++] = cur;
 		cur = FindLowestCostNode(COST, checked, G->SIZE_N);
-		free(neighbours_array);
+		free(neighbors_array);
 	}
 
 	// --------------------------------------------------------
@@ -502,10 +502,10 @@ EDGE* FindRelevantEdge(GRAPH* G, GRAPH* tree)
 	EDGE* relevant = NULL;
 	for (int i = 0; i < tree->SIZE_N; i++)
 	{
-		NODE** neigbours = GraphGetNodeNeighbours(G, tree->nodes[i]);
-		int neighbours_count = _msize(neigbours) / sizeof(neigbours[0]);
+		NODE** neigbours = GraphGetNodeNeighbors(G, tree->nodes[i]);
+		int neighbors_count = _msize(neigbours) / sizeof(neigbours[0]);
 
-		for (int j = 0; j < neighbours_count; j++)
+		for (int j = 0; j < neighbors_count; j++)
 		{
 
 			if (Checker(tree->nodes, neigbours[j], tree->SIZE_N)) continue;

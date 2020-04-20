@@ -112,7 +112,7 @@ EDGE* GraphGetEdge(GRAPH* G, NODE* V1, NODE* V2)
 	return NULL;
 }
 
-NODE** GraphGetNodeNeighbours(GRAPH* G, NODE* node)
+NODE** GraphGetNodeNeighbors(GRAPH* G, NODE* node)
 {
 	NODE** buffer = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
 	if (!buffer) exit(EXIT_FAILURE);
