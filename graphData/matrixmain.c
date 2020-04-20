@@ -1,12 +1,12 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include "matrix.h"
+#include "AMatrix.h"
 
-int main(){
+int main()
+{
     FILE *input;
     FILE *output;
-    input = fopen("matrixInput.txt", "rt");
-    output = fopen("matrixOutput.txt", "wt");
+    input = fopen("AdjMatrixInput.txt", "rt");
+    output = fopen("AdjMatrixOutput.txt", "wt");
     if (!input)
     {
         puts("Error open file for reading");
@@ -14,16 +14,14 @@ int main(){
     }
     if (!output)
     {
-        puts("Error open file for reading");
+        puts("Error open file for writing");
         return -2;
     }
 
-    struct matrix *d = graph_create(countEdges(input), input);
-    printGraph(d);
-    printf("\n");
-    printMatrixFile(d, output);
-    printf("\nDegree of v #%d is %d", 1, degree(d, 1));
-    printf("\nDensity is %.2lf", density(d));
+    AMATRIX *d = AMatrixSet(input);
+    AMatrixPrint(d, output);
+    fprintf(output, "\nDegree of v #%d is %d", 1, AMatrixDegree(d, 1));
+    fprintf(output, "\nDensity is %.2lf", AMatrixDensity(d));
 
     return 0;
 }
