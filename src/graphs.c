@@ -67,6 +67,7 @@ void GraphPrint(const GRAPH* G)
 		if (G->nodes[i] != 0)
 			printf("(%2c)=%2d%s", G->nodes[i]->name + 64, G->nodes[i]->value, ((i+1) % 7 != 0) ? " " : "\n\t ");
 	printf("%s", i == 0 ? "None\n" : "\n");
+
 	i = 0;
 	printf("  Edges: ");
 	for (; i < G->SIZE_E; i++)
@@ -132,10 +133,10 @@ NODE** GraphGetNodeNeighbors(GRAPH* G, NODE* node)
 		return NULL;
 	}
 		
-	NODE** neighbours = (NODE**)calloc(count, sizeof(NODE*));
-	if (!neighbours) exit(EXIT_FAILURE);
+	NODE** neighbors = (NODE**)calloc(count, sizeof(NODE*));
+	if (!neighbors) exit(EXIT_FAILURE);
 	for (int i = 0; i < count; i++)
-		neighbours[i] = buffer[i];
+		neighbors[i] = buffer[i];
 	free(buffer);
-	return neighbours;
+	return neighbors;
 }

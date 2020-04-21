@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include "graphs.h"
 
-  int   ArgLineCheck  (const int   given);
- FILE*  FileOpen      (const char* name,  const char* mode);
-GRAPH*  FileRead      (FILE* fr);
+int    ArgLineCheck (const int   given);
+FILE*  FileOpen     (const char* name,  const char* mode);
+GRAPH* FileRead     (FILE* fr);
 
 #endif

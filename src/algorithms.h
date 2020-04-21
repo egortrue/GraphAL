@@ -16,6 +16,8 @@ EDGE*** FloydWarshall (GRAPH* G, int output);
 void Prim    (GRAPH* G, NODE* root);
 void Kruskal (GRAPH* G);
 
+// Flow network
+
 // Other algorithms
 void GeneralInfo(GRAPH* G);
 

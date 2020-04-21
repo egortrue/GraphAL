@@ -47,7 +47,7 @@ int ConvertStrToInt(char* string)
 // Parsing of string on 2 or 3 substrings
 char** ObjectRead(FILE* fr, char* string, int flag)
 {
-	// block of data which will be returned
+	// Block of data which will be returned
 	char** obj = (char**)calloc(3, sizeof(char*));
 	obj[0] = (char*)calloc(STR_LEN_MAX+1, sizeof(char));
 	obj[1] = (char*)calloc(STR_LEN_MAX+1, sizeof(char));
@@ -55,21 +55,21 @@ char** ObjectRead(FILE* fr, char* string, int flag)
 	if (!obj || !obj[0] || !obj[1] || !obj[2]) exit(EXIT_FAILURE);
 
 
-	// before first whitespace
+	// Before first whitespace
 	char* begin = string;
 	
 	while (*string != 32 && *string != 10) string++;
 	memmove(obj[0], begin, string-begin);
 	string++;
 
-	// after first and before seconf whitespace
+	// After first and before second whitespace
 	char* first_space = string;
 
 	while (*string != 32 && *string != 10) string++;
 	memmove(obj[1], first_space, string - first_space);
 	string++;
 
-	// after second whitespace
+	// After second whitespace
 	if (flag)
 	{
 		char* second_space = string;
@@ -175,7 +175,8 @@ GRAPH* FileRead(FILE* fr)
 
 	// --------------------------------------------------------
 	// Init the graph 
-	GRAPH* G = GraphSet(nodes_num, edges_num, StringFind(fr, "[directed]\n", file_size));
+	GRAPH* G = GraphSet(nodes_num, edges_num,
+						StringFind(fr, "[directed]\n", file_size));
 
 	// --------------------------------------------------------
 	// Init the nodes

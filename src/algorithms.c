@@ -47,7 +47,7 @@ void  QueuePrint (QUEUE* Q)
 		if (Q->queue[i] != 0)
 			printf("%d ", Q->queue[i]->name);
 	puts("");
-}
+} 
 void  QueueAdd   (QUEUE* Q, NODE* V)
 {
 	Q->queue[(Q->last)++] = V;
@@ -132,7 +132,7 @@ void BFS(GRAPH* G, NODE* start)
 	}
 
 	// --------------------------------------------------------
-	// Rezult
+	// Result
 	puts("");
 	for (int i = 0; i < G->SIZE_N; i++)
 	{
@@ -249,7 +249,7 @@ void DFS(GRAPH* G, NODE* start)
 	}
 
 	// --------------------------------------------------------
-	// Rezult
+	// Result
 	puts("");
 	for (int i = 0; i < G->SIZE_N; i++)
 	{
@@ -345,7 +345,7 @@ void Deijkstra(GRAPH* G, NODE* start)
 	}
 
 	// --------------------------------------------------------
-	// Rezult
+	// Result
 	puts("");
 	for (int i = 0; i < G->SIZE_N; i++)
 	{
@@ -398,7 +398,7 @@ void BellmanFord(GRAPH* G, NODE* start)
 			Relax(COST, G->edges[i], G, G->SIZE_N);
 
 	// --------------------------------------------------------
-	// Rezult
+	// Result
 	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		printf("  %d->%d = ", start->name, COST[i]->target->name);
@@ -463,7 +463,7 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 			}
 
 	// --------------------------------------------------------
-	// Rezult (with output mode)
+	// Result (with output mode)
 	if (output)
 	{
 		puts("");
@@ -535,7 +535,7 @@ void Prim(GRAPH* G, NODE* root)
 	if (!tree) exit(EXIT_FAILURE);
 	tree->nodes = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
 	tree->edges = (EDGE**)calloc(G->SIZE_E, sizeof(EDGE*)); 
-	if (!tree->nodes | !tree->edges) exit(EXIT_FAILURE);
+	if (!tree->nodes || !tree->edges) exit(EXIT_FAILURE);
 	tree->directed = 0;
 	tree->SIZE_N = 0;
 	tree->SIZE_E = 0;
@@ -553,7 +553,7 @@ void Prim(GRAPH* G, NODE* root)
 	}
 
 	// --------------------------------------------------------
-	// Rezult
+	// Result
 	if (tree->SIZE_N != G->SIZE_N)
 		printf("\nThere are not exist spanning tree in this graph.\n");
 	else
@@ -595,7 +595,8 @@ void Kruskal(GRAPH* G)
 	if (!tree) exit(EXIT_FAILURE);
 	tree->nodes = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
 	tree->edges = (EDGE**)calloc(G->SIZE_E, sizeof(EDGE*));
-	if (!tree->nodes | !tree->edges) exit(EXIT_FAILURE);
+	if (!tree->nodes || !tree->edges) exit(EXIT_FAILURE);
+	tree->directed = 0;
 	tree->SIZE_N = 0;
 	tree->SIZE_E = 0;
 
@@ -658,7 +659,7 @@ void Kruskal(GRAPH* G)
 		G->nodes[i]->value = old_values[i];
 
 	// --------------------------------------------------------
-	// Rezult
+	// Result
 	if (tree->SIZE_N != G->SIZE_N)
 		printf("\nThere are not exist spanning tree in this graph.\n");
 	else
@@ -677,6 +678,11 @@ void Kruskal(GRAPH* G)
 	free(tree);
 	// return tree;
 }
+
+//------------------------------------------------------------------------------------------------------
+// Flow network
+
+
 
 //------------------------------------------------------------------------------------------------------
 // Other algorithms
@@ -713,7 +719,7 @@ void GeneralInfo(GRAPH* G)
 	}
 
 	// --------------------------------------------------------
-	// Rezult
+	// Result
 	printf("  This is %s graph\n", (G->directed) ? "directed" : "undirected");
 	printf("  Radius: %d\n  Diameter: %d\n", Radius, Diameter);
 	printf("  Center: ");

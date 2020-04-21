@@ -9,7 +9,7 @@ Cтрока [directed] отвечает за ориентированность.
 node : name value
 edge : source target weight
 
-[directed]
+//[directed]
 
 [nodes]
 1 1

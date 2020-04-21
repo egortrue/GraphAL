@@ -38,13 +38,13 @@ typedef struct graph
 }GRAPH;
 
 GRAPH* GraphSet     (int nodes_num, int edges_num, int info);
-void  GraphPrint    (const GRAPH* G);
-void  GraphDestroy  (GRAPH* G);
-
+void   GraphPrint   (const GRAPH* G);
+void   GraphDestroy (GRAPH* G);
 
 int    GraphGetEdgeWeight     (GRAPH* G, NODE* V1, NODE* V2);
 EDGE*  GraphGetEdge           (GRAPH* G, NODE* V1, NODE* V2);
 NODE** GraphGetNodeNeighbors  (GRAPH* G, NODE* node);
+
 //------------------------------------------------------------------------------------------------------
 
 #endif
