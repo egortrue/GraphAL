@@ -1,0 +1,7 @@
+*.sln
+*.vs
+*.vcx*
+Debug/
+Release/
+x64/
+x86/
