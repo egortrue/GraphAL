@@ -47,33 +47,34 @@ EDGE*  GraphGetEdge           (GRAPH* G, NODE* V1, NODE* V2);
 NODE** GraphGetNodeNeighbors  (GRAPH* G, NODE* node);
 //------------------------------------------------------------------------------------------------------
 
-typedef struct AList
+typedef struct aList
 {
     int value;
-    struct AList* pnext;
+    struct aList* pnext;
 }ALIST;
-
 
 void   AListAddValue          (ALIST **pphead, int val);
 void   AListPrint             (ALIST *phead, FILE *output);
 void   AListDelete            (ALIST *phead);
 void   AListRead              (FILE* input, FILE* output);
+
+
 int    AListCountVertex       (FILE *input);
 double AListDensity           (int v, int e);
 int    AListDegree            (ALIST *phead);
 //------------------------------------------------------------------------------------------------------
 
-typedef struct AMatrix
+typedef struct aMatrix
 {
     int** adj;
     int n; //Number of nodes in AMatrix.
     int e; //Number of edges
 }AMATRIX;
 
-
 AMATRIX *AMatrixSet           (int nodes);
 AMATRIX *AMatrixRead          (FILE *input, AMATRIX *adj_matrix); //read adjmatrix from file
 AMATRIX *AMatrixDelete        (AMATRIX *m);
+
 
 int     AMatrixCountNodes     (FILE *input);
 int     AMatrixDegree         (AMATRIX *adj_matrix, int v); //count degree of chosen vertex
