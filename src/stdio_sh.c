@@ -215,3 +215,45 @@ GRAPH* FileRead(FILE* fr)
 
 	return G;
 }
+//------------------------------------------------------------------------------------------------------
+//PARSER
+AMATRIX *AMatrixRead(FILE *input, AMATRIX *adj_matrix)
+{
+    char str_new = fgetc(input);
+    char *chr = NULL;
+    chr = (char*)malloc(0*sizeof(char*));
+    int line = 0, column = 0, j = 0;
+    while (str_new != EOF) {
+        if (str_new >= 48 && str_new <= 57){
+            chr[j++] = str_new;
+        }
+
+        else if (str_new == ' ') {
+            adj_matrix->adj[line][column] = atoi(chr);
+            if (adj_matrix->adj[line][column] != 0)
+                adj_matrix->e++;
+            chr = 0;
+            chr = (char*)realloc(chr, 0*sizeof(char*));
+            j = 0;
+            column++;
+        }
+
+        else if (str_new == '\n') {
+            adj_matrix->adj[line][column] = atoi(chr);
+            if (adj_matrix->adj[line][column] != 0)
+                adj_matrix->e++;
+            chr = 0;
+            chr = (char*)realloc(chr, 0*sizeof(char*));
+            column = 0;
+            line++;
+            j = 0;
+        }
+
+        str_new = fgetc(input);
+    }
+    adj_matrix->adj[line][column] = atoi(chr);
+    if (adj_matrix->adj[line][column] != 0)
+        adj_matrix->e++;
+
+    return adj_matrix;
+}

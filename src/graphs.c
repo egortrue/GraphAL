@@ -139,3 +139,65 @@ NODE** GraphGetNodeNeighbors(GRAPH* G, NODE* node)
 	free(buffer);
 	return neighbours;
 }
+//------------------------------------------------------------------------------------------------------
+int AMatrixDegree(AMATRIX *adj_matrix, int v)
+{
+    int countdegree = 0;
+    for (int j = 0; j < adj_matrix->n; j++){
+        if (adj_matrix->adj[v][j] != 0)
+            countdegree++;
+    }
+    return countdegree;
+}
+
+double AMatrixDensity(AMATRIX *adj_matrix)
+{
+    double dens = ((double)adj_matrix->e / (double)(2 * adj_matrix->n * (adj_matrix->n - 1)));
+    return dens;
+}
+
+void AMatrixPrint(AMATRIX *m, FILE *output)
+{
+    for (int i = 0; i < m->n; i++){
+        for (int j = 0; j < m->n; j++){
+            fprintf(output, "%d ", m->adj[i][j]);
+        }
+        fprintf(output, "\n");
+    }
+}
+
+int AMatrixCountNodes(FILE *input)
+{
+    int count_lines = 0;
+    char c = fgetc(input);
+    while (c != EOF)
+    {
+        if (c == '\n')
+            count_lines++;
+        c = fgetc(input);
+    }
+    count_lines++;
+    rewind(input); //return back pointer in file
+    return count_lines;
+}
+
+AMATRIX *AMatrixSet(int nodes)
+{
+    AMATRIX * tmp = (AMATRIX*)malloc(nodes * sizeof(AMATRIX));
+    tmp->adj = (int**)malloc(nodes*sizeof(int*));
+    tmp->n = nodes;
+    tmp->e = 0;
+    for (int i = 0; i < tmp->n; i++){
+        tmp->adj[i] = (int*)calloc(nodes, sizeof(int));
+    }
+
+    return tmp;
+}
+
+AMATRIX *AMatrixDelete(AMATRIX *m){
+    for (int i = 0; i < m->e; i++)
+        for (int j = 0; j < m->e; j++)
+            m->adj[i][j] = 0;
+    return m;
+}
+//------------------------------------------------------------------------------------------------------
