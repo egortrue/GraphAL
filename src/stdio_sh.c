@@ -257,3 +257,64 @@ AMATRIX *AMatrixRead(FILE *input, AMATRIX *adj_matrix)
 
     return adj_matrix;
 }
+//------------------------------------------------------------------------------------------------------
+//format:
+// 1-1 2 3
+//4-3 1 5
+void AListRead(FILE* input, FILE* output)
+{
+    ALIST **graph= (ALIST**)calloc(AListCountVertex(input), sizeof(ALIST*));
+    int j = 0;
+    char *chr = (char*)malloc(sizeof(char*));
+    int line = 0;
+    int count_edges = 0;
+    char str_new;
+    str_new = fgetc(input);
+
+    while (str_new != EOF) {
+        if (str_new >= 48 && str_new <= 57){
+            chr = realloc(chr, j+1 * sizeof(char*));
+            chr[j++] = str_new;
+        }
+
+        else if (str_new == '-') {
+            line = atoi(chr);
+            chr = 0;
+            chr = (char*)realloc(chr, 0*sizeof(char*));
+            j = 0;
+        }
+
+        else if (str_new == ' ' && chr != 0) {
+            AListAddValue(&graph[line], atoi(chr));
+            count_edges++;
+            chr = 0;
+            chr = (char*)realloc(chr, 0*sizeof(char*));
+            j = 0;
+        }
+
+        else if (str_new == '\n') {
+            AListAddValue(&graph[line], atoi(chr));
+            count_edges++;
+            line = 0;
+            chr = 0;
+            chr = (char*)realloc(chr, 0*sizeof(char*));
+            j = 0;
+        }
+
+        str_new = fgetc(input);
+    }
+    AListAddValue(&graph[line], atoi(chr));
+
+    for (int i = 0; i < AListCountVertex(input) + 1; i++) {
+        if (graph[i]) {
+            fprintf(output, "%d-", i);
+            AListPrint(graph[i], output);
+        }
+    }
+
+    fprintf(output, "Density: %.2lf", AListDensity(AListCountVertex(input), count_edges + 1));
+    fprintf(output, "\nDegree of v #5: %d", AListDegree(graph[5]));
+
+    for (int i = 0; i < AListCountVertex(input); ++i)
+        AListDelete(graph[i]);
+}

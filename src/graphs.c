@@ -201,3 +201,73 @@ AMATRIX *AMatrixDelete(AMATRIX *m){
     return m;
 }
 //------------------------------------------------------------------------------------------------------
+void AListAddValue(ALIST **pphead, int val)
+{
+    ALIST **pp = pphead, *pnew;
+
+    while(*pp)
+    {
+        if(val < (*pp)->value)
+            break;
+        else
+            pp = &((*pp)->pnext);
+    }
+
+    pnew = (ALIST*)malloc(sizeof(ALIST));
+    pnew->value = val;
+    pnew->pnext = *pp;
+    *pp = pnew;
+}
+
+void AListPrint(ALIST *phead, FILE *output)
+{
+    ALIST* p = phead;
+    while(p)
+    {
+        fprintf(output,"%d ", p->value);
+        p = p->pnext;
+    }
+    fprintf(output, "\n");
+}
+
+void AListDelete(ALIST *phead)
+{
+    if(phead)
+    {
+        AListDelete(phead->pnext);
+        if(phead)
+            free(phead);
+    }
+}
+double AListDensity(int v, int e)
+{
+    return ((double)e/(double)(v*(v-1)));
+}
+
+int AListDegree(ALIST *phead)
+{
+    ALIST* p = phead;
+    int count = 0;
+    while(p)
+    {
+        count++;
+        p = p->pnext;
+    }
+    return count;
+}
+
+int AListCountVertex(FILE *input)
+{
+    int lines_count = 0;
+    char c = fgetc(input);
+    while (c != EOF)
+    {
+        if (c == '\n')
+            lines_count++;
+        c = fgetc(input);
+    }
+    lines_count++;
+    rewind(input); //return back pointer in file
+    return lines_count+1;
+}
+//------------------------------------------------------------------------------------------------------
