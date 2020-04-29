@@ -28,43 +28,41 @@ void CostSet(EDGE** arr, NODE* obj, int size_arr, int new_cost)
 //------------------------------------------------------------------------------------------------------
 // BFS with QUEUE structure
 
-typedef struct queue  
+typedef struct qu_node 
 {
-	// last - first empty place
-	// if last == 0 --> queue is empty
-	int last, SIZE_;
-	NODE** queue;
-} QUEUE;
-QUEUE QueueSet   (int SIZE_)
+	NODE* node;
+	struct qu_node* next;
+} QU_NODE;
+QU_NODE* QueuePush(QU_NODE* Q, NODE* V)
 {
-	QUEUE Q = { 0, SIZE_, (NODE**)calloc(SIZE_, sizeof(NODE*)) };
+	QU_NODE* tmp = (QU_NODE*)malloc(sizeof(QU_NODE));
+	if (!tmp) exit(EXIT_FAILURE);
+	tmp->node = V;
+	tmp->next = NULL;
+
+	if (!Q) return tmp;
+	QU_NODE* ptr = Q;
+	while (ptr->next) ptr = ptr->next;
+	ptr->next = tmp;
 	return Q;
 }
-void  QueuePrint (QUEUE* Q)
+QU_NODE* QueuePop(QU_NODE* Q)
 {
-	printf("Queue: ");
-	for (int i = 0; i < Q->SIZE_; i++)
-		if (Q->queue[i] != 0)
-			printf("%d ", Q->queue[i]->name);
-	puts("");
-} 
-void  QueueAdd   (QUEUE* Q, NODE* V)
-{
-	Q->queue[(Q->last)++] = V;
+	QU_NODE* new_first = Q->next;
+	free(Q);
+	return new_first;
 }
-NODE* QueuePop   (QUEUE* Q)
+NODE* QueueGet(QU_NODE* Q)
 {
-	NODE* V = Q->queue[0];
-	NODE** tmp = (NODE**)calloc(Q->SIZE_, sizeof(NODE*));
-	if (!tmp) exit(EXIT_FAILURE);
-
-	for (int i = 1; i < Q->SIZE_; i++)
-		tmp[i - 1] = Q->queue[i];
-
-	free(Q->queue);
-	Q->queue = tmp;
-	Q->last--;
-	return V;
+	return Q != NULL ? Q->node : NULL;
+}
+int QueueIsEmpty(QU_NODE* Q)
+{
+	return Q == NULL ? 1 : 0;
+}
+void QueueDestroy(QU_NODE* Q)
+{
+	while (Q != NULL) Q = QueuePop(Q->next);
 }
 
 void BFS(GRAPH* G, NODE* start)
@@ -91,14 +89,14 @@ void BFS(GRAPH* G, NODE* start)
 
 	// --------------------------------------------------------
 	// The algorithm:
-	QUEUE Q = QueueSet(G->SIZE_N * G->SIZE_N);
-	QueueAdd(&Q, start);
+	QU_NODE* first = QueuePush(NULL, start);
 
 	printf("  Path: ");
-	while (Q.last != 0)
+	while (!QueueIsEmpty(first))
 	{
 		// Current node as poped from queue
-		NODE* cur = QueuePop(&Q);
+		NODE* cur = QueueGet(first);
+		first = QueuePop(first);
 		int wave = CostGet(COST, cur, G->SIZE_N);
 
 		// Get neighbors info
@@ -122,7 +120,7 @@ void BFS(GRAPH* G, NODE* start)
 
 			// Append all the neighbors
 			for (int i = 0; i < neighbors_count; i++)
-					QueueAdd(&Q, neighbors_array[i]);
+					first = QueuePush(first, neighbors_array[i]);
 
 			// Check the node
 			checked[check_num++] = cur;
@@ -144,7 +142,7 @@ void BFS(GRAPH* G, NODE* start)
 	}
 
 	free(checked);
-	free(Q.queue);
+	QueueDestroy(first);
 	for (int i = 0; i < G->SIZE_N; i++)
 		free(COST[i]);
 	free(COST);
@@ -153,36 +151,47 @@ void BFS(GRAPH* G, NODE* start)
 //------------------------------------------------------------------------------------------------------
 // DFS with STACK structure
 
-typedef struct stack 
+typedef struct st_node
+{ 
+	NODE* node;
+	struct st_node* next;
+} ST_NODE;
+ST_NODE* StackPush(ST_NODE* top, NODE* V)
 {
-	// last - first empty place
-	// if last == 0 --> stack is empty
-	int last, SIZE_;
-	NODE** stack;
-} STACK;
-STACK StackSet  (int size) 
-{
-	STACK S = { 0, size, (NODE**)calloc(size, sizeof(NODE*)) };
-	return S;			
+	ST_NODE* tmp = (ST_NODE*)malloc(sizeof(ST_NODE));
+	if (!tmp) exit(EXIT_FAILURE);
+	tmp->node = V;
+	tmp->next = NULL;
+
+	// Connecting temp object
+	if (top == NULL)
+		top = tmp;
+	else
+	{
+		tmp->next = top;
+		top = tmp;
+	}
+	return top;
 }
-void  StackPrint(STACK* S)
+ST_NODE* StackPop(ST_NODE* top)
 {
-	printf("Stack: ");
-	for (int i = 0; i < S->SIZE_; i++)
-		if (S->stack[i] != 0)
-			printf("%d ", S->stack[i]->name);
-	puts("");
+	if (top == NULL) return NULL;
+	ST_NODE* tmp = top->next;
+	free(top);
+	top = tmp;
+	return top;
 }
-void  StackPush (STACK* S, NODE* V)
+NODE* StackGet(ST_NODE* top)
 {
-	S->stack[S->last++] = V;
+	return top != NULL ? top->node : NULL;
 }
-NODE* StackPop  (STACK* S)
+int StackIsEmpty(ST_NODE* top)
 {
-	S->last--;
-	NODE* V = S->stack[S->last];
-	S->stack[S->last] = NULL;
-	return V;
+	return top == NULL ? 1 : 0;
+}
+void StackDestroy(ST_NODE* top)
+{
+	while (top != NULL) top = StackPop(top);
 }
 
 void DFS(GRAPH* G, NODE* start)
@@ -209,13 +218,13 @@ void DFS(GRAPH* G, NODE* start)
 
 	// --------------------------------------------------------
 	// The algorithm:
-	STACK S = StackSet(G->SIZE_N * G->SIZE_N);
-	StackPush(&S, start);
+	ST_NODE* top = StackPush(NULL, start);
 
 	printf("  Path: ");
-	while (S.last != 0)
+	while (!StackIsEmpty(top))
 	{
-		NODE* cur = StackPop(&S);
+		NODE* cur = StackGet(top);
+		top = StackPop(top);
 		int wave = CostGet(COST, cur, G->SIZE_N);
 
 		// Get neighbors info
@@ -239,7 +248,7 @@ void DFS(GRAPH* G, NODE* start)
 
 			// Append all the neighbors
 			for (int i = 0; i < neighbors_count; i++)
-					StackPush(&S, neighbors_array[i]);
+					top = StackPush(top, neighbors_array[i]);
 
 			// Check the node
 			checked[check_num++] = cur;
@@ -262,7 +271,7 @@ void DFS(GRAPH* G, NODE* start)
 
 
 	free(checked);
-	free(S.stack);
+	StackDestroy(top);
 	for (int i = 0; i < G->SIZE_N; i++)
 		free(COST[i]);
 	free(COST);
@@ -416,7 +425,7 @@ void BellmanFord(GRAPH* G, NODE* start)
 //------------------------------------------------------------------------------------------------------
 // Floyd-Warshall
 
-void FloydFree(GRAPH* G, EDGE*** matrix)
+void EdgeMatrixFree(GRAPH* G, EDGE*** matrix)
 {
 	for (int i = 0; i < G->SIZE_N; i++)
 	{
@@ -487,7 +496,7 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 			}
 			puts("");
 		}
-		FloydFree(G, matrix);
+		EdgeMatrixFree(G, matrix);
 		return NULL;
 	}
 	else
@@ -680,11 +689,6 @@ void Kruskal(GRAPH* G)
 }
 
 //------------------------------------------------------------------------------------------------------
-// Flow network
-
-
-
-//------------------------------------------------------------------------------------------------------
 // Other algorithms
 
 // General Info about Graph (Radius, Diameter, Center, etc.)
@@ -729,5 +733,5 @@ void GeneralInfo(GRAPH* G)
 	puts("");
 
 	free(arr);
-	FloydFree(G, matrix);
+	EdgeMatrixFree(G, matrix);
 }
