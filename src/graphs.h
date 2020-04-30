@@ -54,9 +54,8 @@ typedef struct aList
 }ALIST;
 
 void   AListAddValue          (ALIST **pphead, int val);
-void   AListPrint             (ALIST *phead, FILE *output);
+void   AListPrint             (ALIST **graph, FILE *output, int v);
 void   AListDelete            (ALIST *phead);
-void   AListRead              (FILE* input, FILE* output);
 
 
 int    AListCountVertex       (FILE *input);

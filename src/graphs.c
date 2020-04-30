@@ -97,7 +97,7 @@ int GraphGetEdgeWeight(GRAPH* G, NODE* V1, NODE* V2)
 		if (G->edges[i]->source == V2 && G->edges[i]->target == V1 && G->directed == 0)
 			return G->edges[i]->weight;
 	}
-	return INT_MAX;
+	//return INT_MAX;
 } 
 
 EDGE* GraphGetEdge(GRAPH* G, NODE* V1, NODE* V2)
@@ -219,17 +219,19 @@ void AListAddValue(ALIST **pphead, int val)
     *pp = pnew;
 }
 
-void AListPrint(ALIST *phead, FILE *output)
-{
-    ALIST* p = phead;
-    while(p)
-    {
-        fprintf(output,"%d ", p->value);
-        p = p->pnext;
+void AListPrint(ALIST **graph, FILE *output, int v) {
+    for (int i = 0; i < v + 1; i++) {
+        if (graph[i]) {
+            fprintf(output, "%d-", i);
+            ALIST *p = graph[i];
+            while (p) {
+                fprintf(output, "%d ", p->value);
+                p = p->pnext;
+            }
+            fprintf(output, "\n");
+        }
     }
-    fprintf(output, "\n");
 }
-
 void AListDelete(ALIST *phead)
 {
     if(phead)
