@@ -9,7 +9,7 @@ Cтрока [directed] отвечает за ориентированность.
 node : name value
 edge : source target weight
 
-//[directed]
+[directed]
 
 [nodes]
 1 1
@@ -18,21 +18,28 @@ edge : source target weight
 4 1
 5 1
 6 1
+
+
+
 7 1
+8 1
+9 1
+
 
 
 [edges]
-1 2 7
-2 3 8
-1 4 5
-4 2 9
-2 5 7
-3 5 5
-4 5 15
-4 6 6
-5 6 8
-6 7 11
-5 7 9
+1 2 16
+1 3 13
+3 2 4
+2 4 12
+4 3 9
+3 5 14
+5 4 7
+4 6 20
+5 6 4
+
+Ford-Falkerson from Kormen (x6)
+
 
 
 

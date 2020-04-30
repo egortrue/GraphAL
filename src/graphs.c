@@ -36,7 +36,7 @@ EDGE* EdgeSet(NODE* source, NODE* target, int weight)
 
 void EdgePrint(const EDGE* E)
 {
-	printf("EDGE: (%c<->%c) ", E->source->name + 64, E->target->name + 64);
+	printf("EDGE: (%c<->%c) ", E->source->name + 48, E->target->name + 48);
 	printf("Weight: %d\n", E->weight);
 }
 
@@ -137,6 +137,6 @@ NODE** GraphGetNodeNeighbors(GRAPH* G, NODE* node)
 	if (!neighbors) exit(EXIT_FAILURE);
 	for (int i = 0; i < count; i++)
 		neighbors[i] = buffer[i];
-	free(buffer);
+  	free(buffer);
 	return neighbors;
 }

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <conio.h>
 
 #include "algorithms.h"
 
@@ -280,7 +281,7 @@ void DFS(GRAPH* G, NODE* start)
 //------------------------------------------------------------------------------------------------------
 // Deikstra with help-function
 
-NODE* FindLowestCostNode(EDGE** cost, NODE** processed, int size)
+NODE* Deijkstra_FindLowestCostNode(EDGE** cost, NODE** processed, int size)
 {
 	int lowest_cost = INT_MAX, cur_cost = 0;
 	NODE* V = NULL;
@@ -321,7 +322,7 @@ void Deijkstra(GRAPH* G, NODE* start)
 	// --------------------------------------------------------
 	// The algorithm:
 	int cur_cost = 0, new_cost = 0;
-	NODE* cur = FindLowestCostNode(COST, checked, G->SIZE_N);
+	NODE* cur = Deijkstra_FindLowestCostNode(COST, checked, G->SIZE_N);
 
 	printf("  Path: ");
 	while (cur != NULL)
@@ -334,7 +335,7 @@ void Deijkstra(GRAPH* G, NODE* start)
 		if (!neighbors_array)
 		{
 			checked[check_num++] = cur;
-			cur = FindLowestCostNode(COST, checked, G->SIZE_N);
+			cur = Deijkstra_FindLowestCostNode(COST, checked, G->SIZE_N);
 			continue;
 		}
 		int neighbors_count = _msize(neighbors_array) / sizeof(neighbors_array[0]);
@@ -349,7 +350,7 @@ void Deijkstra(GRAPH* G, NODE* start)
 		}
 
 		checked[check_num++] = cur;
-		cur = FindLowestCostNode(COST, checked, G->SIZE_N);
+		cur = Deijkstra_FindLowestCostNode(COST, checked, G->SIZE_N);
 		free(neighbors_array);
 	}
 
@@ -374,7 +375,7 @@ void Deijkstra(GRAPH* G, NODE* start)
 //------------------------------------------------------------------------------------------------------
 // Bellman-Ford / Relaxation
 
-void Relax(EDGE** COST, EDGE* E, GRAPH* G, int size)
+void Bellman_Relax(EDGE** COST, EDGE* E, GRAPH* G, int size)
 {
 	int source_w = CostGet(COST, E->source, size);
 	if (source_w == INT_MAX)
@@ -404,7 +405,7 @@ void BellmanFord(GRAPH* G, NODE* start)
 	// The algorithm:
 	for (int iter = 1; iter < G->SIZE_N; iter++)
 		for (int i = 0; i < G->SIZE_E; i++)
-			Relax(COST, G->edges[i], G, G->SIZE_N);
+			Bellman_Relax(COST, G->edges[i], G, G->SIZE_N);
 
 	// --------------------------------------------------------
 	// Result
@@ -425,7 +426,7 @@ void BellmanFord(GRAPH* G, NODE* start)
 //------------------------------------------------------------------------------------------------------
 // Floyd-Warshall
 
-void EdgeMatrixFree(GRAPH* G, EDGE*** matrix)
+void Floyd_MatrixFree(GRAPH* G, EDGE*** matrix)
 {
 	for (int i = 0; i < G->SIZE_N; i++)
 	{
@@ -496,7 +497,7 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 			}
 			puts("");
 		}
-		EdgeMatrixFree(G, matrix);
+		Floyd_MatrixFree(G, matrix);
 		return NULL;
 	}
 	else
@@ -506,7 +507,7 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 //------------------------------------------------------------------------------------------------------
 // Minimum-spanning-tree (MST)
 
-EDGE* FindRelevantEdge(GRAPH* G, GRAPH* tree)
+EDGE* Prim_FindRelevantEdge(GRAPH* G, GRAPH* tree)
 {
 	EDGE* relevant = NULL;
 	for (int i = 0; i < tree->SIZE_N; i++)
@@ -552,13 +553,13 @@ void Prim(GRAPH* G, NODE* root)
 	// --------------------------------------------------------
 	// The algorithm
 	tree->nodes[tree->SIZE_N++] = root;
-	EDGE* new_edge = FindRelevantEdge(G, tree);
+	EDGE* new_edge = Prim_FindRelevantEdge(G, tree);
 	while (new_edge)
 	{
 		tree->edges[tree->SIZE_E++] = new_edge;
 		if (!Checker(tree->nodes, new_edge->source, tree->SIZE_N)) tree->nodes[tree->SIZE_N++] = new_edge->source;
 		if (!Checker(tree->nodes, new_edge->target, tree->SIZE_N)) tree->nodes[tree->SIZE_N++] = new_edge->target;
-		new_edge = FindRelevantEdge(G, tree);
+		new_edge = Prim_FindRelevantEdge(G, tree);
 	}
 
 	// --------------------------------------------------------
@@ -689,6 +690,180 @@ void Kruskal(GRAPH* G)
 }
 
 //------------------------------------------------------------------------------------------------------
+// Flow network
+
+void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
+{
+	if (!G->directed)
+	{
+		printf("ERROR: This is undirected graph\n");
+		return;
+	}
+
+	// --------------------------------------------------------
+	// Preparation
+
+	typedef struct flow_edge
+	{
+		EDGE* edge;
+		 int  flow;
+	}FLN;
+
+	FLN** flow_net = (FLN**)calloc(G->SIZE_E, sizeof(FLN*));
+	if (!flow_net) exit(EXIT_FAILURE);
+
+	for (int i = 0; i < G->SIZE_E; i++)
+	{
+		flow_net[i] = (FLN*)malloc(sizeof(FLN));
+		if (!flow_net[i]) exit(EXIT_FAILURE);
+
+		flow_net[i]->edge = G->edges[i];
+		flow_net[i]->flow = 0;
+	}
+
+	// Nodes of current flow path
+	int path_len = 0;
+	NODE** path = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
+	if (!path) exit(EXIT_FAILURE);
+
+	// Remember old values of nodes and set the flags
+	int* old_values = (int*)calloc(G->SIZE_N, sizeof(int));
+	if (!old_values) exit(EXIT_FAILURE);
+	for (int i = 0; i < G->SIZE_N; i++)
+	{
+		old_values[i] = G->nodes[i]->value;
+		G->nodes[i]->value = 0;
+	}
+		
+
+	// --------------------------------------------------------
+	// The algorithm:
+
+	ST_NODE* top = StackPush(NULL, source);
+	while (!StackIsEmpty(top))
+	{
+		NODE* cur = StackGet(top);
+		if (cur == target)
+		{
+			path[path_len++] = cur;
+			printf("%d ", cur->name);
+
+			// Remake node path to flow path
+			FLN** path_fln = (FLN**)calloc(path_len - 1, sizeof(FLN*));
+			if (!path_fln) exit(EXIT_FAILURE);			
+			for (int i = 1; i < path_len; i++)
+			{
+				EDGE* path_edge_cur = GraphGetEdge(G, path[i - 1], path[i]);
+				for (int j = 0; j < G->SIZE_E; j++)
+					if (flow_net[j]->edge == path_edge_cur)
+						path_fln[i - 1] = flow_net[j];
+			}
+
+			
+			// Find the lowest flow capacity in the way
+			int path_len_edge = path_len - 1;
+			int min_flow_capacity = INT_MAX;
+			for (int i = 0; i < path_len_edge; i++)
+			{
+				int residual_path = path_fln[i]->edge->weight - path_fln[i]->flow;
+				if (residual_path < min_flow_capacity)
+					min_flow_capacity = residual_path;
+			}
+
+
+			// Update flow in each edge
+			for (int i = 0; i < path_len_edge; i++)
+				path_fln[i]->flow += min_flow_capacity;
+
+
+			// Return to source
+			free(path_fln);
+			StackDestroy(top);
+			for (int i = 0; i < path_len; i++)
+				path[i] = NULL;
+			path_len = 0;
+
+			top = StackPush(NULL, source);	
+		}
+		else
+		{
+			// Get neighbors info
+			NODE** neighbors_array = GraphGetNodeNeighbors(G, cur);
+			if (!neighbors_array) exit(EXIT_FAILURE);
+			int neighbors_count = _msize(neighbors_array) / sizeof(neighbors_array[0]);
+
+
+			// Edges with neighbors == targets
+			FLN** neighbors_fln = (FLN**)calloc(neighbors_count, sizeof(FLN*));
+			if (!neighbors_fln) exit(EXIT_FAILURE);
+			for (int i = 0; i < neighbors_count; i++)
+			{
+				EDGE* negihbor_edge = GraphGetEdge(G, cur, neighbors_array[i]);
+				for (int j = 0; j < G->SIZE_E; j++)
+					if (flow_net[j]->edge == negihbor_edge)
+						neighbors_fln[i] = flow_net[j];
+			}
+			free(neighbors_array);
+
+
+			// Find max relevant edge
+			NODE* neighbor_relevant = NULL;
+			int max_flow_capacity = 0;
+			for (int i = 0; i < neighbors_count; i++)
+			{
+				int residual_neighbor = neighbors_fln[i]->edge->weight - neighbors_fln[i]->flow;
+				if (max_flow_capacity < residual_neighbor
+					&& !neighbors_fln[i]->edge->target->value
+					&& !Checker(path, neighbors_fln[i]->edge->target, path_len))
+				{
+					neighbor_relevant = neighbors_fln[i]->edge->target;
+					max_flow_capacity = residual_neighbor;
+				}
+			}
+			free(neighbors_fln);
+
+			
+			// Step back or step forward
+			if (neighbor_relevant == NULL)
+			{
+				if (cur == source) break;
+				cur->value = 1;
+				top = StackPop(top);
+				path[--path_len] = NULL;
+			}
+			else
+			{
+				top = StackPush(top, neighbor_relevant);
+				path[path_len++] = cur;
+			}
+		}
+	}
+
+	// --------------------------------------------------------
+	// Restore old values
+	for (int i = 0; i < G->SIZE_N; i++)
+		G->nodes[i]->value = old_values[i];
+
+
+	// --------------------------------------------------------
+	// Result
+	for (int i = 0; i < G->SIZE_E; i++)
+	{
+		EdgePrint(flow_net[i]->edge);
+		printf(" %d / %d \n\n", flow_net[i]->flow, flow_net[i]->edge->weight);
+	}
+
+
+	free(old_values);
+	free(path);
+	StackDestroy(top);
+	for (int i = 0; i < G->SIZE_E; i++)
+		free(flow_net[i]);
+	free(flow_net);
+}
+
+
+//------------------------------------------------------------------------------------------------------
 // Other algorithms
 
 // General Info about Graph (Radius, Diameter, Center, etc.)
@@ -733,5 +908,5 @@ void GeneralInfo(GRAPH* G)
 	puts("");
 
 	free(arr);
-	EdgeMatrixFree(G, matrix);
+	Floyd_MatrixFree(G, matrix);
 }
