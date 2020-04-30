@@ -12,4 +12,6 @@
  FILE*  FileOpen      (const char* name,  const char* mode);
 GRAPH*  FileRead      (FILE* fr);
 
+ALIST** AListRead     (FILE* input, FILE* output, int* count_edges);
+
 #endif

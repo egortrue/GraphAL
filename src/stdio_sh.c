@@ -18,7 +18,7 @@ int ArgLineCheck(const int given)
 FILE* FileOpen(const char* name, const char* mode)
 {
 	FILE* file;
-	fopen_s(&file, name, mode);
+	//fopen_s(&file, name, mode);
 
 	if (!file)
 	{
@@ -259,15 +259,14 @@ AMATRIX *AMatrixRead(FILE *input, AMATRIX *adj_matrix)
 }
 //------------------------------------------------------------------------------------------------------
 //format:
-// 1-1 2 3
+//1-1 2 3
 //4-3 1 5
-void AListRead(FILE* input, FILE* output)
+ALIST** AListRead(FILE* input, FILE* output, int* count_edges)
 {
     ALIST **graph= (ALIST**)calloc(AListCountVertex(input), sizeof(ALIST*));
     int j = 0;
     char *chr = (char*)malloc(sizeof(char*));
     int line = 0;
-    int count_edges = 0;
     char str_new;
     str_new = fgetc(input);
 
@@ -286,7 +285,7 @@ void AListRead(FILE* input, FILE* output)
 
         else if (str_new == ' ' && chr != 0) {
             AListAddValue(&graph[line], atoi(chr));
-            count_edges++;
+            (*count_edges)++;
             chr = 0;
             chr = (char*)realloc(chr, 0*sizeof(char*));
             j = 0;
@@ -294,7 +293,7 @@ void AListRead(FILE* input, FILE* output)
 
         else if (str_new == '\n') {
             AListAddValue(&graph[line], atoi(chr));
-            count_edges++;
+            (*count_edges)++;
             line = 0;
             chr = 0;
             chr = (char*)realloc(chr, 0*sizeof(char*));
@@ -305,16 +304,6 @@ void AListRead(FILE* input, FILE* output)
     }
     AListAddValue(&graph[line], atoi(chr));
 
-    for (int i = 0; i < AListCountVertex(input) + 1; i++) {
-        if (graph[i]) {
-            fprintf(output, "%d-", i);
-            AListPrint(graph[i], output);
-        }
-    }
-
-    fprintf(output, "Density: %.2lf", AListDensity(AListCountVertex(input), count_edges + 1));
-    fprintf(output, "\nDegree of v #5: %d", AListDegree(graph[5]));
-
-    for (int i = 0; i < AListCountVertex(input); ++i)
-        AListDelete(graph[i]);
+    rewind(input);
+    return graph;
 }

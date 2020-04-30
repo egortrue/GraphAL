@@ -8,7 +8,7 @@
 
 int main()
 {
-    // Preparation
+    //Preparation
     FILE* fr = FileOpen("data/input.txt", "r");
     FILE* fw = FileOpen("data/output.txt", "w");
 
@@ -97,8 +97,33 @@ int main()
     }
 
     GraphDestroy(F);
-    //*/
-    
     _fcloseall();
+
+    
+    FILE *input;
+    FILE *output;
+    input = fopen("../data/AdjListInput.txt", "rt");
+    output = fopen("../data/AdjListOutput.txt", "wt");
+
+    if (!input)
+    {
+        puts("Error open file for reading");
+        return -2;
+    }
+    if (!output)
+    {
+        puts("Error open file for writing");
+        return -2;
+    }
+    int count_edges = 0;
+    ALIST **graph = AListRead(input, output, &count_edges);
+    AListPrint(graph, output, AListCountVertex(input));
+
+
+    fprintf(output, "Density: %.2lf", AListDensity(AListCountVertex(input), count_edges + 1));
+    fprintf(output, "\nDegree of v #5/: %d", AListDegree(graph[5]));
+    for (int i = 0; i < AListCountVertex(input); ++i)
+        AListDelete(graph[i]);
+
 	return 0;
 }
