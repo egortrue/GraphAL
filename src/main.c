@@ -99,7 +99,7 @@ int main()
     GraphDestroy(F);
     _fcloseall();
 
-    
+
     FILE *input;
     FILE *output;
     input = fopen("../data/AdjListInput.txt", "rt");
@@ -124,6 +124,25 @@ int main()
     fprintf(output, "\nDegree of v #5/: %d", AListDegree(graph[5]));
     for (int i = 0; i < AListCountVertex(input); ++i)
         AListDelete(graph[i]);
+
+
+    input = fopen("../data/AdjMatrixInput.txt", "rt");
+    output = fopen("../data/AdjMatrixOutput.txt", "wt");
+    if (!input)
+    {
+        puts("Error open file for reading");
+        return -2;
+    }
+    if (!output)
+    {
+        puts("Error open file for writing");
+        return -2;
+    }
+
+    AMATRIX *d = AMatrixRead(input, AMatrixSet(AMatrixCountNodes(input)));
+    AMatrixPrint(d, output);
+    fprintf(output, "\nDegree of v #%d is %d", 1, AMatrixDegree(d, 1));
+    fprintf(output, "\nDensity is %.2lf", AMatrixDensity(d));
 
 	return 0;
 }
