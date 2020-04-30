@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "../graphData/AMatrix.h"
+#include "../src/graphs.c"
 
 void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
 {
@@ -105,12 +105,12 @@ int main() {
     }
 
     AMATRIX *graph = AMatrixSet(v);
-
     RandomGraph(e, v, graph);
     RandomGraphPrint(graph, v, output);
     fprintf(output, "\nOriented graph:\n\n");
     graph = AMatrixDelete(graph);
 
+    graph = AMatrixSet(v);
     RandomOrientedGraph(e, v, graph);
     RandomGraphPrint(graph, v, output);
     graph = AMatrixDelete(graph);
