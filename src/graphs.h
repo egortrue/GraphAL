@@ -71,7 +71,7 @@ typedef struct aMatrix
 }AMATRIX;
 
 AMATRIX *AMatrixSet           (int nodes);
-AMATRIX *AMatrixRead          (FILE *input, AMATRIX *adj_matrix); //read adjmatrix from file
+AMATRIX *AMatrixRead          (FILE *input); //read adjmatrix from file
 AMATRIX *AMatrixDelete        (AMATRIX *m);
 
 

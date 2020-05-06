@@ -217,18 +217,39 @@ GRAPH* FileRead(FILE* fr)
 }
 //------------------------------------------------------------------------------------------------------
 //PARSER
-AMATRIX *AMatrixRead(FILE *input, AMATRIX *adj_matrix)
+AMATRIX *AMatrixRead(FILE *input)
 {
+    // Size of file in bytes
+    fseek(input, 0, SEEK_END);
+    long file_size = ftell(input);
+
+    int count_buf = 0;
+
+    //Read block of adjacency matrix
+    if (!StringFind(input, "[adjacency matrix]\n", file_size))
+    {
+        printf("\nERROR: the read file doesn't have key string: [adjacency matrix]\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int nodes = AMatrixCountNodes(input);
+    AMATRIX *adj_matrix = AMatrixSet(nodes);
+    StringFind(input, "[adjacency matrix]\n", file_size);
     char str_new = fgetc(input);
     char *chr = NULL;
     chr = (char*)malloc(0*sizeof(char*));
     int line = 0, column = 0, j = 0;
-    while (str_new != EOF) {
+
+    while (line != nodes && column != nodes) {
         if (str_new >= 48 && str_new <= 57){
             chr[j++] = str_new;
         }
 
         else if (str_new == ' ') {
+            if ((atoi(chr)) > nodes){
+                printf("\nERROR: the node doesn't exist\n"); exit(EXIT_FAILURE);
+            }
+
             adj_matrix->adj[line][column] = atoi(chr);
             if (adj_matrix->adj[line][column] != 0)
                 adj_matrix->e++;
@@ -250,6 +271,8 @@ AMATRIX *AMatrixRead(FILE *input, AMATRIX *adj_matrix)
         }
 
         str_new = fgetc(input);
+        if (ftell(input) == file_size)
+            break;
     }
     adj_matrix->adj[line][column] = atoi(chr);
     if (adj_matrix->adj[line][column] != 0)
