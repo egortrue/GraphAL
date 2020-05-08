@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <conio.h>
+//#include <conio.h>
 
 #include "stdio_sh.h"
 #include "graphs.h"
@@ -9,8 +9,8 @@
 int main()
 {
     //Preparation
-    FILE* fr = FileOpen("data/input.txt", "r");
-    FILE* fw = FileOpen("data/output.txt", "w");
+  //  FILE* fr = FileOpen("data/input.txt", "r");
+  //  FILE* fw = FileOpen("data/output.txt", "w");
 
     /* Memory leaks test
     while (1) 
@@ -31,7 +31,7 @@ int main()
     */
 
     ///* UX version
-    GRAPH* F = FileRead(fr);
+ /*   GRAPH* F = FileRead(fr);
     NODE* start = F->nodes[0];
     enum {exit, info, bfs, dfs, deijkstra, bellman, floyd, prim, kruskal} c;
     while (1)
@@ -98,7 +98,7 @@ int main()
 
     GraphDestroy(F);
     _fcloseall();
-
+*/
 
     FILE *input;
     FILE *output;
@@ -116,17 +116,16 @@ int main()
         return -2;
     }
     int count_edges = 0;
-    ALIST **graph = AListRead(input, output, &count_edges);
-    AListPrint(graph, output, AListCountVertex(input));
+    aListg *grap = AListReads(input, output, &count_edges);
+    AListPrints(grap, output);
+
+   // fprintf(output, "Density: %.2lf", AListDensity(AListCountVertex(input), count_edges + 1));
+   // fprintf(output, "\nDegree of v #5/: %d", AListDegree(grap[5].g));
+   // for (int i = 0; i < AListCountVertex(input); ++i)
+        AListDelete(grap[1].g);
 
 
-    fprintf(output, "Density: %.2lf", AListDensity(AListCountVertex(input), count_edges + 1));
-    fprintf(output, "\nDegree of v #5/: %d", AListDegree(graph[5]));
-    for (int i = 0; i < AListCountVertex(input); ++i)
-        AListDelete(graph[i]);
-
-
-    input = fopen("../data/AdjMatrixInput.txt", "rt");
+    input = fopen("../data/input.txt", "rt");
     output = fopen("../data/AdjMatrixOutput.txt", "wt");
     if (!input)
     {
@@ -139,7 +138,7 @@ int main()
         return -2;
     }
 
-    AMATRIX *d = AMatrixRead(input, AMatrixSet(AMatrixCountNodes(input)));
+    AMATRIX *d = AMatrixRead(input);
     AMatrixPrint(d, output);
     fprintf(output, "\nDegree of v #%d is %d", 1, AMatrixDegree(d, 1));
     fprintf(output, "\nDensity is %.2lf", AMatrixDensity(d));

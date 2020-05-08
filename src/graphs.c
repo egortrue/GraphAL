@@ -219,11 +219,11 @@ void AListAddValue(ALIST **pphead, int val)
     *pp = pnew;
 }
 
-void AListPrint(ALIST **graph, FILE *output, int v) {
-    for (int i = 0; i < v + 1; i++) {
-        if (graph[i]) {
+void AListPrints(aListg *graph, FILE *output) {
+    for (int i = 0; i < graph->v; i++) {
+        if (graph[i].g) {
             fprintf(output, "%d-", i);
-            ALIST *p = graph[i];
+            ALIST *p = graph[i].g;
             while (p) {
                 fprintf(output, "%d ", p->value);
                 p = p->pnext;
@@ -232,6 +232,7 @@ void AListPrint(ALIST **graph, FILE *output, int v) {
         }
     }
 }
+
 void AListDelete(ALIST *phead)
 {
     if(phead)
@@ -269,7 +270,7 @@ int AListCountVertex(FILE *input)
         c = fgetc(input);
     }
     lines_count++;
-    rewind(input); //return back pointer in file
+    rewind(input);//return back pointer in file
     return lines_count+1;
 }
 //------------------------------------------------------------------------------------------------------

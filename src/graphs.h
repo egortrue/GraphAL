@@ -53,8 +53,18 @@ typedef struct aList
     struct aList* pnext;
 }ALIST;
 
-void   AListAddValue          (ALIST **pphead, int val);
-void   AListPrint             (ALIST **graph, FILE *output, int v);
+typedef struct aListg
+{
+    int v;
+    struct aList* g;
+} aListg;
+
+aListg *AListReads(FILE* input, FILE* output, int* count_edges);
+void AListPrints(aListg *graph, FILE *output);
+void AListgAddValue(aListg **pphead, int val);
+
+        void   AListAddValue          (ALIST **pphead, int val);
+void   AListPrint             (ALIST **graph, FILE *output);
 void   AListDelete            (ALIST *phead);
 
 
