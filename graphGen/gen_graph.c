@@ -3,40 +3,37 @@
 #include <stdlib.h>
 #include <time.h>
 #include "../src/graphs.c"
-int used[7];
 
-int dfs(AMATRIX *g, int ot, int v, int n, int *cnt){
-    used[ot] = 1;
-    (*cnt)++;
-    if (*cnt < n) {
-        srand(time(0));
-        int i = rand() % n;
-        while (g->adj[ot][i] || used[i])
-            i = rand() % n;
-        g->adj[ot][i] = 7;
-        g->adj[i][ot] = 7;
-        dfs(g, i, v, n, cnt);
-    }
-    else
-        while (*cnt <= v){
-            srand(time(0));
-            int i = rand() % n;
-            ot = rand() % n;
-            if (!g->adj[ot][i]){
-                g->adj[ot][i] = 7;
-                g->adj[i][ot] = 7;
-                (*cnt)++;
-            }
-
+int connectedGraph(AMATRIX *g, int v, int n){
+    int *used = (int*)calloc(n,sizeof(int));
+    int od = rand() % n, dos = rand() % n;
+    srand(time(0));
+    int count = 1;
+    while(count <= n){
+        while (g->adj[od][dos] || used[dos] || od == dos){
+            dos = rand() % n;
         }
+        g->adj[od][dos] = 10;
+        g->adj[dos][od] = 10;
+        count++;
+        used[dos] = 1;
+        od = dos;
+        dos = rand() % n;
+    }
 
+    if (v > n){
+         count = v-n;
+        for (int i = 0; i < count; i++){
+            srand(time(0));
+            while (g->adj[od][dos] || dos == od)
+                dos = rand() % n;
+            g->adj[od][dos] = 10;
+            g->adj[dos][od] = 10;
+            od = dos;
+            dos = rand() % n;
+        }
+    }
     return 0;
-}
-
-void RandomF(AMATRIX *G, int v, int e){
-    int i = 0;
-
-
 }
 
 void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
@@ -150,11 +147,11 @@ int main() {
     RandomGraphPrint(graph, v, output);
     graph = AMatrixDelete(graph);*/
 
-    if (e<v-1)
+    if (e < v-1)
         return 0;
     graph = AMatrixSet(v);
     int cnt = 0;
-    dfs(graph, 0, e, v, &cnt);
+    connectedGraph(graph, e, v);
     RandomGraphPrint(graph, v, output);
     graph = AMatrixDelete(graph);
     fclose(input);
