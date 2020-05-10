@@ -3,6 +3,41 @@
 #include <stdlib.h>
 #include <time.h>
 #include "../src/graphs.c"
+int used[7];
+
+int dfs(AMATRIX *g, int ot, int v, int n, int *cnt){
+    used[ot] = 1;
+    (*cnt)++;
+    if (*cnt < n) {
+        srand(time(0));
+        int i = rand() % n;
+        while (g->adj[ot][i] || used[i])
+            i = rand() % n;
+        g->adj[ot][i] = 7;
+        g->adj[i][ot] = 7;
+        dfs(g, i, v, n, cnt);
+    }
+    else
+        while (*cnt <= v){
+            srand(time(0));
+            int i = rand() % n;
+            ot = rand() % n;
+            if (!g->adj[ot][i]){
+                g->adj[ot][i] = 7;
+                g->adj[i][ot] = 7;
+                (*cnt)++;
+            }
+
+        }
+
+    return 0;
+}
+
+void RandomF(AMATRIX *G, int v, int e){
+    int i = 0;
+
+
+}
 
 void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
 {
@@ -18,7 +53,7 @@ void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
     fprintf(output, "\nAdjacency list: \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
-            if (graph->adj[i][j] == 1) {
+            if (graph->adj[i][j]) {
                 if (flag == 0) {
                     fprintf(output, "%d - ", i);
                     flag = 1;
@@ -35,7 +70,7 @@ void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
     fprintf(output, "\nVertex List \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
-            if (graph->adj[i][j] == 1)
+            if (graph->adj[i][j])
                 fprintf(output, "%d %d \n", i, j);
         }
     }
@@ -105,7 +140,7 @@ int main() {
     }
 
     AMATRIX *graph = AMatrixSet(v);
-    RandomGraph(e, v, graph);
+  /*  RandomGraph(e, v, graph);
     RandomGraphPrint(graph, v, output);
     fprintf(output, "\nOriented graph:\n\n");
     graph = AMatrixDelete(graph);
@@ -113,8 +148,15 @@ int main() {
     graph = AMatrixSet(v);
     RandomOrientedGraph(e, v, graph);
     RandomGraphPrint(graph, v, output);
-    graph = AMatrixDelete(graph);
+    graph = AMatrixDelete(graph);*/
 
+    if (e<v-1)
+        return 0;
+    graph = AMatrixSet(v);
+    int cnt = 0;
+    dfs(graph, 0, e, v, &cnt);
+    RandomGraphPrint(graph, v, output);
+    graph = AMatrixDelete(graph);
     fclose(input);
     fclose(output);
 }
