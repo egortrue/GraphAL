@@ -4,7 +4,9 @@
 #include <time.h>
 #include "../src/graphs.c"
 
-int connectedGraph(AMATRIX *g, int v, int n){
+int connectedGraph(AMATRIX *g, int v, int n, int r1, int r2){
+    if (v < n-1)
+        return 0;
     int *used = (int*)calloc(n,sizeof(int));
     int od = rand() % n, dos = rand() % n;
     srand(time(0));
@@ -13,8 +15,8 @@ int connectedGraph(AMATRIX *g, int v, int n){
         while (g->adj[od][dos] || used[dos] || od == dos){
             dos = rand() % n;
         }
-        g->adj[od][dos] = 10;
-        g->adj[dos][od] = 10;
+        g->adj[od][dos] = r1 + rand()%(r2-r1+1);
+        g->adj[dos][od] = g->adj[od][dos];
         count++;
         used[dos] = 1;
         od = dos;
@@ -27,8 +29,8 @@ int connectedGraph(AMATRIX *g, int v, int n){
             srand(time(0));
             while (g->adj[od][dos] || dos == od)
                 dos = rand() % n;
-            g->adj[od][dos] = 10;
-            g->adj[dos][od] = 10;
+            g->adj[od][dos] = r1 + rand()%(r2-r1+1);
+            g->adj[dos][od] = g->adj[od][dos];
             od = dos;
             dos = rand() % n;
         }
@@ -137,7 +139,7 @@ int main() {
     }
 
     AMATRIX *graph = AMatrixSet(v);
-  /*  RandomGraph(e, v, graph);
+    RandomGraph(e, v, graph);
     RandomGraphPrint(graph, v, output);
     fprintf(output, "\nOriented graph:\n\n");
     graph = AMatrixDelete(graph);
@@ -145,13 +147,13 @@ int main() {
     graph = AMatrixSet(v);
     RandomOrientedGraph(e, v, graph);
     RandomGraphPrint(graph, v, output);
-    graph = AMatrixDelete(graph);*/
+    graph = AMatrixDelete(graph);
 
-    if (e < v-1)
-        return 0;
     graph = AMatrixSet(v);
-    int cnt = 0;
-    connectedGraph(graph, e, v);
+    srand(time(0));
+    int r1 = rand() % 100;
+    int r2 = rand() % 100;
+    connectedGraph(graph, e, v, r1, r2);
     RandomGraphPrint(graph, v, output);
     graph = AMatrixDelete(graph);
     fclose(input);
