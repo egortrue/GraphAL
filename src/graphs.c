@@ -97,7 +97,7 @@ int GraphGetEdgeWeight(GRAPH* G, NODE* V1, NODE* V2)
 		if (G->edges[i]->source == V2 && G->edges[i]->target == V1 && G->directed == 0)
 			return G->edges[i]->weight;
 	}
-	//return INT_MAX;
+	return INT_MAX;
 } 
 
 EDGE* GraphGetEdge(GRAPH* G, NODE* V1, NODE* V2)
