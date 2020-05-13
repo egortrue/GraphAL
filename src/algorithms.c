@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
+#include <time.h>
 
 #include "algorithms.h"
 
@@ -862,51 +863,55 @@ void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
 	free(flow_net);
 }
 
-
 //------------------------------------------------------------------------------------------------------
 // Other algorithms
 
-// General Info about Graph (Radius, Diameter, Center, etc.)
-void GeneralInfo(GRAPH* G)
+
+// Define the eccentricities of each node
+void Eccentricity(GRAPH* G)
 {
 	EDGE*** matrix = FloydWarshall(G, 0);
-	int Radius = INT_MAX, Diameter = INT_MIN;
 
-	typedef struct eccs { NODE* node; int ecc; } ECCs;
-	ECCs* arr = (ECCs*)calloc(G->SIZE_N, sizeof(ECCs));
-	if (!arr) exit(EXIT_FAILURE);
-
-	// --------------------------------------------------------
-	// Define the eccentricities of each node
 	for (int i = 0; i < G->SIZE_N; i++)
 	{
 		int cur_ecc = INT_MIN;
 		for (int j = 0; j < G->SIZE_N; j++)
 			if (matrix[i][j]->weight > cur_ecc && matrix[i][j]->weight != INT_MAX)
 				cur_ecc = matrix[i][j]->weight;
-		arr[i] = (ECCs){ matrix[i][0]->source, cur_ecc };
+		matrix[i][0]->source->value = cur_ecc;
 	}
 
-	// --------------------------------------------------------
-	// Define the radius and diameter
+	Floyd_MatrixFree(G, matrix);
+}
+
+// Define the radius and diameter of graph
+void RadAndDiam(GRAPH* G, int* rad, int* diam)
+{
+	Eccentricity(G);	
+
 	for (int i = 0; i < G->SIZE_N; i++)
 	{
-		if (arr[i].ecc < Radius)
-			Radius = arr[i].ecc;
-		if (arr[i].ecc > Diameter)
-			Diameter = arr[i].ecc;
+		if (G->nodes[i]->value < *rad)
+			*rad = G->nodes[i]->value;
+		if (G->nodes[i]->value > *diam)
+			*diam = G->nodes[i]->value;
 	}
 
-	// --------------------------------------------------------
-	// Result
-	printf("  This is %s graph\n", (G->directed) ? "directed" : "undirected");
-	printf("  Radius: %d\n  Diameter: %d\n", Radius, Diameter);
-	printf("  Center: ");
-	for (int i = 0; i < G->SIZE_N; i++)
-		if (arr[i].ecc == Radius)
-			printf("(%d) ", arr[i].node->name);
-	puts("");
+}
 
-	free(arr);
-	Floyd_MatrixFree(G, matrix);
+// Define the center of graph
+void Center(GRAPH* G)
+{
+	int rad = 0, diam = 0;
+	RadAndDiam(G, &rad, &diam);
+
+	for (int i = 0; i < G->SIZE_N; i++)
+		if (G->nodes[i]->value == rad)
+			continue;
+}
+
+// Define the density (thickness of graph)
+double Density(GRAPH* G)
+{
+	return ((double)G->SIZE_E / (double)(2 * (double)G->SIZE_N * ((double)G->SIZE_N - 1)));
 }

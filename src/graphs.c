@@ -34,7 +34,7 @@ EDGE* EdgeSet(NODE* source, NODE* target, int weight)
 	return E;
 }
 
-void EdgePrint(const EDGE* E)
+void EdgePrint(EDGE* E)
 {
 	printf("EDGE: (%c<->%c) ", E->source->name + 48, E->target->name + 48);
 	printf("Weight: %d\n", E->weight);
@@ -42,23 +42,24 @@ void EdgePrint(const EDGE* E)
 
 //------------------------------------------------------------------------------------------------------
 
-GRAPH* GraphSet(int nodes_num, int edges_num, int info)
+GRAPH* GraphSet(int nodes, int edges, char info)
 {
 	GRAPH* G = (GRAPH*)malloc(sizeof(GRAPH));
 	if (!G) exit(EXIT_FAILURE);
-	G->nodes = (NODE**)calloc(nodes_num, sizeof(NODE*));
+	G->nodes = (NODE**)calloc(nodes, sizeof(NODE*));
 	if (!G->nodes) exit(EXIT_FAILURE);
-	G->edges = (EDGE**)calloc(edges_num, sizeof(EDGE*));
+	G->edges = (EDGE**)calloc(edges, sizeof(EDGE*));
 	if (!G->nodes) exit(EXIT_FAILURE);
 	
-	G->SIZE_N = nodes_num;
-	G->SIZE_E = edges_num;
+	G->SIZE_N = nodes;
+	G->SIZE_E = edges;
 	G->directed = info & 1;
+	G->weighted = info & 2;
 
 	return G;
 }
 
-void GraphPrint(const GRAPH* G)
+void GraphPrint(GRAPH* G)
 {
 	int i = 0;
 	printf("GRAPH (%s)\n", G->directed ? "directed" : "undirected");
@@ -140,3 +141,76 @@ NODE** GraphGetNodeNeighbors(GRAPH* G, NODE* node)
   	free(buffer);
 	return neighbors;
 }
+
+//------------------------------------------------------------------------------------------------------
+
+
+AMATRIX* aMatrixSet(int nodes)
+{
+	AMATRIX* aMatrix = (AMATRIX*)malloc(sizeof(AMATRIX));
+	if (!aMatrix) exit(EXIT_FAILURE);
+
+	aMatrix->nodes = nodes;
+	aMatrix->edges = 0;
+
+	aMatrix->adj = (int**)calloc(nodes, sizeof(int*));
+	if (!aMatrix->adj) exit(EXIT_FAILURE);
+	for (int i = 0; i < nodes; i++)
+	{
+		aMatrix->adj[i] = (int*)calloc(i, sizeof(int));
+		if (!aMatrix->adj[i]) exit(EXIT_FAILURE);
+	}
+		
+	return aMatrix;
+}
+
+
+AMATRIX* aMatrixGenerate(int nodes, int edges, int directed)
+{
+	AMATRIX* aMatrix = aMatrixSet(nodes);
+
+	int i, j;
+	int counter = 0;
+	srand(time(0));
+	while (counter < edges)
+	{
+
+		i = rand() % nodes;
+		j = rand() % nodes;
+
+		if (!directed)
+		{
+			if ((aMatrix->adj[i][j] != 1) && (i != j))
+			{
+				aMatrix->adj[i][j] = 1;
+				aMatrix->adj[j][i] = 1;
+				counter++;
+			}
+		}
+		else
+		{
+			if ((aMatrix->adj[i][j] != 1) && (i != j) && (aMatrix->adj[j][i] == 0))
+			{
+				aMatrix->adj[i][j] = 1;
+				counter++;
+			}
+
+			else if ((aMatrix->adj[j][i] != 1) && (i != j) && (aMatrix->adj[i][j] == 1))
+			{
+				aMatrix->adj[j][i] = 1;
+				counter++;
+			}
+		}
+	}
+
+	return aMatrix;
+}
+
+void aMatrixDestroy(AMATRIX* matrix)
+{
+	for (int i = 0; i < matrix->nodes; i++)
+		free(matrix->adj[i]);
+	free(matrix->adj);
+	free(matrix);
+}
+

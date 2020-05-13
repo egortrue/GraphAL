@@ -1,16 +1,16 @@
-Во входном файле важно только присутствие
-ключевых строк [nodes] или [edges].
-Ключевая строка является началом "блока".
-Блок заканчивается пустой строкой(или строкой с \n или это последняя строка в файле).
-Ключевая строка так-же заканчивается знаком \n
 Cтрока [directed] отвечает за ориентированность. Если её нет, то граф не ориентированный
-см. "stdio_sh.cpp" -> FileRead()
+Cтрока [weighted] отвечает за взвешенность. Если её нет, то граф не взвешенный
+Cтрока [connected] отвечает за взвешенность. Если её нет, то граф не взвешенный
 
-node : name value
-edge : source target weight
+Строки с [nodes] и [edges] - начало блока данных
+Блок заканчивается пустой строкой(или строкой "\n" или это последняя строка в файле).
+Данные
+- для блока nodes: name value
+- для блока edges: source target weight
 
 [directed]
-
+[weighted]
+[connected]
 [nodes]
 1 1
 2 1
@@ -18,14 +18,6 @@ edge : source target weight
 4 1
 5 1
 6 1
-
-
-
-7 1
-8 1
-9 1
-
-
 
 [edges]
 1 2 16
@@ -37,22 +29,3 @@ edge : source target weight
 5 4 7
 4 6 20
 5 6 4
-
-Ford-Falkerson from Kormen (x6)
-
-
-
-
-Изначально я хотел чтобы это выглядело как-то так:
-//[nodes] 
-	{"id": 1, "value": 1}
-	{"id": 2, "value": 1}
-	{"id": 3, "value": 1}	
-	{"id": 4, "value": 1}
-	{"id": 5, "value": 1}
-	
-//[edges]
-	{"source": 1, "target": 2, "weight": 2}
-	{"source": 2, "target": 3, "weight": 3}
-	{"source": 3, "target": 4, "weight": 5}
-	{"source": 3, "target": 5, "weight": 4}

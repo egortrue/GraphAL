@@ -20,6 +20,10 @@ void Kruskal (GRAPH* G);
 void FordFalkerson(GRAPH* G, NODE* source, NODE* target);
 
 // Other algorithms
-void GeneralInfo(GRAPH* G);
+void Eccentricity(GRAPH* G);                    // Define the eccentricities for each node
+void RadAndDiam(GRAPH* G, int* rad, int* diam); // Define the radius and diameter of graph
+void Center(GRAPH* G);  		            	// Define the center of graph
+double Density(GRAPH* G);                       // Define the density (thickness of graph)
+
 
 #endif

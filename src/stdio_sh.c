@@ -4,17 +4,6 @@
 
 #include "stdio_sh.h"
 
-int ArgLineCheck(const int given)
-{
-	if (given < NUM_ARGS_CMD)
-	{
-		printf("\nERROR: Not enough arguments. ");
-		printf("Expected at least %d. Given %d\n", NUM_ARGS_CMD, given);
-		exit(EXIT_FAILURE);
-	}
-	return 0;
-}
-
 FILE* FileOpen(const char* name, const char* mode)
 {
 	FILE* file;
@@ -144,39 +133,43 @@ char*** BlockRead(FILE* fr, char* str, long file_size, int* count)
 	return data;
 }
 
-GRAPH* FileRead(FILE* fr)
+GRAPH* GraphRead(FILE* input)
 {
 	// Size of file in bytes
-	fseek(fr, 0, SEEK_END);
-	long file_size = ftell(fr);
+	fseek(input, 0, SEEK_END);
+	long file_size = ftell(input);
 
 	int count_buf = 0;
 	// --------------------------------------------------------
 	// Read block [nodes]
 	// nodes_data[i] <===> [ name, value ]
-	if (!StringFind(fr, "[nodes]\n", file_size))
+	if (!StringFind(input, "[nodes]\n", file_size))
 	{
 		printf("\nERROR: the read file doesn't have key string: [nodes]\n");
 		exit(EXIT_FAILURE);
 	}
-	char*** nodes_data = BlockRead(fr, "[nodes]\n", file_size, &count_buf);
+	char*** nodes_data = BlockRead(input, "[nodes]\n", file_size, &count_buf);
 	int nodes_num = count_buf;
 
 	// --------------------------------------------------------
 	// Read block [edges]
 	// edges_data[i] <===> [ source, target, weight ]
-	if (!StringFind(fr, "[edges]\n", file_size))
+	if (!StringFind(input, "[edges]\n", file_size))
 	{
 		printf("\nERROR: the read file doesn't have key string: [edges]\n");
 		exit(EXIT_FAILURE);
 	}
-	char*** edges_data = BlockRead(fr, "[edges]\n", file_size, &count_buf);
+	char*** edges_data = BlockRead(input, "[edges]\n", file_size, &count_buf);
 	int edges_num = count_buf;
 
 	// --------------------------------------------------------
-	// Init the graph 
-	GRAPH* G = GraphSet(nodes_num, edges_num,
-						StringFind(fr, "[directed]\n", file_size));
+	// Init the graph
+	char info = 0;
+	if (StringFind(input, "[directed]\n", file_size))  info += G_DIRECTED;
+	if (StringFind(input, "[weighted]\n", file_size))  info += G_WEIGHTED;
+	if (StringFind(input, "[connected]\n", file_size)) info += G_CONNECTED;
+
+	GRAPH* G = GraphSet(nodes_num, edges_num, info);
 
 	// --------------------------------------------------------
 	// Init the nodes
@@ -216,3 +209,5 @@ GRAPH* FileRead(FILE* fr)
 
 	return G;
 }
+
+//------------------------------------------------------------------------------------------------------

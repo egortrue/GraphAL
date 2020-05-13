@@ -8,7 +8,7 @@
 
 int main()
 {
-    // Preparation
+    //Preparation
     FILE* fr = FileOpen("data/input.txt", "r");
     FILE* fw = FileOpen("data/output.txt", "w");
 
@@ -32,7 +32,7 @@ int main()
     */
 
     ///* UX version
-    GRAPH* F = FileRead(fr);
+    GRAPH* F = GraphRead(fr);
     NODE* start = F->nodes[0];
     enum {exit, info, bfs, dfs, deijkstra, bellman, floyd, prim, kruskal, ford_falk} c;
     while (1)
@@ -53,7 +53,6 @@ int main()
         {
         case info:
             puts("General Info:");
-            GeneralInfo(F);
             break;
         case bfs:
             puts("BFS:");
@@ -102,8 +101,7 @@ int main()
     }
 
     GraphDestroy(F);
-    //*/
-    
     _fcloseall();
+
 	return 0;
 }
