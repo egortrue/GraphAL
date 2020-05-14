@@ -11,7 +11,7 @@ int connectedGraph(AMATRIX *g, int v, int n, int r1, int r2){
     int od = rand() % n, dos = rand() % n;
     srand(time(0));
     int count = 1;
-    while(count <= n){
+    while(count < n){
         while (g->adj[od][dos] || used[dos] || od == dos){
             dos = rand() % n;
         }
@@ -87,7 +87,7 @@ void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
     }
 }
 
-void RandomGraph(int e, int v, AMATRIX *graph)
+void RandomGraph(int e, int v, AMATRIX *graph, r1, r2)
 {
     int i, j;
     int counter = 0;
@@ -97,15 +97,15 @@ void RandomGraph(int e, int v, AMATRIX *graph)
         i = rand() % v;
         j = rand() % v;
 
-        if ((graph->adj[i][j] != 1) && (i != j)){
-            graph->adj[i][j] = 1;
-            graph->adj[j][i] = 1;
+        if ((!graph->adj[i][j]) && (i != j)){
+            graph->adj[i][j] = r1 + rand()%(r2-r1+1);
+            graph->adj[j][i] = graph->adj[i][j];
             counter++;
         }
     }
 }
 
-void RandomOrientedGraph(int e, int v, AMATRIX *graph)
+void RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2)
 {
     int i = 0, j = 0;
     int counter = 0;
@@ -115,13 +115,13 @@ void RandomOrientedGraph(int e, int v, AMATRIX *graph)
         i = rand() % v;
         j = rand() % v;
 
-        if ((graph->adj[i][j] != 1) && (i != j) && (graph->adj[j][i] == 0)){
-            graph->adj[i][j] = 1;
+        if ((!graph->adj[i][j]) && (i != j) && (!graph->adj[j][i])){
+            graph->adj[i][j] = r1 + rand()%(r2-r1+1);
             counter++;
         }
 
-        else if ((graph->adj[j][i] != 1) && (i != j) && (graph->adj[i][j] == 1)){
-            graph->adj[j][i] = 1;
+        else if ((!graph->adj[j][i]) && (i != j) && (graph->adj[i][j])){
+            graph->adj[j][i] = r1 + rand()%(r2-r1+1);
             counter++;
         }
     }
@@ -150,21 +150,22 @@ int main() {
         return 0;
     }
 
+    srand(time(0));
+    int r1 = rand() % 100;
+    int r2 = rand() % 100;
+
     AMATRIX *graph = AMatrixSet(v);
-    RandomGraph(e, v, graph);
+    RandomGraph(e, v, graph, r1, r2);
     RandomGraphPrint(graph, v, output);
     fprintf(output, "\nOriented graph:\n\n");
     graph = AMatrixDelete(graph);
 
     graph = AMatrixSet(v);
-    RandomOrientedGraph(e, v, graph);
+    RandomOrientedGraph(e, v, graph, r1, r2);
     RandomGraphPrint(graph, v, output);
     graph = AMatrixDelete(graph);
 
     graph = AMatrixSet(v);
-    srand(time(0));
-    int r1 = rand() % 100;
-    int r2 = rand() % 100;
     connectedGraph(graph, e, v, r1, r2);
     RandomGraphPrint(graph, v, output);
     graph = AMatrixDelete(graph);
