@@ -40,11 +40,11 @@ int connectedGraph(AMATRIX *g, int v, int n, int r1, int r2){
 
 void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
 {
-    fprintf(output, "[nodes]: \n");
+    fprintf(output, "\n[nodes]: \n");
     for (int i = 0; i < v; i++){
         fprintf(output,"%d %d\n", i, 1);
     }
-    fprintf(output, "[edges]: \n");
+    fprintf(output, "\n[edges]: \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
             if (graph->adj[i][j])
@@ -52,7 +52,7 @@ void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
         }
     }
 
-    fprintf(output, "[adjacency matrix]: \n");
+    fprintf(output, "\n[adjacency matrix]: \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
             fprintf(output, "%d ", graph->adj[i][j]);
@@ -157,16 +157,17 @@ int main() {
     AMATRIX *graph = AMatrixSet(v);
     RandomGraph(e, v, graph, r1, r2);
     RandomGraphPrint(graph, v, output);
-    fprintf(output, "\nOriented graph:\n\n");
     graph = AMatrixDelete(graph);
 
     graph = AMatrixSet(v);
     RandomOrientedGraph(e, v, graph, r1, r2);
+    fprintf(output, "\nOriented graph:\n\n");
     RandomGraphPrint(graph, v, output);
     graph = AMatrixDelete(graph);
 
     graph = AMatrixSet(v);
     connectedGraph(graph, e, v, r1, r2);
+    fprintf(output, "\nConnected graph:\n\n");
     RandomGraphPrint(graph, v, output);
     graph = AMatrixDelete(graph);
     fclose(input);
