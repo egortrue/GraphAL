@@ -40,7 +40,19 @@ int connectedGraph(AMATRIX *g, int v, int n, int r1, int r2){
 
 void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
 {
-    fprintf(output, "Adjacency matrix: \n");
+    fprintf(output, "[nodes]: \n");
+    for (int i = 0; i < v; i++){
+        fprintf(output,"%d %d\n", i, 1);
+    }
+    fprintf(output, "[edges]: \n");
+    for (int i = 0; i < v; i++){
+        for (int j = 0; j < v; j++){
+            if (graph->adj[i][j])
+                fprintf(output, "%d %d %d \n", i, j, graph->adj[i][j]);
+        }
+    }
+
+    fprintf(output, "[adjacency matrix]: \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
             fprintf(output, "%d ", graph->adj[i][j]);
@@ -49,7 +61,7 @@ void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
     }
 
     int flag = 0;
-    fprintf(output, "\nAdjacency list: \n");
+    fprintf(output, "\n[adjacency list]: \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
             if (graph->adj[i][j]) {
@@ -66,7 +78,7 @@ void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
         }
     }
 
-    fprintf(output, "\nVertex List \n");
+    fprintf(output, "\n[vertex list] \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
             if (graph->adj[i][j])
