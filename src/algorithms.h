@@ -25,5 +25,4 @@ void RadAndDiam(GRAPH* G, int* rad, int* diam); // Define the radius and diamete
 void Center(GRAPH* G);  		            	// Define the center of graph
 double Density(GRAPH* G);                       // Define the density (thickness of graph)
 
-
 #endif

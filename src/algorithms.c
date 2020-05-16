@@ -542,12 +542,7 @@ void Prim(GRAPH* G, NODE* root)
 
 	// --------------------------------------------------------
 	// Init the tree
-	GRAPH* tree = (GRAPH*)malloc(sizeof(GRAPH));
-	if (!tree) exit(EXIT_FAILURE);
-	tree->nodes = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
-	tree->edges = (EDGE**)calloc(G->SIZE_E, sizeof(EDGE*)); 
-	if (!tree->nodes || !tree->edges) exit(EXIT_FAILURE);
-	tree->directed = 0;
+	GRAPH* tree = GraphSet(G->SIZE_N, G->SIZE_E, G_CONNECTED | G_WEIGHTED);
 	tree->SIZE_N = 0;
 	tree->SIZE_E = 0;
 
@@ -602,12 +597,7 @@ void Kruskal(GRAPH* G)
 
 	// --------------------------------------------------------
 	// Init the tree
-	GRAPH* tree = (GRAPH*)malloc(sizeof(GRAPH));
-	if (!tree) exit(EXIT_FAILURE);
-	tree->nodes = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
-	tree->edges = (EDGE**)calloc(G->SIZE_E, sizeof(EDGE*));
-	if (!tree->nodes || !tree->edges) exit(EXIT_FAILURE);
-	tree->directed = 0;
+	GRAPH* tree = GraphSet(G->SIZE_N, G->SIZE_E, G_CONNECTED | G_WEIGHTED);
 	tree->SIZE_N = 0;
 	tree->SIZE_E = 0;
 
@@ -736,7 +726,6 @@ void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
 		G->nodes[i]->value = 0;
 	}
 		
-
 	// --------------------------------------------------------
 	// The algorithm:
 
@@ -747,7 +736,6 @@ void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
 		if (cur == target)
 		{
 			path[path_len++] = cur;
-			printf("%d ", cur->name);
 
 			// Remake node path to flow path
 			FLN** path_fln = (FLN**)calloc(path_len - 1, sizeof(FLN*));
@@ -866,7 +854,6 @@ void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
 //------------------------------------------------------------------------------------------------------
 // Other algorithms
 
-
 // Define the eccentricities of each node
 void Eccentricity(GRAPH* G)
 {
@@ -887,6 +874,9 @@ void Eccentricity(GRAPH* G)
 // Define the radius and diameter of graph
 void RadAndDiam(GRAPH* G, int* rad, int* diam)
 {
+	*rad = INT_MAX;
+	*diam = INT_MIN;
+
 	Eccentricity(G);	
 
 	for (int i = 0; i < G->SIZE_N; i++)

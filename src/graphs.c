@@ -53,8 +53,10 @@ GRAPH* GraphSet(int nodes, int edges, char info)
 	
 	G->SIZE_N = nodes;
 	G->SIZE_E = edges;
-	G->directed = info & 1;
-	G->weighted = info & 2;
+
+	G->directed  = info & 1;
+	G->weighted  = info & 2;
+	G->connected = info & 4;
 
 	return G;
 }

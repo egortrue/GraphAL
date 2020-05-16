@@ -2,7 +2,6 @@
 # Visual Studio:
 *.sln
 *.vcx*
-
 .vs/
 [Dd]ebug/
 [Dd]ebugPublic/

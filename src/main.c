@@ -9,8 +9,9 @@
 int main()
 {
     //Preparation
-    FILE* fr = FileOpen("data/input.txt", "r");
-    FILE* fw = FileOpen("data/output.txt", "w");
+
+    FILE* fr = FileOpen("../../src/data/input.txt", "r");
+    FILE* fw = FileOpen("../../src/data/output.txt", "w");
 
     /* Memory leaks test
     while (1) 
@@ -53,6 +54,10 @@ int main()
         {
         case info:
             puts("General Info:");
+            int rad, diam;
+            RadAndDiam(F, &rad, &diam);
+            printf("Radius: %d\nDiametr: %d\n", rad, diam);
+            printf("Density: %f\n", Density(F));
             break;
         case bfs:
             puts("BFS:");
