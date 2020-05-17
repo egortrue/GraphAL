@@ -4,38 +4,92 @@
 #include <time.h>
 #include "../src/graphs.c"
 
-int connectedGraph(AMATRIX *g, int v, int n, int r1, int r2){
+int connectedGraph(AMATRIX *g, int v, int n, int r1, int r2){ //connnected oriented graph
     if (v < n-1)
         return 0;
     int *used = (int*)calloc(n,sizeof(int));
-    int od = rand() % n, dos = rand() % n;
     srand(time(0));
+    int od = rand() % n, dos = rand() % n;
+    int first = od;
+    used[od] = 1;
     int count = 1;
     while(count < n){
         while (g->adj[od][dos] || used[dos] || od == dos){
             dos = rand() % n;
         }
         g->adj[od][dos] = r1 + rand()%(r2-r1+1);
-        g->adj[dos][od] = g->adj[od][dos];
+        //g->adj[dos][od] = g->adj[od][dos];
         count++;
         used[dos] = 1;
         od = dos;
-        dos = rand() % n;
+        //dos = rand() % n;
     }
 
-    if (v > n){
-         count = v-n;
+    if (v >= n){
+         count = v - n - 1;
+         g->adj[dos][first] = r1 + rand()%(r2-r1+1);
         for (int i = 0; i < count; i++){
             srand(time(0));
             while (g->adj[od][dos] || dos == od)
                 dos = rand() % n;
             g->adj[od][dos] = r1 + rand()%(r2-r1+1);
-            g->adj[dos][od] = g->adj[od][dos];
+           // g->adj[dos][od] = g->adj[od][dos];
             od = dos;
             dos = rand() % n;
         }
     }
     return 0;
+}
+
+void dfs(AMATRIX *g, int v, int ost, int used[], int *count, int *comp, int *pr, int *cycle){
+    used[v] = 1;
+    comp[*count] = v; //save vertex in components
+    *count += 1; //count vertex in 1 comp
+    for (int i = 0; i < ost; i++ ){
+        int to = i;
+        if (used[to] == 0 && g->adj[v][to]) {
+            pr[to] = v;
+            dfs(g, to, ost, used, count, comp, pr, cycle);
+        }
+        else if (used[to] == 1 && to != pr[v] && g->adj[v][to]){
+            cycle[0] = v;
+            cycle[1] = to;
+        }
+
+    }
+    used[v] = 2;
+}
+
+int conorientedgr(AMATRIX *g, int v, int n){ //just connected graph
+    int *used = (int*)calloc(n,sizeof(int));
+    int *comp = (int*)calloc(n,sizeof(int));
+    int *pr = (int*)calloc(n,sizeof(int));
+    int count = 0;
+    int ost = n;
+    int prevcycle = 0;
+    int cycle[2] = {0, 0};
+    for (int i = 0; i < n; i++){
+        if (!used[i]){
+            if (prevcycle && (cycle[0] || cycle[1])) {
+                g->adj[cycle[0]][i] = g->adj[cycle[0]][cycle[1]];
+                g->adj[cycle[0]][cycle[1]] = 0;
+                cycle[0] = 0;
+                cycle[1] = 0;
+                prevcycle = 0;
+            }
+            comp = (int*)calloc(n, sizeof(int));
+            dfs(g, i, ost, used, &count, comp, pr, cycle);
+            for (int j = 0; j < count; j++) {
+                printf("%d - ", comp[j]);
+                printf("%d ",AMatrixDegree(g, comp[j]));
+            }
+            if (cycle[0] || cycle[1])
+                prevcycle = 1;
+        }
+        count = 0;
+        printf("\n");
+        pr = (int*)calloc(n, sizeof(int));
+    }
 }
 
 void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
@@ -87,7 +141,7 @@ void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
     }
 }
 
-void RandomGraph(int e, int v, AMATRIX *graph, r1, r2)
+void RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2)
 {
     int i, j;
     int counter = 0;
@@ -154,8 +208,23 @@ int main() {
     int r1 = rand() % 100;
     int r2 = rand() % 100;
 
+    //TEST
+   /* AMATRIX *graph = AMatrixSet(5);
+    graph->adj[0][1] = 1;
+    graph->adj[1][0] = 1;
+    graph->adj[0][2] = 1;
+    graph->adj[2][0] = 1;
+    graph->adj[1][2] = 1;
+    graph->adj[2][1] = 1;
+    graph->adj[1][3] = 1;
+    graph->adj[3][1] = 1;
+    conorientedgr(graph, 4, 5);
+
+    graph = AMatrixDelete(graph);*/
+
     AMATRIX *graph = AMatrixSet(v);
     RandomGraph(e, v, graph, r1, r2);
+    conorientedgr(graph, e,  v); //make it connected
     RandomGraphPrint(graph, v, output);
     graph = AMatrixDelete(graph);
 
