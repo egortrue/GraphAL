@@ -92,6 +92,60 @@ int conorientedgr(AMATRIX *g, int v, int n){ //just connected graph
     }
 }
 
+void PrintRandMatrix(AMATRIX *graph, int v, FILE *output){
+    fprintf(output, "\n[adjacency matrix]: \n");
+    for (int i = 0; i < v; i++){
+        for (int j = 0; j < v; j++){
+            fprintf(output, "%d ", graph->adj[i][j]);
+        }
+        fprintf(output, "\n");
+    }
+}
+
+void PrintRandVertexList(AMATRIX *graph, int v, FILE *output){
+    fprintf(output, "\n[vertex list] \n");
+    for (int i = 0; i < v; i++){
+        for (int j = 0; j < v; j++){
+            if (graph->adj[i][j])
+                fprintf(output, "%d %d \n", i, j);
+        }
+    }
+}
+
+void PrintRandAdjList(AMATRIX *graph, int v, FILE *output){
+    int flag = 0;
+    fprintf(output, "\n[adjacency list]: \n");
+    for (int i = 0; i < v; i++){
+        for (int j = 0; j < v; j++){
+            if (graph->adj[i][j]) {
+                if (flag == 0) {
+                    fprintf(output, "%d - ", i);
+                    flag = 1;
+                }
+                fprintf(output, "%d ", j);
+            }
+        }
+        if (flag == 1) {
+            flag = 0;
+            fprintf(output, "\n");
+        }
+    }
+}
+
+void PrintRandSNodEdg(AMATRIX *graph, int v, FILE *output){
+    fprintf(output, "\n[nodes]: \n");
+    for (int i = 0; i < v; i++){
+        fprintf(output,"%d %d\n", i, 1);
+    }
+    fprintf(output, "\n[edges]: \n");
+    for (int i = 0; i < v; i++){
+        for (int j = 0; j < v; j++){
+            if (graph->adj[i][j])
+                fprintf(output, "%d %d %d \n", i, j, graph->adj[i][j]);
+        }
+    }
+}
+/*
 void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
 {
     fprintf(output, "\n[nodes]: \n");
@@ -104,14 +158,6 @@ void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
             if (graph->adj[i][j])
                 fprintf(output, "%d %d %d \n", i, j, graph->adj[i][j]);
         }
-    }
-
-    fprintf(output, "\n[adjacency matrix]: \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            fprintf(output, "%d ", graph->adj[i][j]);
-        }
-        fprintf(output, "\n");
     }
 
     int flag = 0;
@@ -140,7 +186,7 @@ void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
         }
     }
 }
-
+*/
 void RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2)
 {
     int i, j;
@@ -224,21 +270,42 @@ int main() {
 
     AMATRIX *graph = AMatrixSet(v);
     RandomGraph(e, v, graph, r1, r2);
-    conorientedgr(graph, e,  v); //make it connected
-    RandomGraphPrint(graph, v, output);
+   // conorientedgr(graph, e,  v); //make it connected
+    PrintRandMatrix(graph, v, output);
+    PrintRandVertexList(graph, v, output);
+    PrintRandAdjList(graph, v, output);
+    PrintRandSNodEdg(graph, v, output);
     graph = AMatrixDelete(graph);
 
     graph = AMatrixSet(v);
     RandomOrientedGraph(e, v, graph, r1, r2);
     fprintf(output, "\nOriented graph:\n\n");
-    RandomGraphPrint(graph, v, output);
+    PrintRandMatrix(graph, v, output);
+    PrintRandVertexList(graph, v, output);
+    PrintRandAdjList(graph, v, output);
+    PrintRandSNodEdg(graph, v, output);
     graph = AMatrixDelete(graph);
 
     graph = AMatrixSet(v);
     connectedGraph(graph, e, v, r1, r2);
-    fprintf(output, "\nConnected graph:\n\n");
-    RandomGraphPrint(graph, v, output);
+    fprintf(output, "\nConnected oriented graph:\n\n");
+    PrintRandMatrix(graph, v, output);
+    PrintRandVertexList(graph, v, output);
+    PrintRandAdjList(graph, v, output);
+    PrintRandSNodEdg(graph, v, output);
     graph = AMatrixDelete(graph);
+
+    graph = AMatrixSet(v);
+    RandomGraph(e, v, graph, r1, r2);
+    conorientedgr(graph, e,  v);
+    fprintf(output, "\nConnected non-oriented graph:\n\n");
+    PrintRandMatrix(graph, v, output);
+    PrintRandVertexList(graph, v, output);
+    PrintRandAdjList(graph, v, output);
+    PrintRandSNodEdg(graph, v, output);
+    graph = AMatrixDelete(graph);
+
+
     fclose(input);
     fclose(output);
 }
