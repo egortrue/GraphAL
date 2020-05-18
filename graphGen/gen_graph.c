@@ -67,28 +67,63 @@ int conorientedgr(AMATRIX *g, int v, int n){ //just connected graph
     int count = 0;
     int ost = n;
     int prevcycle = 0;
+    int tmpprevcycle = 0;
     int cycle[2] = {0, 0};
+    int neededg = 0;
     for (int i = 0; i < n; i++){
         if (!used[i]){
             if (prevcycle && (cycle[0] || cycle[1])) {
                 g->adj[cycle[0]][i] = g->adj[cycle[0]][cycle[1]];
+                g->adj[i][cycle[0]] = g->adj[cycle[0]][i];
                 g->adj[cycle[0]][cycle[1]] = 0;
+                g->adj[cycle[1]][cycle[0]] = 0;
                 cycle[0] = 0;
                 cycle[1] = 0;
                 prevcycle = 0;
             }
             comp = (int*)calloc(n, sizeof(int));
             dfs(g, i, ost, used, &count, comp, pr, cycle);
+            printf("[[%d %d]]  ", cycle[0], cycle[1]);
+            if ((cycle[0] || cycle[1]) && tmpprevcycle == 1){
+                g->adj[cycle[0]][i-1] = g->adj[cycle[0]][cycle[1]];
+                g->adj[i-1][cycle[0]] = g->adj[cycle[0]][i-1];
+                g->adj[cycle[0]][cycle[1]] = 0;
+                g->adj[cycle[1]][cycle[0]] = 0;
+                cycle[0] = 0;
+                cycle[1] = 0;
+                tmpprevcycle = 0;
+            }
+            else if (tmpprevcycle == 1 && !(cycle[0] || cycle[1])) {
+                neededg++;
+                //tmpprevcycle = 0;
+                g->adj[i-1][i] = 787;
+                g->adj[i][i-1] = 787;
+            }
+            else if (cycle[0] || cycle[1])
+                prevcycle = 1; //can give a connect
+            else
+                tmpprevcycle = 1; //need connect
+
             for (int j = 0; j < count; j++) {
                 printf("%d - ", comp[j]);
+                printf("[%d %d [%d %d]]  ", tmpprevcycle, prevcycle, cycle[0], cycle[1]);
                 printf("%d ",AMatrixDegree(g, comp[j]));
             }
-            if (cycle[0] || cycle[1])
-                prevcycle = 1;
         }
         count = 0;
         printf("\n");
         pr = (int*)calloc(n, sizeof(int));
+    }
+    printf("..%d..", neededg);
+    while (neededg != 0){
+        int i = 0;
+        dfs(g, i, ost, used, &count, comp, pr, cycle);
+        if (cycle[0] || cycle[1]) {
+            g->adj[cycle[0]][cycle[1]] = 0;
+            g->adj[cycle[1]][cycle[0]] = 0;
+            neededg--;
+        }
+        i++;
     }
 }
 
