@@ -18,11 +18,9 @@ int connectedGraph(AMATRIX *g, int v, int n, int r1, int r2){ //connnected orien
             dos = rand() % n;
         }
         g->adj[od][dos] = r1 + rand()%(r2-r1+1);
-        //g->adj[dos][od] = g->adj[od][dos];
         count++;
         used[dos] = 1;
         od = dos;
-        //dos = rand() % n;
     }
 
     if (v >= n){
@@ -60,7 +58,7 @@ void dfs(AMATRIX *g, int v, int ost, int used[], int *count, int *comp, int *pr,
     used[v] = 2;
 }
 
-int conorientedgr(AMATRIX *g, int v, int n){ //just connected graph
+int ConnectGraph(AMATRIX *g, int v, int n){ //just connected graph
     int *used = (int*)calloc(n,sizeof(int));
     int *comp = (int*)calloc(n,sizeof(int));
     int *pr = (int*)calloc(n,sizeof(int));
@@ -70,6 +68,7 @@ int conorientedgr(AMATRIX *g, int v, int n){ //just connected graph
     int tmpprevcycle = 0;
     int cycle[2] = {0, 0};
     int neededg = 0;
+    int last = 0;
     for (int i = 0; i < n; i++){
         if (!used[i]){
             if (prevcycle && (cycle[0] || cycle[1])) {
@@ -83,7 +82,6 @@ int conorientedgr(AMATRIX *g, int v, int n){ //just connected graph
             }
             comp = (int*)calloc(n, sizeof(int));
             dfs(g, i, ost, used, &count, comp, pr, cycle);
-            printf("[[%d %d]]  ", cycle[0], cycle[1]);
             if ((cycle[0] || cycle[1]) && tmpprevcycle == 1){
                 g->adj[cycle[0]][i-1] = g->adj[cycle[0]][cycle[1]];
                 g->adj[i-1][cycle[0]] = g->adj[cycle[0]][i-1];
@@ -104,19 +102,19 @@ int conorientedgr(AMATRIX *g, int v, int n){ //just connected graph
             else
                 tmpprevcycle = 1; //need connect
 
-            for (int j = 0; j < count; j++) {
-                printf("%d - ", comp[j]);
-                printf("[%d %d [%d %d]]  ", tmpprevcycle, prevcycle, cycle[0], cycle[1]);
-                printf("%d ",AMatrixDegree(g, comp[j]));
-            }
+            last = i;
         }
         count = 0;
-        printf("\n");
         pr = (int*)calloc(n, sizeof(int));
     }
-    printf("..%d..", neededg);
-    while (neededg != 0){
-        int i = 0;
+    if (tmpprevcycle == 1 && !(cycle[0] || cycle[1])) {
+        neededg++;
+        g->adj[last-1][last] = 787;
+        g->adj[last][last-1] = 787;
+    }
+    int i = 0;
+    while (neededg != 0 && i < ost){
+        count = 0;
         dfs(g, i, ost, used, &count, comp, pr, cycle);
         if (cycle[0] || cycle[1]) {
             g->adj[cycle[0]][cycle[1]] = 0;
@@ -125,6 +123,9 @@ int conorientedgr(AMATRIX *g, int v, int n){ //just connected graph
         }
         i++;
     }
+    free(pr);
+    free(used);
+    free(comp);
 }
 
 void PrintRandMatrix(AMATRIX *graph, int v, FILE *output){
@@ -180,48 +181,7 @@ void PrintRandSNodEdg(AMATRIX *graph, int v, FILE *output){
         }
     }
 }
-/*
-void RandomGraphPrint(AMATRIX *graph, int v, FILE *output)
-{
-    fprintf(output, "\n[nodes]: \n");
-    for (int i = 0; i < v; i++){
-        fprintf(output,"%d %d\n", i, 1);
-    }
-    fprintf(output, "\n[edges]: \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            if (graph->adj[i][j])
-                fprintf(output, "%d %d %d \n", i, j, graph->adj[i][j]);
-        }
-    }
 
-    int flag = 0;
-    fprintf(output, "\n[adjacency list]: \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            if (graph->adj[i][j]) {
-                if (flag == 0) {
-                    fprintf(output, "%d - ", i);
-                    flag = 1;
-                }
-                fprintf(output, "%d ", j);
-            }
-        }
-        if (flag == 1) {
-            flag = 0;
-            fprintf(output, "\n");
-        }
-    }
-
-    fprintf(output, "\n[vertex list] \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            if (graph->adj[i][j])
-                fprintf(output, "%d %d \n", i, j);
-        }
-    }
-}
-*/
 void RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2)
 {
     int i, j;
@@ -289,23 +249,9 @@ int main() {
     int r1 = rand() % 100;
     int r2 = rand() % 100;
 
-    //TEST
-   /* AMATRIX *graph = AMatrixSet(5);
-    graph->adj[0][1] = 1;
-    graph->adj[1][0] = 1;
-    graph->adj[0][2] = 1;
-    graph->adj[2][0] = 1;
-    graph->adj[1][2] = 1;
-    graph->adj[2][1] = 1;
-    graph->adj[1][3] = 1;
-    graph->adj[3][1] = 1;
-    conorientedgr(graph, 4, 5);
-
-    graph = AMatrixDelete(graph);*/
-
     AMATRIX *graph = AMatrixSet(v);
     RandomGraph(e, v, graph, r1, r2);
-   // conorientedgr(graph, e,  v); //make it connected
+
     PrintRandMatrix(graph, v, output);
     PrintRandVertexList(graph, v, output);
     PrintRandAdjList(graph, v, output);
@@ -332,7 +278,7 @@ int main() {
 
     graph = AMatrixSet(v);
     RandomGraph(e, v, graph, r1, r2);
-    conorientedgr(graph, e,  v);
+    ConnectGraph(graph, e,  v);
     fprintf(output, "\nConnected non-oriented graph:\n\n");
     PrintRandMatrix(graph, v, output);
     PrintRandVertexList(graph, v, output);
