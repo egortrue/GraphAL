@@ -6,7 +6,7 @@ import time
 
 
 # link DLL
-path = r"./mydll.dll" # or full path
+path = r"D:\Code\GraphAL\solutions\dll\Debug\myDLL.dll" # or full path
 lib = ct.CDLL(path)
 
 
@@ -26,7 +26,6 @@ class Node(ct.Structure):
     _fields_ = [("C_ID", ct.c_int),
                 ("C_VALUE", ct.c_int)]
 
-    # Common functions
     def __init__(self, node_id, value=1):
         self.ptr = lib.NodeSet(node_id, value)
         self.node_id = node_id
@@ -48,14 +47,14 @@ class Edge(ct.Structure):
                 ("C_SOURCE", ct.POINTER(Node)), # NODE*
                 ("C_TARGET", ct.POINTER(Node))] # NODE*
 
-    # Common functions
-    def __init__(self, weight, source, target):
-        self.ptr = lib.EdgeSet(weight, source.ptr, target.ptr)
-        self.weight = weight
+    def __init__(self, source, target, weight):
+        self.ptr = lib.EdgeSet(source.ptr, target.ptr, weight)
         self.source = source
         self.target = target
-        
-                
+        self.weight = weight
+
+
+
 
 class Graph(ct.Structure):
 
@@ -73,7 +72,6 @@ class Graph(ct.Structure):
     nodes_color = []
     edges_color = []
 
-
     # Data from DLL
     ptr = None
     _fields_ = [("SIZE_N", ct.c_int),
@@ -81,15 +79,10 @@ class Graph(ct.Structure):
                 ("C_NODES", ct.POINTER(ct.POINTER(Node))),  # NODE**
                 ("C_EDGES", ct.POINTER(ct.POINTER(Edge)))]  # EDGE**
 
-
-    # Common functions
     def __init__(self, nodes, edges):
 
         self.nodes_num = len(nodes)
         self.edges_num = len(edges)
-
-        # Assign the memory for graph
-        self.ptr = lib.GraphSet(self.nodes_num, self.edges_num)
 
         self.nodes = nodes
         self.edges = edges
@@ -103,7 +96,6 @@ class Graph(ct.Structure):
         for i in range(self.nodes_num):
             nodes_row[i] = nodes[i].ptr
         nodes_row = ct.cast(nodes_row, ct.POINTER(ct.POINTER(Node)))
-        lib.GraphSetNodes(self.ptr, nodes_row, self.nodes_num)
 
         # Init edges
         edges_row = ct.POINTER(Edge) * self.edges_num
@@ -111,9 +103,11 @@ class Graph(ct.Structure):
         for i in range(self.edges_num):
             edges_row[i] = edges[i].ptr
         edges_row = ct.cast(edges_row, ct.POINTER(ct.POINTER(Edge)))
-        lib.GraphSetEdges(self.ptr, edges_row, self.edges_num)
 
+        # Assign a memory for graph and create pointer on the memory
+        self.ptr = lib.GraphSet(self.nodes_num, nodes_row, self.edges_num, edges_row, 7)
 
+    # Common functions
     def GetNodes(self):
         return [node.node_id for node in self.nodes]
 
@@ -125,27 +119,28 @@ class Graph(ct.Structure):
         self.edges_color = [edge.color for edge in self.edges]
 
 
-# define types of functions' arguments
-lib.NodeSet.argtypes  = [ct.c_int, ct.c_int]
-lib.EdgeSet.argtypes  = [ct.c_int, ct.POINTER(Node), ct.POINTER(Node)]
-lib.GraphSet.argtypes = [ct.c_int, ct.c_int]
+#########################################################################
 
-lib.GraphSetNodes.argtypes = [ct.POINTER(Graph), ct.POINTER(ct.POINTER(Node)), ct.c_int]
-lib.GraphSetEdges.argtypes = [ct.POINTER(Graph), ct.POINTER(ct.POINTER(Edge)), ct.c_int]
+# define types of functions' arguments
+lib.NodeSet.argtypes  = [ct.c_int, ct.c_int] # node_id, value
+lib.EdgeSet.argtypes  = [ct.POINTER(Node), ct.POINTER(Node), ct.c_int] # NODE*, NODE*, weight
+
+lib.GraphSet.argtypes = [ct.c_int, ct.POINTER(ct.POINTER(Node)),       # nodes_num, NODE*
+                         ct.c_int, ct.POINTER(ct.POINTER(Edge)),       # edges_num, EDGE*
+                         ct.c_int]                                     # info
 
 # define types of functions' returns
 lib.NodeSet.restype  = ct.POINTER(Node)
 lib.EdgeSet.restype  = ct.POINTER(Edge)
 lib.GraphSet.restype = ct.POINTER(Graph)
 
-
 #########################################################################
 
+# define BFS function
+lib.BFS.argtypes = [ct.POINTER(Graph), ct.POINTER(Node)]
+lib.BFS.restype = ct.POINTER(ct.POINTER(Node))
+
 def BFS(graph, start):
-
-
-    lib.BFS.argtypes = [ct.POINTER(Graph), ct.POINTER(Node)]
-    lib.BFS.restype = ct.POINTER(ct.POINTER(Node))
 
     path = lib.BFS(graph.ptr, start.ptr)
 
@@ -153,7 +148,7 @@ def BFS(graph, start):
     path = ct.cast(path, ct.POINTER(ct.POINTER(Node) * graph.nodes_num)).contents
     for i in path:
         print(i.contents.C_ID, end=" ")
-    print()
+    print("\n")
 
     # networkx Graph:
     nx_graph = nx.Graph()
@@ -167,7 +162,6 @@ def BFS(graph, start):
         for k in graph.nodes:
             if k.node_id == node_id:
                 k.color = "cyan"
-                print(k.node_id)
         graph.UpdateColors()
 
         # Print Graph   
@@ -183,17 +177,101 @@ def BFS(graph, start):
         plt.close('all')
 
 
+#########################################################################
+
+# define DFS function
+lib.DFS.argtypes = [ct.POINTER(Graph), ct.POINTER(Node)]
+lib.DFS.restype = ct.POINTER(ct.POINTER(Node))
+
+def DFS(graph, start):
+
+    path = lib.DFS(graph.ptr, start.ptr)
+
+    print("DFS")
+    path = ct.cast(path, ct.POINTER(ct.POINTER(Node) * graph.nodes_num)).contents
+    for i in path:
+        print(i.contents.C_ID, end=" ")
+    print("\n")
+
+    # networkx Graph:
+    nx_graph = nx.Graph()
+    nx_graph.add_nodes_from(graph.GetNodes())
+    nx_graph.add_edges_from(graph.GetEdges())
+    pos = nx.shell_layout(nx_graph)
+
+    for node in path:
+
+        node_id = node.contents.C_ID
+        for k in graph.nodes:
+            if k.node_id == node_id:
+                k.color = "cyan"
+        graph.UpdateColors()
+
+        # Print Graph   
+        nx.draw_networkx(nx_graph, pos=pos, with_labels=True,
+                         node_color=graph.nodes_color,
+                         edge_color=graph.edges_color,
+                         node_size=800,
+                         width = 2)
+
+        plt.axis('off')
+        plt.show()
+        time.sleep(0.25)
+        plt.close('all')
+
+#########################################################################
+
+#define Deijkstra function
+lib.Deijkstra.argtypes = [ct.POINTER(Graph), ct.POINTER(Node)]
+lib.Deijkstra.restype  = ct.POINTER(ct.POINTER(Node))
+
+def Deijkstra(graph, start):
+
+    path = lib.Deijkstra(graph.ptr, start.ptr)
+
+    print("Deijkstra")
+    path = ct.cast(path, ct.POINTER(ct.POINTER(Node) * graph.nodes_num)).contents
+    for i in path:
+        print(i.contents.C_ID, end=" ")
+    print("\n")
+
+    # networkx Graph:
+    nx_graph = nx.Graph()
+    nx_graph.add_nodes_from(graph.GetNodes())
+    nx_graph.add_edges_from(graph.GetEdges())
+    pos = nx.shell_layout(nx_graph)
+
+    for node in path:
+
+        node_id = node.contents.C_ID
+        for k in graph.nodes:
+            if k.node_id == node_id:
+                k.color = "cyan"
+        graph.UpdateColors()
+
+        # Print Graph   
+        nx.draw_networkx(nx_graph, pos=pos, with_labels=True,
+                         node_color=graph.nodes_color,
+                         edge_color=graph.edges_color,
+                         node_size=800,
+                         width = 2)
+
+        plt.axis('off')
+        plt.show()
+        time.sleep(0.25)
+        plt.close('all')
+
 
 #########################################################################
 
 # Create Graph
 nodes = [Node(i, i*i) for i in range(21)]
 
-edges     = [Edge(i, nodes[i], nodes[i+1]) for i in range(10)]
-edges.extend(Edge(i, nodes[i], nodes[i+1]) for i in range(11, 20))
-edges.append(Edge(10, nodes[0], nodes[11]))
-
+edges     = [Edge(nodes[i], nodes[i+1], i+100) for i in range(10)]
+edges.extend(Edge(nodes[i], nodes[i+1], i*i) for i in range(11, 20))
+edges.append(Edge(nodes[0], nodes[11], 10))
 
 my_graph = Graph(nodes, edges)
 
-BFS(my_graph, nodes[0])
+# Run algorithm's animation
+Deijkstra(my_graph, nodes[0])
