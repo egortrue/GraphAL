@@ -36,7 +36,7 @@ DLL_EXPORT EDGE* EdgeSet(NODE* source, NODE* target, int weight)
 
 void EdgePrint(EDGE* E)
 {
-	printf("EDGE: (%c<->%c) ", E->source->name, E->target->name);
+	printf("EDGE: (%d<->%d) ", E->source->name, E->target->name);
 	printf("Weight: %d\n", E->weight);
 }
 
@@ -77,14 +77,14 @@ void GraphPrint(GRAPH* G)
 	printf("  Nodes: ");
 	for (; i < G->SIZE_N; i++)
 		if (G->nodes[i] != 0)
-			printf("(%2c)=%2d%s", G->nodes[i]->name + 64, G->nodes[i]->value, ((i+1) % 7 != 0) ? " " : "\n\t ");
+			printf("(%2d)=%2d%s", G->nodes[i]->name, G->nodes[i]->value, ((i+1) % 7 != 0) ? " " : "\n\t ");
 	printf("%s", i == 0 ? "None\n" : "\n");
 
 	i = 0;
 	printf("  Edges: ");
 	for (; i < G->SIZE_E; i++)
 		if (G->edges[i] != 0)
-			printf("(%2c<->%2c)=%-2d%s", G->edges[i]->source->name + 64, G->edges[i]->target->name + 64,
+			printf("(%2d<->%2d)=%-2d%s", G->edges[i]->source->name, G->edges[i]->target->name,
 										 G->edges[i]->weight,
 										 ((i+1) % 5 != 0) ? " " : "\n\t ");
 	printf("%s", i == 0 ? "None\n\n" : "\n");

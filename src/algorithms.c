@@ -105,9 +105,6 @@ DLL_EXPORT NODE** BFS(GRAPH* G, NODE* start)
 		first = QueuePop(first);
 		int wave = CostGet(COST, cur, G->SIZE_N);
 
-		// Update path
-		path[path_len++] = cur;
-
 		// Get neighbors info
 		NODE** neighbors_array = GraphGetNodeNeighbors(G, cur);
 		if (!neighbors_array) continue;
@@ -125,13 +122,15 @@ DLL_EXPORT NODE** BFS(GRAPH* G, NODE* start)
 		// If node not checked
 		if (!Checker(checked, cur, check_num))
 		{
-
 			// Append all the neighbors
 			for (int i = 0; i < neighbors_count; i++)
 					first = QueuePush(first, neighbors_array[i]);
 
 			// Check the node
 			checked[check_num++] = cur;
+
+			// Update path
+			path[path_len++] = cur;
 		}
 
 		free(neighbors_array);
@@ -198,7 +197,7 @@ DLL_EXPORT NODE** DFS(GRAPH* G, NODE* start)
 {
 	// Checked node array
 	int check_num = 0;
-	NODE** checked = (NODE**)calloc(8 + G->SIZE_N, sizeof(NODE*));
+	NODE** checked = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
 	if (!checked) exit(EXIT_FAILURE);
 
 	// --------------------------------------------------------
@@ -232,9 +231,6 @@ DLL_EXPORT NODE** DFS(GRAPH* G, NODE* start)
 		top = StackPop(top);
 		int wave = CostGet(COST, cur, G->SIZE_N);
 
-		// Update path
-		path[path_len++] = cur;
-
 		// Get neighbors info
 		NODE** neighbors_array = GraphGetNodeNeighbors(G, cur);
 		if (!neighbors_array) continue;
@@ -258,6 +254,9 @@ DLL_EXPORT NODE** DFS(GRAPH* G, NODE* start)
 
 			// Check the node
 			checked[check_num++] = cur;
+
+			// Update path
+			path[path_len++] = cur;
 		}
 
 		free(neighbors_array);
@@ -277,7 +276,7 @@ DLL_EXPORT NODE** DFS(GRAPH* G, NODE* start)
 //------------------------------------------------------------------------------------------------------
 // Deikstra with help-function
 
-NODE* Deijkstra_FindLowestCostNode(EDGE** cost, NODE** processed, int size)
+NODE* Dijkstra_FindLowestCostNode(EDGE** cost, NODE** processed, int size)
 {
 	int lowest_cost = INT_MAX, cur_cost = 0;
 	NODE* V = NULL;
@@ -293,7 +292,7 @@ NODE* Deijkstra_FindLowestCostNode(EDGE** cost, NODE** processed, int size)
 	}
 	return V;
 }
-DLL_EXPORT NODE** Deijkstra(GRAPH* G, NODE* start)
+DLL_EXPORT NODE** Dijkstra(GRAPH* G, NODE* start)
 {
 	// Checked nodes array
 	int check_num = 0;
@@ -324,7 +323,7 @@ DLL_EXPORT NODE** Deijkstra(GRAPH* G, NODE* start)
 	// --------------------------------------------------------
 	// The algorithm:
 	int cur_cost = 0, new_cost = 0;
-	NODE* cur = Deijkstra_FindLowestCostNode(COST, checked, G->SIZE_N);
+	NODE* cur = Dijkstra_FindLowestCostNode(COST, checked, G->SIZE_N);
 
 	while (cur != NULL)
 	{
@@ -338,7 +337,7 @@ DLL_EXPORT NODE** Deijkstra(GRAPH* G, NODE* start)
 		if (!neighbors_array)
 		{
 			checked[check_num++] = cur;
-			cur = Deijkstra_FindLowestCostNode(COST, checked, G->SIZE_N);
+			cur = Dijkstra_FindLowestCostNode(COST, checked, G->SIZE_N);
 			continue;
 		}
 		int neighbors_count = _msize(neighbors_array) / sizeof(neighbors_array[0]);
@@ -353,7 +352,7 @@ DLL_EXPORT NODE** Deijkstra(GRAPH* G, NODE* start)
 		}
 
 		checked[check_num++] = cur;
-		cur = Deijkstra_FindLowestCostNode(COST, checked, G->SIZE_N);
+		cur = Dijkstra_FindLowestCostNode(COST, checked, G->SIZE_N);
 		free(neighbors_array);
 	}
 
@@ -370,19 +369,32 @@ DLL_EXPORT NODE** Deijkstra(GRAPH* G, NODE* start)
 //------------------------------------------------------------------------------------------------------
 // Bellman-Ford / Relaxation
 
-void Bellman_Relax(EDGE** COST, EDGE* E, GRAPH* G, int size)
+void Bellman_Relax(EDGE** COST, EDGE* E, GRAPH* G, int size, EDGE** path, int* path_len)
 {
 	int source_w = CostGet(COST, E->source, size);
 	if (source_w == INT_MAX)
 		return;
+	path[(*path_len)++] = E;
+
 
 	int new_cost = source_w + E->weight;
 	int old_cost = CostGet(COST, E->target, size);
+
 	if (new_cost < old_cost)
+	{
 		CostSet(COST, E->target, size, new_cost);
+	}
+		
 }
-void BellmanFord(GRAPH* G, NODE* start)
-{	
+EDGE** BellmanFord(GRAPH* G, NODE* start)
+{
+
+	int path_len = 0;
+	EDGE** path = (EDGE**)calloc(G->SIZE_E, sizeof(EDGE*));
+	if (!path) exit(EXIT_FAILURE);
+
+	// --------------------------------------------------------
+
 	EDGE** COST = (EDGE**)calloc(G->SIZE_N, sizeof(EDGE*));
 	if (!COST) exit(EXIT_FAILURE);
 
@@ -400,7 +412,7 @@ void BellmanFord(GRAPH* G, NODE* start)
 	// The algorithm:
 	for (int iter = 1; iter < G->SIZE_N; iter++)
 		for (int i = 0; i < G->SIZE_E; i++)
-			Bellman_Relax(COST, G->edges[i], G, G->SIZE_N);
+			Bellman_Relax(COST, G->edges[i], G, G->SIZE_N, path, &path_len);
 
 	// --------------------------------------------------------
 	// Result
@@ -416,6 +428,8 @@ void BellmanFord(GRAPH* G, NODE* start)
 	for (int i = 0; i < G->SIZE_N; i++)
 		free(COST[i]);
 	free(COST);
+
+	return path;
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -431,7 +445,8 @@ void Floyd_MatrixFree(GRAPH* G, EDGE*** matrix)
 	}
 	free(matrix);
 }
-EDGE*** FloydWarshall(GRAPH* G, int output)
+
+EDGE*** FloydWarshall(GRAPH* G)
 {
 	// This is a matrix which includes weight between each two nodes
 	EDGE*** matrix = (EDGE***)calloc(G->SIZE_N, sizeof(EDGE**));
@@ -468,35 +483,8 @@ EDGE*** FloydWarshall(GRAPH* G, int output)
 			}
 
 	// --------------------------------------------------------
-	// Result (with output mode)
-	if (output)
-	{
-		puts("");
-		printf("       ");
-		for (int i = 0; i < G->SIZE_N; i++)
-			printf("%3d  ", matrix[i][0]->source->name);
-		puts("");
-		printf("     ");
-		for (int i = 0; i < G->SIZE_N; i++)
-			printf("-----");
-		puts("");
-		for (int i = 0; i < G->SIZE_N; i++)
-		{
-			printf("  %3d| ", matrix[i][0]->source->name);
-			for (int j = 0; j < G->SIZE_N; j++)
-			{
-				if (matrix[i][j]->weight != INT_MAX)
-					printf("%3d  ", matrix[i][j]->weight);
-				else
-					printf("inf  ");
-			}
-			puts("");
-		}
-		Floyd_MatrixFree(G, matrix);
-		return NULL;
-	}
-	else
-		return matrix;
+	// Result
+	return matrix;
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -526,12 +514,12 @@ EDGE* Prim_FindRelevantEdge(GRAPH* G, GRAPH* tree)
 	}
 	return relevant;
 }
-void Prim(GRAPH* G, NODE* root)
+DLL_EXPORT EDGE** Prim(GRAPH* G, NODE* root)
 {
 	if (G->directed)
 	{
 		printf("ERROR: This is directed graph\n");
-		return;
+		return NULL;
 	}
 
 	// --------------------------------------------------------
@@ -554,21 +542,18 @@ void Prim(GRAPH* G, NODE* root)
 
 	// --------------------------------------------------------
 	// Result
-	if (tree->SIZE_N != G->SIZE_N)
-		printf("\nThere are not exist spanning tree in this graph.\n");
-	else
-	{
-		GraphPrint(tree);
-		int weight = 0;
-		for (int i = 0; i < tree->SIZE_E; i++)
-			weight += tree->edges[i]->weight;
-		printf("\n  Weight of tree: %d\n", weight);
-	}
+
+	EDGE** path = (EDGE**)calloc(tree->SIZE_E, sizeof(EDGE*));
+	if (!path) exit(EXIT_FAILURE);
+
+	for (int i = 0; i < tree->SIZE_E; i++)
+		path[i] = tree->edges[i];
 
 	free(tree->edges);
 	free(tree->nodes);
 	free(tree);
-	//return tree;
+
+	return path;
 }
 
 int edges_compare(const void* val1, const void* val2) // for qsort
@@ -581,7 +566,7 @@ int edges_compare(const void* val1, const void* val2) // for qsort
 	if (e1->weight > e2->weight)  return  1;
 	return 0;
 }
-void Kruskal(GRAPH* G)
+DLL_EXPORT EDGE** Kruskal(GRAPH* G)
 {
 	if (G->directed)
 	{
@@ -605,7 +590,7 @@ void Kruskal(GRAPH* G)
 	// --------------------------------------------------------
 	// One node = one set with current id
 	for (int i = 0; i < G->SIZE_N; i++)
-		G->nodes[i]->value = i + 100;
+		G->nodes[i]->value = i + 1000;
 
 	// --------------------------------------------------------
 	// Sort the edges
@@ -625,8 +610,9 @@ void Kruskal(GRAPH* G)
 		if (source->value != target->value)
 		{
 			// Update set's id
+			int target_value = target->value;
 			for (int j = 0; j < G->SIZE_N; j++)
-				if (G->nodes[j]->value == target->value)
+				if (G->nodes[j]->value == target_value)
 					G->nodes[j]->value = source->value;
 
 			// Append new edge to tree
@@ -666,12 +652,20 @@ void Kruskal(GRAPH* G)
 		printf("\n  Weight of tree: %d\n", weight);
 	}
 
+	EDGE** path = (EDGE**)calloc(tree->SIZE_E, sizeof(EDGE*));
+	if (!path) exit(EXIT_FAILURE);
+
+	for (int i = 0; i < tree->SIZE_E; i++)
+		path[i] = tree->edges[i];
+
 	free(old_values);
 	free(edges);
 	free(tree->edges);
 	free(tree->nodes);
 	free(tree);
-	// return tree;
+
+	return path;
+	
 }
 
 //------------------------------------------------------------------------------------------------------

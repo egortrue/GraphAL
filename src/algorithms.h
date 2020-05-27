@@ -3,18 +3,18 @@
 
 #include "graphs.h"
 
-// Walk on the non-weighted graph
+// Walk on a non-weighted graph
 DLL_EXPORT NODE** BFS (GRAPH* G, NODE* start);
 DLL_EXPORT NODE** DFS (GRAPH* G, NODE* start);
 
-// Walk on the weighted graph
-DLL_EXPORT NODE** Deijkstra (GRAPH* G, NODE* start);
-void    BellmanFord   (GRAPH* G, NODE* start);
-EDGE*** FloydWarshall (GRAPH* G, int output);
+// Walk on a weighted graph
+DLL_EXPORT NODE**  Dijkstra      (GRAPH* G, NODE* start);
+EDGE**  BellmanFord   (GRAPH* G, NODE* start);
+EDGE*** FloydWarshall (GRAPH* G);
 
 // Minimum-spanning-tree (MST)
-void Prim    (GRAPH* G, NODE* root);
-void Kruskal (GRAPH* G);
+DLL_EXPORT EDGE** Prim    (GRAPH* G, NODE* root);
+DLL_EXPORT EDGE** Kruskal (GRAPH* G);
 
 // Flow network
 void FordFalkerson(GRAPH* G, NODE* source, NODE* target);
