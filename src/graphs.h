@@ -1,6 +1,6 @@
 #ifndef GRAPHS_H
 #define GRAPHS_H
-
+//#include <stdio.h>
 //------------------------------------------------------------------------------------------------------
 
 typedef struct node
@@ -63,8 +63,8 @@ aListg *AListReads(FILE* input, FILE* output, int* count_edges);
 void AListPrints(aListg *graph, FILE *output);
 void AListgAddValue(aListg **pphead, int val);
 
-        void   AListAddValue          (ALIST **pphead, int val);
-void   AListPrint             (ALIST **graph, FILE *output);
+void   AListAddValue          (ALIST **pphead, int val);
+void   AListPrint             (ALIST **graph, FILE *output, int v);
 void   AListDelete            (ALIST *phead);
 
 
@@ -85,7 +85,7 @@ AMATRIX *AMatrixRead          (FILE *input); //read adjmatrix from file
 AMATRIX *AMatrixDelete        (AMATRIX *m);
 
 
-int     AMatrixCountNodes     (FILE *input);
+int     AMatrixCountNodes     (FILE *input, int count_lines);
 int     AMatrixDegree         (AMATRIX *adj_matrix, int v); //count degree of chosen vertex
 void    AMatrixPrint          (AMATRIX *m, FILE *output);
 double  AMatrixDensity        (AMATRIX *adj_matrix); //calculate density

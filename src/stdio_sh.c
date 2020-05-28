@@ -233,7 +233,7 @@ AMATRIX *AMatrixRead(FILE *input)
     }
     long long int pos;
     pos = ftell(input);
-    int nodes = AMatrixCountNodes(input);
+    int nodes = AMatrixCountNodes(input, file_size);
     AMATRIX *adj_matrix = AMatrixSet(nodes);
     fseek(input, pos, SEEK_SET);
     StringFind(input, "[adjacency matrix]\n", file_size);
@@ -284,19 +284,7 @@ AMATRIX *AMatrixRead(FILE *input)
 //4-3 1 5
 ALIST** AListRead(FILE* input, FILE* output, int* count_edges)
 {
-    // Size of file in bytes
-    fseek(input, 0, SEEK_END);
-    long file_size = ftell(input);
-
-    //Read block of adjacency matrix
-    if (!StringFind(input, "[adjacency list]\n", file_size))
-    {
-        printf("\nERROR: the read file doesn't have key string: [adjacency list]\n");
-        exit(EXIT_FAILURE);
-    }
-
-    int vertex = AListCountVertex(input);
-    ALIST **graph= (ALIST**)calloc(vertex, sizeof(ALIST*));
+    ALIST **graph= (ALIST**)calloc(10, sizeof(ALIST*));
     int j = 0;
     char *chr = (char*)malloc(sizeof(char*));
     int line = 0;

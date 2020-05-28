@@ -97,7 +97,7 @@ int GraphGetEdgeWeight(GRAPH* G, NODE* V1, NODE* V2)
 		if (G->edges[i]->source == V2 && G->edges[i]->target == V1 && G->directed == 0)
 			return G->edges[i]->weight;
 	}
-	return INT_MAX;
+	//return INT_MAX;
 } 
 
 EDGE* GraphGetEdge(GRAPH* G, NODE* V1, NODE* V2)
@@ -166,9 +166,28 @@ void AMatrixPrint(AMATRIX *m, FILE *output)
     }
 }
 
-int AMatrixCountNodes(FILE *input)
+int AMatrixCountNodes(FILE *fr, int file_size)
 {
     int count_lines = 0;
+    char* string = (char*)calloc(100, sizeof(char));
+    if (!string) exit(EXIT_FAILURE);
+
+    fgets(string, 100, fr);
+    while (*string == 0 || *string != 10 || *string != '\n')
+    {
+        // If the end of file
+        if (ftell(fr) == file_size)
+            break;
+        count_lines++;
+        // Read again
+        fgets(string, 100, fr);
+    }
+    printf("%d", count_lines);
+    free(string);
+    rewind(fr);
+return count_lines;
+
+  /*  int count_lines = 0;
     char c = fgetc(input);
     while (c != EOF)
     {
@@ -177,8 +196,8 @@ int AMatrixCountNodes(FILE *input)
         c = fgetc(input);
     }
     count_lines++;
-    rewind(input); //return back pointer in file
-    return count_lines;
+    rewind(input); //return back pointer in file*
+    return count_lines;*/
 }
 
 AMATRIX *AMatrixSet(int nodes)
@@ -232,7 +251,19 @@ void AListPrints(aListg *graph, FILE *output) {
         }
     }
 }
-
+void AListPrint(ALIST **graph, FILE *output, int v) {
+    for (int i = 0; i < v + 2; i++) {
+        if (graph[i]) {
+            fprintf(output, "%d-", i);
+            ALIST *p = graph[i];
+            while (p) {
+                fprintf(output, "%d ", p->value);
+                p = p->pnext;
+            }
+            fprintf(output, "\n");
+        }
+    }
+}
 void AListDelete(ALIST *phead)
 {
     if(phead)
@@ -270,7 +301,7 @@ int AListCountVertex(FILE *input)
         c = fgetc(input);
     }
     lines_count++;
-    rewind(input);//return back pointer in file
+    rewind(input); //return back pointer in file
     return lines_count+1;
 }
 //------------------------------------------------------------------------------------------------------
