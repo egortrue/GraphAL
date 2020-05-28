@@ -217,65 +217,63 @@ GRAPH* FileRead(FILE* fr)
 }
 //------------------------------------------------------------------------------------------------------
 //PARSER
-AMATRIX *AMatrixRead(FILE *input)
+AMATRIX *AMatrixRead(FILE *fr)
 {
     // Size of file in bytes
-    fseek(input, 0, SEEK_END);
-    long file_size = ftell(input);
-
-    int count_buf = 0;
+    fseek(fr, 0, SEEK_END);
+    long file_size = ftell(fr);
 
     //Read block of adjacency matrix
-    if (!StringFind(input, "[adjacency matrix]\n", file_size))
+    if (!StringFind(fr, "[adjacency matrix]\n", file_size))
     {
         printf("\nERROR: the read file doesn't have key string: [adjacency matrix]\n");
         exit(EXIT_FAILURE);
     }
-    long long int pos;
-    pos = ftell(input);
-    int nodes = AMatrixCountNodes(input, file_size);
+
+    //Setting structure
+    int nodes = AMatrixCountNodes(fr, file_size);
     AMATRIX *adj_matrix = AMatrixSet(nodes);
-    fseek(input, pos, SEEK_SET);
-    StringFind(input, "[adjacency matrix]\n", file_size);
-    char str_new = fgetc(input);
-    char *chr = NULL;
-    chr = (char*)malloc(0*sizeof(char*));
+    StringFind(fr, "[adjacency matrix]\n", file_size);
+
+    //Preparing for parsing file
+    char str_new = fgetc(fr);
+    char *digit = NULL;
+    digit = (char*)malloc(0*sizeof(char*));
     int line = 0, column = 0, j = 0;
 
-    while (line != nodes && column != nodes) {
+    //recording matrix from file to the structure
+    while (line <= nodes && column <= nodes) {
         if (str_new >= 48 && str_new <= 57){
-            chr[j++] = str_new;
+            digit[j++] = str_new;
         }
 
         else if (str_new == ' ') {
-            adj_matrix->adj[line][column] = atoi(chr);
+            adj_matrix->adj[line][column] = atoi(digit);
             if (adj_matrix->adj[line][column] != 0)
                 adj_matrix->e++;
-            chr = 0;
-            chr = (char*)realloc(chr, 0*sizeof(char*));
+            digit = 0;
+            digit = (char*)realloc(digit, 0*sizeof(char*));
             j = 0;
             column++;
         }
 
         else if (str_new == '\n') {
-            adj_matrix->adj[line][column] = atoi(chr);
+            adj_matrix->adj[line][column] = atoi(digit);
             if (adj_matrix->adj[line][column] != 0)
                 adj_matrix->e++;
-            chr = 0;
-            chr = (char*)realloc(chr, 0*sizeof(char*));
+            digit = 0;
+            digit = (char*)realloc(digit, 0*sizeof(char*));
             column = 0;
             line++;
             j = 0;
         }
 
-        str_new = fgetc(input);
-        if (ftell(input) == file_size)
+        str_new = fgetc(fr);
+        if (ftell(fr) == file_size)
             break;
     }
-    adj_matrix->adj[line][column] = atoi(chr);
-    if (adj_matrix->adj[line][column] != 0)
-        adj_matrix->e++;
 
+    free(digit);
     return adj_matrix;
 }
 //------------------------------------------------------------------------------------------------------
