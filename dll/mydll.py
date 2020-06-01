@@ -455,7 +455,7 @@ edges     = [Edge(nodes[i], nodes[i+1], 1) for i in range(10)]
 edges.extend(Edge(nodes[i], nodes[i+1], 1) for i in range(11, 20))
 
 edges.append(Edge(nodes[7], nodes[15], 1))
-edges.append(Edge(nodes[6], nodes[16], 1000))
+edges.append(Edge(nodes[6], nodes[16], 1))
 edges.append(Edge(nodes[5], nodes[17], 1))
 edges.append(Edge(nodes[4], nodes[18], 1))
 
