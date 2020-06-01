@@ -46,7 +46,7 @@ void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight);
 void AListPrint(ALISTG* graph, FILE* output);
 
 //------------------------------------------------------------------------------------------------------
-DLL_EXPORT void ChoiceRand(AMATRIX *g, int oriented, int v, int n, int r1, int r2);
+DLL_EXPORT void ChoiceRand(AMATRIX* g, int oriented, int v, int n, int r1, int r2);
 
 //ORIENTED GRAPHS
 AMATRIX* RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2);

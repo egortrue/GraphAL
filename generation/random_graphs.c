@@ -225,11 +225,10 @@ AMATRIX* RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2)
     return graph;
 }
 
-void ChoiceRand(AMATRIX *g, int oriented, int v, int n, int r1, int r2)
+DLL_EXPORT void ChoiceRand(AMATRIX *g, int oriented, int v, int n, int r1, int r2)
 {
     if (oriented)
-        RandConnectedOr(g, v, n, r1, r2)
-        else
-        ConnectGraph(g, v,  n, r1, r2)
-
+        RandConnectedOr(g, v, n, r1, r2);
+    else
+        ConnectGraph(g, v, n, r1, r2);
 }

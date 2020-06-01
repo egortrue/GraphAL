@@ -7,14 +7,14 @@ from operator import attrgetter
 
 
 # link DLL
-path = r"D:\Code\GraphAL\solutions\dll\Debug\myDLL.dll" # or full path
+path = r"D:\Code\GraphAL\solutions\algorithms\Debug\algorithms.dll" # or full path
 lib = ct.CDLL(path)
+gen = ct.CDLL(r"D:\Code\GraphAL\solutions\generation\Debug\generation.dll")
 
 
 class AMATRIX(ct.Structure):
 
     ptr = None
-
     _fields_ = [("C_ADJ", ct.POINTER(ct.POINTER(ct.c_int))),
                 ("C_N", ct.c_int),
                 ("C_E", ct.c_int)]
@@ -35,12 +35,14 @@ class AMATRIX(ct.Structure):
                 if matrix[i][j] != 0:
                     self.edges.append(Edge(self.nodes[i], self.nodes[j], matrix[i][j]))
 
-    def RandomGraph(self, nodes_num, edges_num, weight_min, weight_max):
-        lib.ChoiceRand(self.ptr, nodes_num, edges_num)
+
+    def RandomGraph(self, nodes_num, edges_num, weight_min, weight_max, oriented_flag):
+        gen.ChoiceRand(self.ptr, oriented_flag, edges_num, nodes_num, weight_min, weight_max)
+
 
     def __init__(self, nodes_num, edges_num, weight_min, weight_max):
-        self.ptr = lib.AMatrixSet(nodes_num)
-        self.RandomGraph(nodes_num, edges_num, weight_min, weight_max)
+        self.ptr = gen.AMatrixSet(nodes_num)
+        self.RandomGraph(nodes_num, edges_num, weight_min, weight_max, 1)
         self.SetNodes()
         self.SetEdges()
 
@@ -48,17 +50,13 @@ nodes_num = 5
 edges_num = 5
 
 #define Amatrix functions
-lib.AMatrixSet.argtypes = [ct.c_int]
-lib.AMatrixSet.restypes = ct.POINTER(AMATRIX)
+gen.AMatrixSet.argtypes = [ct.c_int]
+gen.AMatrixSet.restypes = ct.POINTER(AMATRIX)
 
-lib.ChoiceRand.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int]
+gen.ChoiceRand.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int]
 
 #Set Graph
 matrix = AMATRIX(nodes_num, edges_num, 1, 1)
-
-#GenGraph
-rand_one = lib.RandomGraph(matrix, nodes_num, edges_num)
-
 
 class Node(ct.Structure):
 

@@ -29,9 +29,9 @@ void AMatrixPrint(AMATRIX *m, FILE *output)
     }
 }
 
-AMATRIX *AMatrixSet(int nodes)
+DLL_EXPORT AMATRIX *AMatrixSet(int nodes)
 {
-    AMATRIX * tmp = (AMATRIX*)malloc(nodes * sizeof(AMATRIX));
+    AMATRIX * tmp = (AMATRIX*)malloc(sizeof(AMATRIX));
     tmp->adj = (int**)malloc(nodes*sizeof(int*));
     tmp->n = nodes;
     tmp->e = 0;
