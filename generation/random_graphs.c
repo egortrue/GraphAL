@@ -22,7 +22,7 @@ AMATRIX* RandConnectedOr(AMATRIX *g, int v, int n, int r1, int r2){ //connnected
     }
 
     if (v >= n){
-        count = v - n - 1;
+        count = v - n ;
         g->adj[dos][first] = r1 + rand()%(r2-r1+1);
         for (int i = 0; i < count; i++){
             srand(time(0));
