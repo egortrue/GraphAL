@@ -111,7 +111,7 @@ typedef struct AListG
 ALISTNODE* AListNewNode(int dest, int weight);
 ALISTG* AListGSet(int V);
 void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight);
-void AListPrint(ALISTG* graph);
+void AListPrint(ALISTG* graph, FILE* output);
 
 //------------------------------------------------------------------------------------------------------
 #endif
