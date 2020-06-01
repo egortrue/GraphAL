@@ -224,7 +224,7 @@ int CountNodes(FILE *fr, int file_size)
 
     //read block with structure
     fgets(string, 100, fr);
-    while (*string == 0 || *string != 10 || *string != '\n' || *string != ' ')
+    while (*string != 0  && *string != '\n' && *string != ' ')
     {
         // If the end of file
         if (ftell(fr) == file_size)
@@ -254,7 +254,7 @@ AMATRIX* AMatrixRead(FILE *fr)
     }
 
     //Setting structure
-    int nodes = CountNodes(fr, file_size);
+    int nodes = CountNodes(fr, file_size) ;
     AMATRIX *adj_matrix = AMatrixSet(nodes);
     StringFind(fr, "[adjacency matrix]\n", file_size);
 
@@ -265,7 +265,7 @@ AMATRIX* AMatrixRead(FILE *fr)
     int line = 0, column = 0, j = 0;
 
     //recording matrix from file to the structure
-    while (line <= nodes && column <= nodes) {
+    while (line < nodes && column < nodes) {
         if (str_new >= 48 && str_new <= 57){
             digit[j++] = str_new;
         }
@@ -324,8 +324,9 @@ ALISTG* AListReads(FILE* input)
     int line = 0;
     char str_new;
     str_new = fgetc(input);
+    int counter = 0;
 
-    while (str_new != EOF) {
+    while (counter != vertex) {
         if (str_new >= 48 && str_new <= 57){
             chr = realloc(chr, j+1 * sizeof(char*));
             chr[j++] = str_new;
@@ -351,6 +352,7 @@ ALISTG* AListReads(FILE* input)
             chr = 0;
             chr = (char*)realloc(chr, 0*sizeof(char*));
             j = 0;
+            counter++;
         }
 
         str_new = fgetc(input);
