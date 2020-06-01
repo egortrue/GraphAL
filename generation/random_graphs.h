@@ -1,6 +1,5 @@
 #ifndef GRAPHAL_RANDOM_GRAPHS_H
 #define GRAPHAL_RANDOM_GRAPHS_H
-#include "../src/graphs.h"
 #include <stdio.h>
 
 //Structures
