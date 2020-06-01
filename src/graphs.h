@@ -46,7 +46,7 @@ int    GraphGetEdgeWeight     (GRAPH* G, NODE* V1, NODE* V2);
 EDGE*  GraphGetEdge           (GRAPH* G, NODE* V1, NODE* V2);
 NODE** GraphGetNodeNeighbors  (GRAPH* G, NODE* node);
 //------------------------------------------------------------------------------------------------------
-
+/*
 typedef struct aList
 {
     int value;
@@ -70,7 +70,7 @@ void   AListDelete            (ALIST *phead);
 
 int    AListCountVertex       (FILE *input);
 double AListDensity           (int v, int e);
-int    AListDegree            (ALIST *phead);
+int    AListDegree            (ALIST *phead);*/
 //------------------------------------------------------------------------------------------------------
 
 typedef struct aMatrix
@@ -90,5 +90,28 @@ int     AMatrixDegree         (AMATRIX *adj_matrix, int v); //count degree of ch
 void    AMatrixPrint          (AMATRIX *m, FILE *output);
 double  AMatrixDensity        (AMATRIX *adj_matrix); //calculate density
 //------------------------------------------------------------------------------------------------------
+typedef struct AListNode
+{
+    int weight;
+    int dest;
+    struct AListNode* next;
+} ALISTNODE;
 
+typedef struct AList
+{
+    struct AListNode *head;
+} ALIST;
+
+typedef struct AListG
+{
+    int V; //
+    struct AList* array;
+} ALISTG;
+
+ALISTNODE* AListNewNode(int dest, int weight);
+ALISTG* AListGSet(int V);
+void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight);
+void AListPrint(ALISTG* graph);
+
+//------------------------------------------------------------------------------------------------------
 #endif
