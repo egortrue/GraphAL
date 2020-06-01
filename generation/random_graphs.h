@@ -1,7 +1,7 @@
 #ifndef GRAPHAL_RANDOM_GRAPHS_H
 #define GRAPHAL_RANDOM_GRAPHS_H
 #include <stdio.h>
-
+#define DLL_EXPORT __declspec(dllexport)
 //Structures
 //------------------------------------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ typedef struct aMatrix
     int e; //Number of edges
 }AMATRIX;
 
-AMATRIX *AMatrixSet           (int nodes);
+DLL_EXPORT AMATRIX *AMatrixSet           (int nodes);
 AMATRIX *AMatrixRead          (FILE *input); //read adjmatrix from file
 AMATRIX *AMatrixDelete        (AMATRIX *m);
 
@@ -46,6 +46,8 @@ void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight);
 void AListPrint(ALISTG* graph, FILE* output);
 
 //------------------------------------------------------------------------------------------------------
+DLL_EXPORT void ChoiceRand(AMATRIX *g, int oriented, int v, int n, int r1, int r2);
+
 //ORIENTED GRAPHS
 AMATRIX* RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2);
 AMATRIX* RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2);
