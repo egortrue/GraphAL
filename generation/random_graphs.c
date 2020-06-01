@@ -56,6 +56,8 @@ void dfs(AMATRIX *g, int v, int ost, int used[], int *count, int *comp, int *pr,
 }
 
 AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2){ //just connected graph
+    if (v <= 1/2*(n-2)*(n-1))
+        return NULL;
     RandomGraph(v, n, g, r1,  r2);
     int *used = (int*)calloc(n,sizeof(int));
     int *comp = (int*)calloc(n,sizeof(int));
