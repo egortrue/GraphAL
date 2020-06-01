@@ -85,7 +85,7 @@ AMATRIX *AMatrixRead          (FILE *input); //read adjmatrix from file
 AMATRIX *AMatrixDelete        (AMATRIX *m);
 
 
-int     AMatrixCountNodes     (FILE *input, int count_lines);
+int     CountNodes            (FILE *input, int count_lines);
 int     AMatrixDegree         (AMATRIX *adj_matrix, int v); //count degree of chosen vertex
 void    AMatrixPrint          (AMATRIX *m, FILE *output);
 double  AMatrixDensity        (AMATRIX *adj_matrix); //calculate density

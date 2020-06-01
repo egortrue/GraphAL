@@ -166,31 +166,6 @@ void AMatrixPrint(AMATRIX *m, FILE *output)
     }
 }
 
-int AMatrixCountNodes(FILE *fr, int file_size)
-{
-    int count_lines = 0;
-    char* string = (char*)calloc(100, sizeof(char));
-    if (!string) exit(EXIT_FAILURE);
-
-    //read block with structure
-    fgets(string, 100, fr);
-    while (*string == 0 || *string != 10 || *string != '\n' || *string != ' ')
-    {
-        // If the end of file
-        if (ftell(fr) == file_size)
-            break;
-        count_lines++;
-        // Read again
-        fgets(string, 100, fr);
-    }
-    printf("%d", count_lines);
-
-    free(string);
-    rewind(fr);
-
-    return count_lines;
-}
-
 AMATRIX *AMatrixSet(int nodes)
 {
     AMATRIX * tmp = (AMATRIX*)malloc(nodes * sizeof(AMATRIX));

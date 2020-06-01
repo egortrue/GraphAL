@@ -216,6 +216,29 @@ GRAPH* FileRead(FILE* fr)
 	return G;
 }
 //------------------------------------------------------------------------------------------------------
+int CountNodes(FILE *fr, int file_size)
+{
+    int count_lines = 0;
+    char* string = (char*)calloc(100, sizeof(char));
+    if (!string) exit(EXIT_FAILURE);
+
+    //read block with structure
+    fgets(string, 100, fr);
+    while (*string == 0 || *string != 10 || *string != '\n' || *string != ' ')
+    {
+        // If the end of file
+        if (ftell(fr) == file_size)
+            break;
+        count_lines++;
+        // Read again
+        fgets(string, 100, fr);
+    }
+
+    free(string);
+    rewind(fr);
+
+    return count_lines;
+}
 //PARSER
 AMATRIX* AMatrixRead(FILE *fr)
 {
@@ -231,7 +254,7 @@ AMATRIX* AMatrixRead(FILE *fr)
     }
 
     //Setting structure
-    int nodes = AMatrixCountNodes(fr, file_size);
+    int nodes = CountNodes(fr, file_size);
     AMATRIX *adj_matrix = AMatrixSet(nodes);
     StringFind(fr, "[adjacency matrix]\n", file_size);
 
@@ -293,7 +316,7 @@ ALISTG* AListReads(FILE* input)
         exit(EXIT_FAILURE);
     }
 
-    int vertex = AMatrixCountNodes(input, file_size) + 1;
+    int vertex = CountNodes(input, file_size) + 1;
     StringFind(input, "[adjacency list]\n", file_size);
     ALISTG* graph = AListGSet(vertex);
     int j = 0;
