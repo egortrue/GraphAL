@@ -115,17 +115,11 @@ int main()
         puts("Error open file for writing");
         return -2;
     }
-    int count_edges = 0;
-    aListg *grap = AListReads(input, output, &count_edges);
-    AListPrints(grap, output);
 
-   // fprintf(output, "Density: %.2lf", AListDensity(AListCountVertex(input), count_edges + 1));
-   // fprintf(output, "\nDegree of v #5/: %d", AListDegree(grap[5].g));
-   // for (int i = 0; i < AListCountVertex(input); ++i)
-        AListDelete(grap[1].g);
+    ALISTG *graph = AListReads(input);
+    AListPrint(graph, output);
 
-
-    input = fopen("../data/input.txt", "rt");
+  input = fopen("../data/input.txt", "rt");
     output = fopen("../data/AdjMatrixOutput.txt", "wt");
     if (!input)
     {
@@ -142,6 +136,7 @@ int main()
     AMatrixPrint(d, output);
     fprintf(output, "\nDegree of v #%d is %d", 1, AMatrixDegree(d, 1));
     fprintf(output, "\nDensity is %.2lf", AMatrixDensity(d));
+
 
 	return 0;
 }

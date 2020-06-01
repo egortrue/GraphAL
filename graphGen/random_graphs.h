@@ -22,4 +22,49 @@ void PrintRandVertexList(AMATRIX *graph, int v, FILE *output);
 void PrintRandAdjList(AMATRIX *graph, int v, FILE *output);
 void PrintRandSNodEdg(AMATRIX *graph, int v, FILE *output);
 
+//Structures
+//------------------------------------------------------------------------------------------------------
+
+typedef struct aMatrix
+{
+    int** adj;
+    int n; //Number of nodes in AMatrix.
+    int e; //Number of edges
+}AMATRIX;
+
+AMATRIX *AMatrixSet           (int nodes);
+AMATRIX *AMatrixRead          (FILE *input); //read adjmatrix from file
+AMATRIX *AMatrixDelete        (AMATRIX *m);
+
+
+int     CountNodes            (FILE *input, int count_lines);
+int     AMatrixDegree         (AMATRIX *adj_matrix, int v); //count degree of chosen vertex
+void    AMatrixPrint          (AMATRIX *m, FILE *output);
+double  AMatrixDensity        (AMATRIX *adj_matrix); //calculate density
+//------------------------------------------------------------------------------------------------------
+typedef struct AListNode
+{
+    int weight;
+    int dest;
+    struct AListNode* next;
+} ALISTNODE;
+
+typedef struct AList
+{
+    struct AListNode *head;
+} ALIST;
+
+typedef struct AListG
+{
+    int V; //
+    struct AList* array;
+} ALISTG;
+
+ALISTNODE* AListNewNode(int dest, int weight);
+ALISTG* AListGSet(int V);
+void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight);
+void AListPrint(ALISTG* graph, FILE* output);
+
+//------------------------------------------------------------------------------------------------------
+
 #endif //GRAPHAL_RANDOM_GRAPHS_H
