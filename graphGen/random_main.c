@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "../src/graphs.c"
 #include "random_graphs.h"
 
 int main() {
@@ -60,8 +59,7 @@ int main() {
     graph = AMatrixDelete(graph);
 
     graph = AMatrixSet(v);
-    RandomGraph(e, v, graph, r1, r2);
-    ConnectGraph(graph, e,  v);
+    ConnectGraph(graph, e,  v, r1, r2);
     fprintf(output, "\nConnected non-oriented graph:\n\n");
     PrintRandMatrix(graph, v, output);
     PrintRandVertexList(graph, v, output);
@@ -69,7 +67,7 @@ int main() {
     PrintRandSNodEdg(graph, v, output);
     graph = AMatrixDelete(graph);
 
-    TestConnection(graph, e, v, r1, r2);
+  //  TestConnection(graph, e, v, r1, r2);
 
     fclose(input);
     fclose(output);

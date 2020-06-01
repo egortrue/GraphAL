@@ -2,9 +2,9 @@
 #include <time.h>
 #include <stdlib.h>
 
-int RandConnectedOr(AMATRIX *g, int v, int n, int r1, int r2){ //connnected oriented graph
+AMATRIX* RandConnectedOr(AMATRIX *g, int v, int n, int r1, int r2){ //connnected oriented graph
     if (v < n-1)
-        return 0;
+        return NULL;
     int *used = (int*)calloc(n,sizeof(int));
     srand(time(0));
     int od = rand() % n, dos = rand() % n;
@@ -33,7 +33,7 @@ int RandConnectedOr(AMATRIX *g, int v, int n, int r1, int r2){ //connnected orie
             dos = rand() % n;
         }
     }
-    return 0;
+    return g;
 }
 
 void dfs(AMATRIX *g, int v, int ost, int used[], int *count, int *comp, int *pr, int *cycle){
@@ -55,7 +55,8 @@ void dfs(AMATRIX *g, int v, int ost, int used[], int *count, int *comp, int *pr,
     used[v] = 2;
 }
 
-int ConnectGraph(AMATRIX *g, int v, int n){ //just connected graph
+AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2){ //just connected graph
+    RandomGraph(v, n, g, r1,  r2);
     int *used = (int*)calloc(n,sizeof(int));
     int *comp = (int*)calloc(n,sizeof(int));
     int *pr = (int*)calloc(n,sizeof(int));
@@ -90,7 +91,6 @@ int ConnectGraph(AMATRIX *g, int v, int n){ //just connected graph
             }
             else if (tmpprevcycle == 1 && !(cycle[0] || cycle[1])) {
                 neededg++;
-                //tmpprevcycle = 0;
                 g->adj[i-1][i] = 787;
                 g->adj[i][i-1] = 787;
             }
@@ -123,6 +123,8 @@ int ConnectGraph(AMATRIX *g, int v, int n){ //just connected graph
     free(pr);
     free(used);
     free(comp);
+
+    return g;
 }
 
 void PrintRandMatrix(AMATRIX *graph, int v, FILE *output){
@@ -179,7 +181,7 @@ void PrintRandSNodEdg(AMATRIX *graph, int v, FILE *output){
     }
 }
 
-void RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2)
+AMATRIX* RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2)
 {
     int i, j;
     int counter = 0;
@@ -195,9 +197,10 @@ void RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2)
             counter++;
         }
     }
+    return graph;
 }
 
-void RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2)
+AMATRIX* RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2)
 {
     int i = 0, j = 0;
     int counter = 0;
@@ -217,4 +220,5 @@ void RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2)
             counter++;
         }
     }
+    return graph;
 }
