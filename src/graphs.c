@@ -211,7 +211,7 @@ AMATRIX *AMatrixDelete(AMATRIX *m){
     return m;
 }
 //------------------------------------------------------------------------------------------------------
-void AListAddValue(ALIST **pphead, int val)
+/*void AListAddValue(ALIST **pphead, int val)
 {
     ALIST **pp = pphead, *pnew;
 
@@ -294,5 +294,50 @@ int AListCountVertex(FILE *input)
     lines_count++;
     rewind(input); //return back pointer in file
     return lines_count+1;
-}
+}*/
 //------------------------------------------------------------------------------------------------------
+ALISTNODE* AListNewNode(int dest, int weight)
+{
+    ALISTNODE* newNode = (ALISTNODE*)malloc(sizeof(ALISTNODE));
+    newNode->weight = weight;
+    newNode->dest = dest;
+    newNode->next = NULL;
+    return newNode;
+}
+
+ALISTG* AListGSet(int V)
+{
+    ALISTG* graph = (ALISTG*)malloc(sizeof(ALISTG));
+    graph->V = V;
+    graph->array = (ALIST*)calloc(V, sizeof(ALIST));
+    return graph;
+}
+
+void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight)
+{
+    ALISTNODE* newNode = AListNewNode(dest, weight);
+    newNode->next = graph->array[src].head;
+    graph->array[src].head = newNode;
+
+}
+
+void AListPrint(ALISTG* graph)
+{
+    printf("[nodes]\n");
+    for (int v = 0; v < graph->V; v++) {
+        ALISTNODE *pointer = graph->array[v].head;
+        if (pointer)
+            printf("%d %d\n", v, 1);
+    }
+
+    printf("\n[edges]\n");
+    for (int v = 0; v < graph->V; v++) {
+        ALISTNODE *pointer = graph->array[v].head;
+        if (pointer) {
+            while (pointer) {
+                printf("%d %d %d\n", v,  pointer->dest, pointer->weight);
+                pointer = pointer->next;
+            }
+        }
+    }
+}
