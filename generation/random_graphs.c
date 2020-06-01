@@ -91,8 +91,8 @@ AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2){ //just connecte
             }
             else if (tmpprevcycle == 1 && !(cycle[0] || cycle[1])) {
                 neededg++;
-                g->adj[i-1][i] = 787;
-                g->adj[i][i-1] = 787;
+                g->adj[i-1][i] = r1 + rand()%(r2-r1+1);
+                g->adj[i][i-1] = r1 + rand()%(r2-r1+1);
             }
             else if (cycle[0] || cycle[1])
                 prevcycle = 1; //can give a connect
