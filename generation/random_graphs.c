@@ -5,7 +5,7 @@
 AMATRIX* RandConnectedOr(AMATRIX *g, int v, int n, int r1, int r2){ //connnected oriented graph
     if (v < n-1)
         return NULL;
-    int *used = (int*)calloc(n,sizeof(int));
+    int *used = (int*)calloc(n, sizeof(int));
     srand(time(0));
     int od = rand() % n, dos = rand() % n;
     int first = od;
@@ -106,8 +106,8 @@ AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2){ //just connecte
     }
     if (tmpprevcycle == 1 && !(cycle[0] || cycle[1])) {
         neededg++;
-        g->adj[last-1][last] = 787;
-        g->adj[last][last-1] = 787;
+        g->adj[last-1][last] = r1 + rand()%(r2-r1+1);
+        g->adj[last][last-1] = r1 + rand()%(r2-r1+1);
     }
     int i = 0;
     while (neededg != 0 && i < ost){
