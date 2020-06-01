@@ -217,7 +217,7 @@ GRAPH* FileRead(FILE* fr)
 }
 //------------------------------------------------------------------------------------------------------
 //PARSER
-AMATRIX *AMatrixRead(FILE *fr)
+AMATRIX* AMatrixRead(FILE *fr)
 {
     // Size of file in bytes
     fseek(fr, 0, SEEK_END);
@@ -280,72 +280,22 @@ AMATRIX *AMatrixRead(FILE *fr)
 //format:
 //1-1 2 3
 //4-3 1 5
-ALIST** AListRead(FILE* input, FILE* output, int* count_edges)
-{
-    ALIST **graph= (ALIST**)calloc(10, sizeof(ALIST*));
-    int j = 0;
-    char *chr = (char*)malloc(sizeof(char*));
-    int line = 0;
-    char str_new;
-    str_new = fgetc(input);
-
-    while (str_new != EOF) {
-        if (str_new >= 48 && str_new <= 57){
-            chr = realloc(chr, j+1 * sizeof(char*));
-            chr[j++] = str_new;
-        }
-
-        else if (str_new == '-') {
-            line = atoi(chr);
-            chr = 0;
-            chr = (char*)realloc(chr, 0*sizeof(char*));
-            j = 0;
-        }
-
-        else if (str_new == ' ' && chr != 0) {
-            AListAddValue(&graph[line], atoi(chr));
-            (*count_edges)++;
-            chr = 0;
-            chr = (char*)realloc(chr, 0*sizeof(char*));
-            j = 0;
-        }
-
-        else if (str_new == '\n') {
-            AListAddValue(&graph[line], atoi(chr));
-            (*count_edges)++;
-            line = 0;
-            chr = 0;
-            chr = (char*)realloc(chr, 0*sizeof(char*));
-            j = 0;
-        }
-
-        str_new = fgetc(input);
-    }
-    AListAddValue(&graph[line], atoi(chr));
-
-    rewind(input);
-    return graph;
-}
-
-aListg *AListReads(FILE* input, FILE* output, int* count_edges)
+ALISTG* AListReads(FILE* input)
 {
     // Size of file in bytes
     fseek(input, 0, SEEK_END);
     long file_size = ftell(input);
 
-    //Read block of adjacency matrix
+    //Read block of adjacency list
     if (!StringFind(input, "[adjacency list]\n", file_size))
     {
         printf("\nERROR: the read file doesn't have key string: [adjacency list]\n");
         exit(EXIT_FAILURE);
     }
 
-    int vertex = AListCountVertex(input);
+    int vertex = AMatrixCountNodes(input, file_size) + 1;
     StringFind(input, "[adjacency list]\n", file_size);
-    ALIST *inside = (ALIST*)calloc(vertex, sizeof(ALIST*));
-    aListg *grap = (aListg*)calloc(vertex,sizeof(aListg));
-    grap->g = inside;
-    grap->v = vertex;
+    ALISTG* graph = AListGSet(vertex);
     int j = 0;
     char *chr = (char*)malloc(sizeof(char*));
     int line = 0;
@@ -366,16 +316,14 @@ aListg *AListReads(FILE* input, FILE* output, int* count_edges)
         }
 
         else if (str_new == ' ' && chr != 0) {
-            AListAddValue(&grap[line].g, atoi(chr));
-            (*count_edges)++;
+            AListEdgeAdd(graph, line, atoi(chr), 0);
             chr = 0;
             chr = (char*)realloc(chr, 0*sizeof(char*));
             j = 0;
         }
 
         else if (str_new == '\n') {
-            AListAddValue(&grap[line].g, atoi(chr));
-            (*count_edges)++;
+            AListEdgeAdd(graph, line, atoi(chr), 0);
             line = 0;
             chr = 0;
             chr = (char*)realloc(chr, 0*sizeof(char*));
@@ -385,8 +333,6 @@ aListg *AListReads(FILE* input, FILE* output, int* count_edges)
         str_new = fgetc(input);
     }
 
-   // AListAddValue(&grap[line].g, atoi(chr));
-    grap->v = vertex;
     rewind(input);
-    return grap;
+    return graph;
 }
