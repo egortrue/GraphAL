@@ -129,58 +129,15 @@ AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2){ //just connecte
     return g;
 }
 
-void PrintRandMatrix(AMATRIX *graph, int v, FILE *output){
-    fprintf(output, "\n[adjacency matrix]: \n");
+void PrintRandMatrix(AMATRIX *graph, int v){
+    printf( "\n[adjacency matrix]: \n");
     for (int i = 0; i < v; i++){
         for (int j = 0; j < v; j++){
-            fprintf(output, "%d ", graph->adj[i][j]);
+            printf( "%d ", graph->adj[i][j]);
         }
-        fprintf(output, "\n");
+        printf( "\n");
     }
-}
-
-void PrintRandVertexList(AMATRIX *graph, int v, FILE *output){
-    fprintf(output, "\n[vertex list] \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            if (graph->adj[i][j])
-                fprintf(output, "%d %d \n", i, j);
-        }
-    }
-}
-
-void PrintRandAdjList(AMATRIX *graph, int v, FILE *output){
-    int flag = 0;
-    fprintf(output, "\n[adjacency list]: \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            if (graph->adj[i][j]) {
-                if (flag == 0) {
-                    fprintf(output, "%d - ", i);
-                    flag = 1;
-                }
-                fprintf(output, "%d ", j);
-            }
-        }
-        if (flag == 1) {
-            flag = 0;
-            fprintf(output, "\n");
-        }
-    }
-}
-
-void PrintRandSNodEdg(AMATRIX *graph, int v, FILE *output){
-    fprintf(output, "\n[nodes]: \n");
-    for (int i = 0; i < v; i++){
-        fprintf(output,"%d %d\n", i, 1);
-    }
-    fprintf(output, "\n[edges]: \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            if (graph->adj[i][j])
-                fprintf(output, "%d %d %d \n", i, j, graph->adj[i][j]);
-        }
-    }
+    printf( "\n");
 }
 
 AMATRIX* RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2)
@@ -225,7 +182,7 @@ AMATRIX* RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2)
     return graph;
 }
 
-DLL_EXPORT void ChoiceRand(AMATRIX *g, int oriented, int v, int n, int r1, int r2)
+void ChoiceRand(AMATRIX *g, int oriented, int v, int n, int r1, int r2)
 {
     if (oriented)
         RandConnectedOr(g, v, n, r1, r2);

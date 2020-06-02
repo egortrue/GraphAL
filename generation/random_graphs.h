@@ -1,7 +1,7 @@
 #ifndef GRAPHAL_RANDOM_GRAPHS_H
 #define GRAPHAL_RANDOM_GRAPHS_H
 #include <stdio.h>
-#define DLL_EXPORT __declspec(dllexport)
+//#define DLL_EXPORT __declspec(dllexport)
 //Structures
 //------------------------------------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ typedef struct aMatrix
     int e; //Number of edges
 }AMATRIX;
 
-DLL_EXPORT AMATRIX *AMatrixSet           (int nodes);
+ AMATRIX *AMatrixSet           (int nodes);
 AMATRIX *AMatrixRead          (FILE *input); //read adjmatrix from file
 AMATRIX *AMatrixDelete        (AMATRIX *m);
 
@@ -46,7 +46,7 @@ void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight);
 void AListPrint(ALISTG* graph, FILE* output);
 
 //------------------------------------------------------------------------------------------------------
-DLL_EXPORT void ChoiceRand(AMATRIX* g, int oriented, int v, int n, int r1, int r2);
+void ChoiceRand(AMATRIX* g, int oriented, int v, int n, int r1, int r2);
 
 //ORIENTED GRAPHS
 AMATRIX* RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2);
@@ -62,10 +62,6 @@ void dfs2(AMATRIX *g, int v, int ost, int used[]);
 void FindComp(AMATRIX *g, int v, int n);
 
 //PRINT
-void PrintRandMatrix(AMATRIX *graph, int v, FILE *output);
-void PrintRandVertexList(AMATRIX *graph, int v, FILE *output);
-void PrintRandAdjList(AMATRIX *graph, int v, FILE *output);
-void PrintRandSNodEdg(AMATRIX *graph, int v, FILE *output);
-
+void PrintRandMatrix(AMATRIX *graph, int v);
 
 #endif //GRAPHAL_RANDOM_GRAPHS_H
