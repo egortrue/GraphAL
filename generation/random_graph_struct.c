@@ -3,33 +3,8 @@
 #include "random_graphs.h"
 
 //------------------------------------------------------------------------------------------------------
-int AMatrixDegree(AMATRIX *adj_matrix, int v)
-{
-    int countdegree = 0;
-    for (int j = 0; j < adj_matrix->n; j++){
-        if (adj_matrix->adj[v][j] != 0)
-            countdegree++;
-    }
-    return countdegree;
-}
 
-double AMatrixDensity(AMATRIX *adj_matrix)
-{
-    double dens = ((double)adj_matrix->e / (double)(2 * adj_matrix->n * (adj_matrix->n - 1)));
-    return dens;
-}
-
-void AMatrixPrint(AMATRIX *m, FILE *output)
-{
-    for (int i = 0; i < m->n; i++){
-        for (int j = 0; j < m->n; j++){
-            fprintf(output, "%d ", m->adj[i][j]);
-        }
-        fprintf(output, "\n");
-    }
-}
-
-DLL_EXPORT AMATRIX *AMatrixSet(int nodes)
+ AMATRIX *AMatrixSet(int nodes)
 {
     AMATRIX * tmp = (AMATRIX*)malloc(sizeof(AMATRIX));
     tmp->adj = (int**)malloc(nodes*sizeof(int*));

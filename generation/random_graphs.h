@@ -12,15 +12,9 @@ typedef struct aMatrix
     int e; //Number of edges
 }AMATRIX;
 
- AMATRIX *AMatrixSet           (int nodes);
-AMATRIX *AMatrixRead          (FILE *input); //read adjmatrix from file
+AMATRIX *AMatrixSet           (int nodes);
 AMATRIX *AMatrixDelete        (AMATRIX *m);
 
-
-int     CountNodes            (FILE *input, int count_lines);
-int     AMatrixDegree         (AMATRIX *adj_matrix, int v); //count degree of chosen vertex
-void    AMatrixPrint          (AMATRIX *m, FILE *output);
-double  AMatrixDensity        (AMATRIX *adj_matrix); //calculate density
 //------------------------------------------------------------------------------------------------------
 typedef struct AListNode
 {
