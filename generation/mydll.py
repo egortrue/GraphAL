@@ -9,54 +9,6 @@ from operator import attrgetter
 # link DLL
 path = r"D:\Code\GraphAL\solutions\algorithms\Debug\algorithms.dll" # or full path
 lib = ct.CDLL(path)
-gen = ct.CDLL(r"D:\Code\GraphAL\solutions\generation\Debug\generation.dll")
-
-
-class AMATRIX(ct.Structure):
-
-    ptr = None
-    _fields_ = [("C_ADJ", ct.POINTER(ct.POINTER(ct.c_int))),
-                ("C_N", ct.c_int),
-                ("C_E", ct.c_int)]
-
-    nodes = []
-    edges = []
-
-    def SetNodes(self):
-        self.nodes = [Node(i) for i in range(self.ptr.contents.C_N)]
-
-    def SetEdges(self):
-        nodes_num = self.ptr.contents.C_N
-        matrix = ct.cast(self.ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int)*nodes_num)).contents
-        for i in matrix:
-            i = ct.cast(i, ct.POINTER(ct.c_int)*nodes_num).contents
-        for i in range(nodes_num):
-            for j in range(nodes_num):
-                if matrix[i][j] != 0:
-                    self.edges.append(Edge(self.nodes[i], self.nodes[j], matrix[i][j]))
-
-
-    def RandomGraph(self, nodes_num, edges_num, weight_min, weight_max, oriented_flag):
-        gen.ChoiceRand(self.ptr, oriented_flag, edges_num, nodes_num, weight_min, weight_max)
-
-
-    def __init__(self, nodes_num, edges_num, weight_min, weight_max):
-        self.ptr = gen.AMatrixSet(nodes_num)
-        self.RandomGraph(nodes_num, edges_num, weight_min, weight_max, 1)
-        self.SetNodes()
-        self.SetEdges()
-
-nodes_num = 5
-edges_num = 5
-
-#define Amatrix functions
-gen.AMatrixSet.argtypes = [ct.c_int]
-gen.AMatrixSet.restypes = ct.POINTER(AMATRIX)
-
-gen.ChoiceRand.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int]
-
-#Set Graph
-matrix = AMATRIX(nodes_num, edges_num, 1, 1)
 
 class Node(ct.Structure):
 
@@ -495,18 +447,37 @@ def Kruskal(graph):
 
 #########################################################################
 
-# Create Graph
-nodes = [Node(i) for i in range(21)]
+gen = ct.CDLL(r"D:\Code\GraphAL\solutions\generation\Debug\generation.dll")
+class AMATRIX(ct.Structure):
 
-edges     = [Edge(nodes[i], nodes[i+1], 1) for i in range(10)]
-edges.extend(Edge(nodes[i], nodes[i+1], 1) for i in range(11, 20))
+    ptr = None
+    _fields_ = [("C_ADJ", ct.POINTER(ct.POINTER(ct.c_int))),
+                ("C_N", ct.c_int),
+                ("C_E", ct.c_int)]
 
-edges.append(Edge(nodes[7], nodes[15], 1))
-edges.append(Edge(nodes[6], nodes[16], 1))
-edges.append(Edge(nodes[5], nodes[17], 1))
-edges.append(Edge(nodes[4], nodes[18], 1))
+    matrix = []
 
-my_graph = Graph(nodes, edges, 6)
+    def __init__(self, nodes_num, edges_num, weight_min, weight_max):
+        self.ptr = gen.AMatrixSet(nodes_num)
+        gen.RandomGraph(edges_num, nodes_num, self.ptr, weight_min, weight_max)
 
-# Run algorithm's animation
-Kruskal(my_graph)
+        arr_ptr_int = ct.cast(self.ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int)*nodes_num)).contents
+        for i in range(nodes_num):
+            self.matrix.append(ct.cast(arr_ptr_int[i], ct.POINTER(ct.c_int * nodes_num)).contents)
+
+        for i in range(nodes_num):
+            for j in range(nodes_num):
+                print(self.matrix[i][j], end=' ')
+            print()
+
+
+
+
+#define Amatrix functions
+gen.AMatrixSet.argtypes = [ct.c_int]
+gen.AMatrixSet.restype = ct.POINTER(AMATRIX)
+
+gen.RandomGraph.arttypes = [ct.c_int, ct.c_int, ct.POINTER(AMATRIX), ct.c_int, ct.c_int]
+
+#Set Graph
+matrix = AMATRIX(5, 5, 1, 1)
