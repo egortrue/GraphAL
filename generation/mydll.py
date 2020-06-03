@@ -457,18 +457,20 @@ class AMATRIX(ct.Structure):
 
     matrix = []
 
-    def __init__(self, nodes_num, edges_num, weight_min, weight_max):
+    def __init__(self, is_oriented, nodes_num, edges_num, weight_min, weight_max):
         self.ptr = gen.AMatrixSet(nodes_num, edges_num)
-        gen.RandomGraph(self.ptr, weight_min, weight_max)
+        gen.ChoiceRand(self.ptr, is_oriented, weight_min, weight_max)
 
         arr_ptr_int = ct.cast(self.ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int)*nodes_num)).contents
         for i in range(nodes_num):
             self.matrix.append(ct.cast(arr_ptr_int[i], ct.POINTER(ct.c_int * nodes_num)).contents)
 
-        for i in range(nodes_num):
-            for j in range(nodes_num):
-                print(self.matrix[i][j], end=' ')
+    def print(self, nodes_num):
+        for i in range(0, nodes_num):
+            for j in range(0, nodes_num):
+                 print(self.matrix[i][j], end=' ')
             print()
+        self.ptr = gen.AMatrixDelete(self.ptr)
 
 
 
@@ -476,8 +478,24 @@ class AMATRIX(ct.Structure):
 #define Amatrix functions
 gen.AMatrixSet.argtypes = [ct.c_int, ct.c_int]
 gen.AMatrixSet.restype = ct.POINTER(AMATRIX)
+gen.AMatrixDelete.argtypes = [ct.POINTER(AMATRIX)]
+gen.AMatrixDelete.restype = ct.POINTER(AMATRIX)
+gen.RandomGraph.argtypes = [ct.POINTER(AMATRIX),  ct.c_int, ct.c_int]
 
-gen.RandomGraph.arttypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int]
-
+gen.ChoiceRand.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int]
+gen.ChoiceRand.restype = ct.POINTER(AMATRIX)
 #Set Graph
-matrix = AMATRIX(5, 5, 1, 1)
+
+matrix = AMATRIX(1, 4, 4,  1, 1)
+matrix.print(4)
+print()
+
+matrix = AMATRIX(1, 4, 4, 1, 1)
+matrix.print(4)
+print()
+
+matrix = AMATRIX(0, 5, 5, 1, 1)
+for i in range(0,5):
+    for j in range(0,4):
+        print(matrix.matrix[i][j], end=' ')
+    print()
