@@ -4,13 +4,13 @@
 
 //------------------------------------------------------------------------------------------------------
 
- AMATRIX *AMatrixSet(int nodes)
+ AMATRIX *AMatrixSet(int nodes, int edges)
 {
     AMATRIX * tmp = (AMATRIX*)calloc(0, sizeof(AMATRIX));
     tmp->adj = (int**)malloc(nodes* sizeof(int*));
-    tmp->n = nodes;
-    tmp->e = 0;
-    for (int i = 0; i < tmp->n; i++){
+    tmp->nodes_num = nodes;
+    tmp->edges_num = edges;
+    for (int i = 0; i < tmp->nodes_num; i++){
         tmp->adj[i] = (int*)calloc(nodes, sizeof(int));
     }
 
@@ -18,10 +18,12 @@
 }
 
 AMATRIX *AMatrixDelete(AMATRIX *m){
+
     if (m) {
-        for (int i = 0; i < m->e; i++)
-            for (int j = 0; j < m->e; j++)
+        for (int i = 0; i < m->edges_num; i++)
+            for (int j = 0; j < m->edges_num; j++)
                 m->adj[i][j] = 0;
+
     }
     return m;
 }

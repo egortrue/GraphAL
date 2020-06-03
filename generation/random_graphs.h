@@ -8,12 +8,12 @@
 typedef struct aMatrix
 {
     int** adj;
-    int n; //Number of nodes in AMatrix.
-    int e; //Number of edges
+    int nodes_num; //Number of nodes in AMatrix.
+    int edges_num; //Number of edges
 }AMATRIX;
 
-AMATRIX *AMatrixSet           (int nodes);
-AMATRIX *AMatrixDelete        (AMATRIX *m);
+AMATRIX *AMatrixSet           (int nodes_num, int edges_num);
+AMATRIX *AMatrixDelete        (AMATRIX *graph);
 
 //------------------------------------------------------------------------------------------------------
 typedef struct AListNode
@@ -40,15 +40,15 @@ void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight);
 void AListPrint(ALISTG* graph, FILE* output);
 
 //------------------------------------------------------------------------------------------------------
-void ChoiceRand(AMATRIX* g, int oriented, int edges_num, int nodes_num, int weight_min, int weight_max);
+void ChoiceRand(AMATRIX* g, int oriented, int weight_min, int weight_max);
 
 //ORIENTED GRAPHS
-AMATRIX* RandomGraph(int edges_num, int nodes_num, AMATRIX *graph, int weight_min, int weight_max);
-AMATRIX* RandomOrientedGraph(int edges_num, int nodes_num, AMATRIX *graph, int weight_min, int weight_max);
+AMATRIX* RandomGraph(AMATRIX *graph, int weight_min, int weight_max);
+AMATRIX* RandomOrientedGraph(AMATRIX *graph, int weight_min, int weight_max);
 
-AMATRIX* RandConnectedOr(AMATRIX *g, int edges_num, int nodes_num, int weight_min, int weight_max);
+AMATRIX* RandConnectedOr(AMATRIX *g, int weight_min, int weight_max);
 void dfs(AMATRIX *g, int nodes_num, int ost, int used[], int *count, int *comp, int *pr, int *cycle);
-AMATRIX* ConnectGraph(AMATRIX *g, int edges_num, int nodes_num, int r1, int r2);
+AMATRIX* ConnectGraph(AMATRIX *g, int weight_min, int weight_max);
 
 //FOR TEST
 void TestConnection(AMATRIX *graph, int e, int v, int r1, int r2);
