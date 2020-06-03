@@ -452,14 +452,14 @@ class AMATRIX(ct.Structure):
 
     ptr = None
     _fields_ = [("C_ADJ", ct.POINTER(ct.POINTER(ct.c_int))),
-                ("C_N", ct.c_int),
-                ("C_E", ct.c_int)]
+                ("C_NODES_NUM", ct.c_int),
+                ("C_EDGES_NUM", ct.c_int)]
 
     matrix = []
 
     def __init__(self, nodes_num, edges_num, weight_min, weight_max):
-        self.ptr = gen.AMatrixSet(nodes_num)
-        gen.RandomGraph(edges_num, nodes_num, self.ptr, weight_min, weight_max)
+        self.ptr = gen.AMatrixSet(nodes_num, edges_num)
+        gen.RandomGraph(self.ptr, weight_min, weight_max)
 
         arr_ptr_int = ct.cast(self.ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int)*nodes_num)).contents
         for i in range(nodes_num):
@@ -474,10 +474,10 @@ class AMATRIX(ct.Structure):
 
 
 #define Amatrix functions
-gen.AMatrixSet.argtypes = [ct.c_int]
+gen.AMatrixSet.argtypes = [ct.c_int, ct.c_int]
 gen.AMatrixSet.restype = ct.POINTER(AMATRIX)
 
-gen.RandomGraph.arttypes = [ct.c_int, ct.c_int, ct.POINTER(AMATRIX), ct.c_int, ct.c_int]
+gen.RandomGraph.arttypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int]
 
 #Set Graph
 matrix = AMATRIX(5, 5, 1, 1)
