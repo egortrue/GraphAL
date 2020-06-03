@@ -2,74 +2,74 @@
 #include <time.h>
 #include <stdlib.h>
 
-AMATRIX* RandConnectedOr(AMATRIX *g, int v, int n, int r1, int r2){ //connnected oriented graph
-    if (v < n-1)
+AMATRIX* RandConnectedOr(AMATRIX *g, int edges_num, int nodes_num, int weight_min, int weight_max){ //connnected oriented graph
+    if (edges_num < nodes_num - 1)
         return NULL;
-    int *used = (int*)calloc(n, sizeof(int));
+    int *used = (int*)calloc(nodes_num, sizeof(int));
     srand(time(0));
-    int od = rand() % n, dos = rand() % n;
+    int od = rand() % nodes_num, dos = rand() % nodes_num;
     int first = od;
     used[od] = 1;
     int count = 1;
-    while(count < n){
+    while(count < nodes_num){
         while (g->adj[od][dos] || used[dos] || od == dos){
-            dos = rand() % n;
+            dos = rand() % nodes_num;
         }
-        g->adj[od][dos] = r1 + rand()%(r2-r1+1);
+        g->adj[od][dos] = weight_min + rand() % (weight_max - weight_min + 1);
         count++;
         used[dos] = 1;
         od = dos;
     }
 
-    if (v >= n){
-        count = v - n ;
-        g->adj[dos][first] = r1 + rand()%(r2-r1+1);
+    if (edges_num >= nodes_num){
+        count = edges_num - nodes_num ;
+        g->adj[dos][first] = weight_min + rand() % (weight_max - weight_min + 1);
         for (int i = 0; i < count; i++){
             srand(time(0));
             while (g->adj[od][dos] || dos == od)
-                dos = rand() % n;
-            g->adj[od][dos] = r1 + rand()%(r2-r1+1);
+                dos = rand() % nodes_num;
+            g->adj[od][dos] = weight_min + rand() % (weight_max - weight_min + 1);
             od = dos;
-            dos = rand() % n;
+            dos = rand() % nodes_num;
         }
     }
     return g;
 }
 
-void dfs(AMATRIX *g, int v, int ost, int used[], int *count, int *comp, int *pr, int *cycle){
-    used[v] = 1;
-    comp[*count] = v; //save vertex in components
+void dfs(AMATRIX *g, int nodes_num, int ost, int used[], int *count, int *comp, int *pr, int *cycle){
+    used[nodes_num] = 1;
+    comp[*count] = nodes_num; //save vertex in components
     *count += 1; //count vertex in 1 comp
     for (int i = 0; i < ost; i++ ){
         int to = i;
-        if (used[to] == 0 && g->adj[v][to]) {
-            pr[to] = v;
+        if (used[to] == 0 && g->adj[nodes_num][to]) {
+            pr[to] = nodes_num;
             dfs(g, to, ost, used, count, comp, pr, cycle);
         }
-        else if (used[to] == 1 && to != pr[v] && g->adj[v][to]){
-            cycle[0] = v;
+        else if (used[to] == 1 && to != pr[nodes_num] && g->adj[nodes_num][to]){
+            cycle[0] = nodes_num;
             cycle[1] = to;
         }
 
     }
-    used[v] = 2;
+    used[nodes_num] = 2;
 }
 
-AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2){ //just connected graph
-    if (v <= 1/2*(n-2)*(n-1))
+AMATRIX* ConnectGraph(AMATRIX *g, int edges_num, int nodes_num, int r1, int r2){ //just connected graph
+    if (edges_num <= (nodes_num - 2) * (nodes_num - 1) / 2)
         return NULL;
-    RandomGraph(v, n, g, r1,  r2);
-    int *used = (int*)calloc(n,sizeof(int));
-    int *comp = (int*)calloc(n,sizeof(int));
-    int *pr = (int*)calloc(n,sizeof(int));
+    RandomGraph(edges_num, nodes_num, g, r1, r2);
+    int *used = (int*)calloc(nodes_num, sizeof(int));
+    int *comp = (int*)calloc(nodes_num, sizeof(int));
+    int *pr = (int*)calloc(nodes_num, sizeof(int));
     int count = 0;
-    int ost = n;
+    int ost = nodes_num;
     int prevcycle = 0;
     int tmpprevcycle = 0;
     int cycle[2] = {0, 0};
     int neededg = 0;
     int last = 0;
-    for (int i = 0; i < n; i++){
+    for (int i = 0; i < nodes_num; i++){
         if (!used[i]){
             if (prevcycle && (cycle[0] || cycle[1])) {
                 g->adj[cycle[0]][i] = g->adj[cycle[0]][cycle[1]];
@@ -80,7 +80,7 @@ AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2){ //just connecte
                 cycle[1] = 0;
                 prevcycle = 0;
             }
-            comp = (int*)calloc(n, sizeof(int));
+            comp = (int*)calloc(nodes_num, sizeof(int));
             dfs(g, i, ost, used, &count, comp, pr, cycle);
             if ((cycle[0] || cycle[1]) && tmpprevcycle == 1){
                 g->adj[cycle[0]][i-1] = g->adj[cycle[0]][cycle[1]];
@@ -104,7 +104,7 @@ AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2){ //just connecte
             last = i;
         }
         count = 0;
-        pr = (int*)calloc(n, sizeof(int));
+        pr = (int*)calloc(nodes_num, sizeof(int));
     }
     if (tmpprevcycle == 1 && !(cycle[0] || cycle[1])) {
         neededg++;
@@ -129,29 +129,31 @@ AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2){ //just connecte
     return g;
 }
 
-void PrintRandMatrix(AMATRIX *graph, int v){
+void PrintRandMatrix(AMATRIX *graph, int nodes_num){
     printf( "\n[adjacency matrix]: \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            printf( "%d ", graph->adj[i][j]);
+    if (graph) {
+        for (int i = 0; i < nodes_num; i++) {
+            for (int j = 0; j < nodes_num; j++) {
+                printf("%d ", graph->adj[i][j]);
+            }
+            printf("\n");
         }
-        printf( "\n");
+        printf("\n");
     }
-    printf( "\n");
 }
 
-AMATRIX* RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2)
+AMATRIX* RandomGraph(int edges_num, int nodes_num, AMATRIX *graph, int weight_min, int weight_max)
 {
     int i, j;
     int counter = 0;
     srand(time(0));
-    while (counter < e){
+    while (counter < edges_num){
 
-        i = rand() % v;
-        j = rand() % v;
+        i = rand() % nodes_num;
+        j = rand() % nodes_num;
 
         if ((!graph->adj[i][j]) && (i != j)){
-            graph->adj[i][j] = r1 + rand()%(r2-r1+1);
+            graph->adj[i][j] = weight_min + rand() % (weight_max - weight_min + 1);
             graph->adj[j][i] = graph->adj[i][j];
             counter++;
         }
@@ -159,33 +161,35 @@ AMATRIX* RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2)
     return graph;
 }
 
-AMATRIX* RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2)
+AMATRIX* RandomOrientedGraph(int edges_num, int nodes_num, AMATRIX *graph, int weight_min, int weight_max)
 {
     int i = 0, j = 0;
     int counter = 0;
     srand(time(0));
-    while (counter < e){
+    while (counter < edges_num){
 
-        i = rand() % v;
-        j = rand() % v;
+        i = rand() % nodes_num;
+        j = rand() % nodes_num;
 
         if ((!graph->adj[i][j]) && (i != j) && (!graph->adj[j][i])){
-            graph->adj[i][j] = r1 + rand()%(r2-r1+1);
+            graph->adj[i][j] = weight_min + rand() % (weight_max - weight_min + 1);
             counter++;
         }
 
         else if ((!graph->adj[j][i]) && (i != j) && (graph->adj[i][j])){
-            graph->adj[j][i] = r1 + rand()%(r2-r1+1);
+            graph->adj[j][i] = weight_min + rand() % (weight_max - weight_min + 1);
             counter++;
         }
     }
     return graph;
 }
 
-void ChoiceRand(AMATRIX *g, int oriented, int v, int n, int r1, int r2)
+void ChoiceRand(AMATRIX *g, int oriented, int edges_num, int nodes_num, int weight_min, int weight_max)
 {
-    if (oriented)
-        RandConnectedOr(g, v, n, r1, r2);
+    if (edges_num > nodes_num * (nodes_num - 1) / 2)
+       ;
+    else if (oriented)
+        RandConnectedOr(g, edges_num, nodes_num, weight_min, weight_max);
     else
-        ConnectGraph(g, v, n, r1, r2);
+        ConnectGraph(g, edges_num, nodes_num, weight_min, weight_max);
 }

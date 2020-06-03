@@ -40,15 +40,15 @@ void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight);
 void AListPrint(ALISTG* graph, FILE* output);
 
 //------------------------------------------------------------------------------------------------------
-void ChoiceRand(AMATRIX* g, int oriented, int v, int n, int r1, int r2);
+void ChoiceRand(AMATRIX* g, int oriented, int edges_num, int nodes_num, int weight_min, int weight_max);
 
 //ORIENTED GRAPHS
-AMATRIX* RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2);
-AMATRIX* RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2);
+AMATRIX* RandomGraph(int edges_num, int nodes_num, AMATRIX *graph, int weight_min, int weight_max);
+AMATRIX* RandomOrientedGraph(int edges_num, int nodes_num, AMATRIX *graph, int weight_min, int weight_max);
 
-AMATRIX* RandConnectedOr(AMATRIX *g, int v, int n, int r1, int r2);
-void dfs(AMATRIX *g, int v, int ost, int used[], int *count, int *comp, int *pr, int *cycle);
-AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2);
+AMATRIX* RandConnectedOr(AMATRIX *g, int edges_num, int nodes_num, int weight_min, int weight_max);
+void dfs(AMATRIX *g, int nodes_num, int ost, int used[], int *count, int *comp, int *pr, int *cycle);
+AMATRIX* ConnectGraph(AMATRIX *g, int edges_num, int nodes_num, int r1, int r2);
 
 //FOR TEST
 void TestConnection(AMATRIX *graph, int e, int v, int r1, int r2);
@@ -56,6 +56,6 @@ void dfs2(AMATRIX *g, int v, int ost, int used[]);
 void FindComp(AMATRIX *g, int v, int n);
 
 //PRINT
-void PrintRandMatrix(AMATRIX *graph, int v);
+void PrintRandMatrix(AMATRIX *graph, int nodes_num);
 
 #endif //GRAPHAL_RANDOM_GRAPHS_H

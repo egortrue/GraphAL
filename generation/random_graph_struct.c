@@ -6,8 +6,8 @@
 
  AMATRIX *AMatrixSet(int nodes)
 {
-    AMATRIX * tmp = (AMATRIX*)malloc(sizeof(AMATRIX));
-    tmp->adj = (int**)malloc(nodes*sizeof(int*));
+    AMATRIX * tmp = (AMATRIX*)calloc(0, sizeof(AMATRIX));
+    tmp->adj = (int**)malloc(nodes* sizeof(int*));
     tmp->n = nodes;
     tmp->e = 0;
     for (int i = 0; i < tmp->n; i++){
@@ -18,9 +18,11 @@
 }
 
 AMATRIX *AMatrixDelete(AMATRIX *m){
-    for (int i = 0; i < m->e; i++)
-        for (int j = 0; j < m->e; j++)
-            m->adj[i][j] = 0;
+    if (m) {
+        for (int i = 0; i < m->e; i++)
+            for (int j = 0; j < m->e; j++)
+                m->adj[i][j] = 0;
+    }
     return m;
 }
 //------------------------------------------------------------------------------------------------------
