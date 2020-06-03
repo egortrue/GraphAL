@@ -4,26 +4,27 @@
 
 //------------------------------------------------------------------------------------------------------
 
-DLL_EXPORT AMATRIX *AMatrixSet(int nodes, int edges)
+ AMATRIX *AMatrixSet(int nodes, int edges)
 {
-    AMATRIX * tmp = (AMATRIX*)calloc(0, sizeof(AMATRIX));
+    AMATRIX * tmp = malloc(sizeof(AMATRIX));
     tmp->adj = (int**)malloc(nodes* sizeof(int*));
     tmp->nodes_num = nodes;
     tmp->edges_num = edges;
     for (int i = 0; i < tmp->nodes_num; i++){
-        tmp->adj[i] = (int*)calloc(nodes, sizeof(int));
+        tmp->adj[i] = calloc(nodes, sizeof(int));
     }
 
     return tmp;
 }
 
-DLL_EXPORT AMATRIX *AMatrixDelete(AMATRIX *m){
+ AMATRIX *AMatrixDelete(AMATRIX *m){
 
     if (m) {
         m->edges_num = 0;
         for (int i = 0; i < m->nodes_num; i++)
                 free(m->adj[i]);
         m->nodes_num = 0;
+        free(m->adj);
         free(m);
     }
     return m;

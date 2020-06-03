@@ -14,12 +14,14 @@ int main() {
 
     AMATRIX *graph = AMatrixSet(v, e);
 
-    ChoiceRand(graph, 0, r1, r2);
+    graph = ChoiceRand(graph, 0, r1, r2);
     PrintRandMatrix(graph, v);
     graph = AMatrixDelete(graph);
-    AMATRIX *graph2 = AMatrixSet(10, 10);
-    ChoiceRand(graph2, 0, r1, r2);
-    PrintRandMatrix(graph, 10);
+
+    graph = AMatrixSet(2, 3);
+    graph = ChoiceRand(graph, 0, r1, r2);
+    PrintRandMatrix(graph, 3);
+
    /* RandomGraph(graph, r1, r2);
     PrintRandMatrix(graph, v);
     graph = AMatrixDelete(graph);

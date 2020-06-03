@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 AMATRIX* RandConnectedOr(AMATRIX *g, int weight_min, int weight_max){ //connnected oriented graph
-    if (g->edges_num < g->nodes_num - 1)
+    if (g->edges_num < g->nodes_num - 1 || g->nodes_num <= 1 || g->edges_num > (g->nodes_num -1)*g->nodes_num/2)
         return NULL;
     int *used = (int*)calloc(g->nodes_num, sizeof(int));
     srand(time(0));
@@ -56,7 +56,7 @@ void dfs(AMATRIX *g, int nodes_num, int ost, int used[], int *count, int *comp, 
 }
 
 AMATRIX* ConnectGraph(AMATRIX *g, int weight_min, int weight_max){ //just connected graph
-    if (g->edges_num < g->nodes_num - 1)
+    if (g->edges_num < g->nodes_num - 1 || g->nodes_num <= 1 || g->edges_num > (g->nodes_num -1)*g->nodes_num/2)
         return NULL;
     RandomGraph(g, weight_min, weight_max);
     int *used = (int*)calloc(g->nodes_num, sizeof(int));
@@ -106,11 +106,11 @@ AMATRIX* ConnectGraph(AMATRIX *g, int weight_min, int weight_max){ //just connec
         count = 0;
         pr = (int*)calloc(g->nodes_num, sizeof(int));
     }
-    if (tmpprevcycle == 1 && !(cycle[0] || cycle[1])) {
+   /* if (tmpprevcycle == 1 && !(cycle[0] || cycle[1])) {
         neededg++;
         g->adj[last-1][last] = weight_min + rand()%(weight_max - weight_min + 1);
         g->adj[last][last-1] = weight_min + rand()%(weight_max - weight_min + 1);
-    }
+    }*/
     int i = 0;
     while (neededg != 0 && i < ost){
         count = 0;
@@ -146,7 +146,6 @@ DLL_EXPORT AMATRIX* RandomGraph(AMATRIX *graph, int weight_min, int weight_max)
 {
     int i, j;
     int counter = 0;
-    srand(time(0));
     while (counter < graph->edges_num){
 
         i = rand() % graph->nodes_num;
