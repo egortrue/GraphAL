@@ -5,7 +5,7 @@
 #include "random_graphs.h"
 
 int main() {
-    int v=10, e=4;
+    int v=5, e=5;
 
 
     srand(time(0));
@@ -16,6 +16,10 @@ int main() {
 
     ChoiceRand(graph, 0, r1, r2);
     PrintRandMatrix(graph, v);
+    graph = AMatrixDelete(graph);
+    AMATRIX *graph2 = AMatrixSet(10, 10);
+    ChoiceRand(graph2, 0, r1, r2);
+    PrintRandMatrix(graph, 10);
    /* RandomGraph(graph, r1, r2);
     PrintRandMatrix(graph, v);
     graph = AMatrixDelete(graph);

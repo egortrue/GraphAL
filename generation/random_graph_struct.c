@@ -20,10 +20,11 @@ DLL_EXPORT AMATRIX *AMatrixSet(int nodes, int edges)
 DLL_EXPORT AMATRIX *AMatrixDelete(AMATRIX *m){
 
     if (m) {
-        for (int i = 0; i < m->edges_num; i++)
-            for (int j = 0; j < m->edges_num; j++)
-                m->adj[i][j] = 0;
-
+        m->edges_num = 0;
+        for (int i = 0; i < m->nodes_num; i++)
+                free(m->adj[i]);
+        m->nodes_num = 0;
+        free(m);
     }
     return m;
 }

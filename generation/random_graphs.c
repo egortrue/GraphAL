@@ -186,9 +186,8 @@ AMATRIX* RandomOrientedGraph(AMATRIX *graph, int weight_min, int weight_max)
 
 DLL_EXPORT AMATRIX *ChoiceRand(AMATRIX *g, int oriented, int weight_min, int weight_max)
 {
-    if (g->edges_num > g->nodes_num * (g->nodes_num - 1) / 2)
-       return NULL;
-    else if (oriented)
+
+    if (oriented)
         g = RandConnectedOr(g,  weight_min, weight_max);
     else
         g = ConnectGraph(g,  weight_min, weight_max);
