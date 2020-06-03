@@ -56,7 +56,7 @@ void dfs(AMATRIX *g, int nodes_num, int ost, int used[], int *count, int *comp, 
 }
 
 AMATRIX* ConnectGraph(AMATRIX *g, int weight_min, int weight_max){ //just connected graph
-    if (g->edges_num <= (g->nodes_num - 2) * (g->nodes_num - 1) / 2)
+    if (g->edges_num < g->nodes_num - 1)
         return NULL;
     RandomGraph(g, weight_min, weight_max);
     int *used = (int*)calloc(g->nodes_num, sizeof(int));
@@ -184,12 +184,14 @@ AMATRIX* RandomOrientedGraph(AMATRIX *graph, int weight_min, int weight_max)
     return graph;
 }
 
-void ChoiceRand(AMATRIX *g, int oriented, int weight_min, int weight_max)
+AMATRIX *ChoiceRand(AMATRIX *g, int oriented, int weight_min, int weight_max)
 {
     if (g->edges_num > g->nodes_num * (g->nodes_num - 1) / 2)
-       ;
+       return NULL;
     else if (oriented)
-        RandConnectedOr(g,  weight_min, weight_max);
+        g = RandConnectedOr(g,  weight_min, weight_max);
     else
-        ConnectGraph(g,  weight_min, weight_max);
+        g = ConnectGraph(g,  weight_min, weight_max);
+
+    return g;
 }

@@ -40,7 +40,7 @@ void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight);
 void AListPrint(ALISTG* graph, FILE* output);
 
 //------------------------------------------------------------------------------------------------------
-void ChoiceRand(AMATRIX* g, int oriented, int weight_min, int weight_max);
+AMATRIX *ChoiceRand(AMATRIX* g, int oriented, int weight_min, int weight_max);
 
 //ORIENTED GRAPHS
 AMATRIX* RandomGraph(AMATRIX *graph, int weight_min, int weight_max);

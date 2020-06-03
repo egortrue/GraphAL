@@ -5,7 +5,7 @@
 #include "random_graphs.h"
 
 int main() {
-    int v=10, e=5;
+    int v=10, e=4;
 
 
     srand(time(0));
@@ -14,7 +14,9 @@ int main() {
 
     AMATRIX *graph = AMatrixSet(v, e);
 
-    RandomGraph(graph, r1, r2);
+    ChoiceRand(graph, 0, r1, r2);
+    PrintRandMatrix(graph, v);
+   /* RandomGraph(graph, r1, r2);
     PrintRandMatrix(graph, v);
     graph = AMatrixDelete(graph);
 
@@ -23,15 +25,16 @@ int main() {
     PrintRandMatrix(graph, v);
     graph = AMatrixDelete(graph);
 
-    graph = AMatrixSet(v, e);
-    RandConnectedOr(graph, r1, r2);
-    PrintRandMatrix(graph, v);
-    graph = AMatrixDelete(graph);
 
     graph = AMatrixSet(v, e);
     graph = ConnectGraph(graph, r1, r2);
     PrintRandMatrix(graph, v);
     graph = AMatrixDelete(graph);
+
+    graph = AMatrixSet(v, e);
+    RandConnectedOr(graph, r1, r2);
+    PrintRandMatrix(graph, v);
+    graph = AMatrixDelete(graph);*/
 
     //TestConnection(graph, e, v, r1, r2);
 
