@@ -142,7 +142,7 @@ void PrintRandMatrix(AMATRIX *graph, int nodes_num){
     }
 }
 
-AMATRIX* RandomGraph(AMATRIX *graph, int weight_min, int weight_max)
+DLL_EXPORT AMATRIX* RandomGraph(AMATRIX *graph, int weight_min, int weight_max)
 {
     int i, j;
     int counter = 0;
@@ -184,7 +184,7 @@ AMATRIX* RandomOrientedGraph(AMATRIX *graph, int weight_min, int weight_max)
     return graph;
 }
 
-AMATRIX *ChoiceRand(AMATRIX *g, int oriented, int weight_min, int weight_max)
+DLL_EXPORT AMATRIX *ChoiceRand(AMATRIX *g, int oriented, int weight_min, int weight_max)
 {
     if (g->edges_num > g->nodes_num * (g->nodes_num - 1) / 2)
        return NULL;
