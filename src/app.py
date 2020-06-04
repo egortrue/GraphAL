@@ -1,12 +1,4 @@
-from main_tab import main_tab
-from preview_tab import preview_tab
-
-import class_graph as cg
-import function_algorithms as func_alg
-
-from text_for_algorithms import *
-from constants import *
-
+# Standart imports
 import PySimpleGUI as psg
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -18,6 +10,17 @@ from json import (load as jsonload, dump as jsondump)
 
 import pyautogui as pag
 from time import sleep
+
+# Our imports
+from constants import *
+import graphs as cg
+#import function_algorithms as func_alg
+
+import sys
+sys.path.append("./interface")
+from main_tab import main_tab
+from preview_tab import preview_tab
+from text_for_algorithms import *
 
 
 # todo попробовать перехватить нажатие кнопки сетингс в тулбаре!!! и выставить там разные цвета и тд
@@ -44,7 +47,7 @@ class App(psg.Window):
         menu_def = [['File', ['Open', 'Save', 'Clear', '---', 'Exit']],
                     ['Help', ['About...']], ]
 
-        super().__init__(title="Graph AL",
+        super().__init__(title="GraphAL",
                          layout=[
                              [psg.Menu(menu_def, key='-MENU-')],
                              [psg.TabGroup(layout=[[psg.Tab('Main', main_tab),
@@ -102,7 +105,7 @@ class App(psg.Window):
         self.callback_of_events = {'-WEIGHTED-Y-': lambda: self.range_of_weight_visible(True),
                                    '-WEIGHTED-N-': lambda: self.range_of_weight_visible(False),
                                    '-GENERATE-': lambda: cg.generate_graph(self),
-                                   '-START-': func_alg.start_algorithm,
+                                   '-START-': '''func_alg.start_algorithm''',
                                    '-CLEAR-': self.clear_figure_canvas,
                                    '-COMBO-ALGORITHMS-': self.choice_algorithm,
                                    'Open': self.open_file,

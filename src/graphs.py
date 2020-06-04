@@ -2,21 +2,60 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 
 import networkx as nx
-
 import ctypes as ct
 import _ctypes as ct_deb
-
 import time
 from operator import attrgetter
 
+# Linking of DLL
+gen_dll = ct.CDLL(r"./generation.dll")
+alg_dll = ct.CDLL(r"./algorithms.dll")
 
-# path = r"D:\Kursach\src\x64\Debug\mydll.dll"  # path to *.dll
+#########################################################################
+# Generation DLL:
 
-lib = ct.CDLL(r"D:\Kursach\src\x64\Debug\mydll.dll")
+class AMATRIX(ct.Structure):
 
-gen = ct.CDLL(r"D:\Kursach\generation\x64\Debug\generation_dll.dll")
+    # Data for NetworkX/UI
+    matrix = []
 
 
+    # Data from DLL
+    ptr = None # AMATRIX*
+    _fields_ = [("C_ADJ", ct.POINTER(ct.POINTER(ct.c_int))),
+                ("C_N", ct.c_int),
+                ("C_E", ct.c_int)]
+
+
+    def __init__(self, nodes_num, edges_num, weight_min, weight_max):
+        self.ptr = gen_dll.AMatrixSet(nodes_num)
+        gen_dll.RandomGraph(edges_num, nodes_num, self.ptr, weight_min, weight_max)
+
+
+        # Translate int** from DLL to matrix with ints on Python
+        arr_ptr_int = ct.cast(self.ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int)*nodes_num)).contents
+        for i in range(nodes_num):
+            self.matrix.append(ct.cast(arr_ptr_int[i], ct.POINTER(ct.c_int * nodes_num)).contents)
+
+
+        for i in range(nodes_num):
+            for j in range(nodes_num):
+                print(self.matrix[i][j], end=' ')
+            print()
+
+
+########################################################################
+# Generation DLL funcitons:
+
+# define types of functions' arguments
+gen_dll.AMatrixSet.argtypes = [ct.c_int]
+gen_dll.RandomGraph.argtypes = [ct.c_int, ct.c_int, ct.POINTER(AMATRIX), ct.c_int, ct.c_int]
+
+# define types of functions' returns
+gen_dll.AMatrixSet.restype = ct.POINTER(AMATRIX)
+
+#########################################################################
+# Algorithms DLL:
 
 class Node(ct.Structure):
 
@@ -35,7 +74,7 @@ class Node(ct.Structure):
                 ("C_VALUE", ct.c_int)]
 
     def __init__(self, node_id, value=1):
-        self.ptr = lib.NodeSet(node_id, value)
+        self.ptr = alg_dll.NodeSet(node_id, value)
         self.node_id = node_id
         self.value = value
 
@@ -63,7 +102,7 @@ class Edge(ct.Structure):
                 ("C_TARGET", ct.POINTER(Node))]  # NODE*
 
     def __init__(self, source, target, weight):
-        self.ptr = lib.EdgeSet(source.ptr, target.ptr, weight)
+        self.ptr = alg_dll.EdgeSet(source.ptr, target.ptr, weight)
         self.source = source
         self.target = target
         self.weight = weight
@@ -89,7 +128,7 @@ class Graph(ct.Structure):
 
     directed  = 0
     weighted  = 0
-    connected = 0
+
 
     # Data from DLL
     ptr = None  # GRAPH*
@@ -97,6 +136,7 @@ class Graph(ct.Structure):
                 ("SIZE_E", ct.c_int),
                 ("C_NODES", ct.POINTER(ct.POINTER(Node))),  # NODE**
                 ("C_EDGES", ct.POINTER(ct.POINTER(Edge)))]  # EDGE**
+
 
     def __init__(self, nodes, edges, info=0):
 
@@ -112,9 +152,8 @@ class Graph(ct.Structure):
         self.nodes_color = [self.nodes_default_color for i in range(self.nodes_num)]
         self.edges_color = [self.edges_default_color for i in range(self.edges_num)]
 
-        self.directed  = info & 1
-        self.weighted  = info & 2
-        self.connected = info & 4
+        self.directed  = info & 0b01
+        self.weighted  = info & 0b10
 
         # Init nodes
         nodes_row = ct.POINTER(Node) * self.nodes_num
@@ -131,13 +170,14 @@ class Graph(ct.Structure):
         edges_row = ct.cast(edges_row, ct.POINTER(ct.POINTER(Edge)))
 
         # Assign a memory for graph and create pointer on the memory
-        self.ptr = lib.GraphSet(self.nodes_num, nodes_row, self.edges_num, edges_row, info)
+        self.ptr = alg_dll.GraphSet(self.nodes_num, nodes_row, self.edges_num, edges_row, info)
 
+        # Init the networkx class Graph
         self.nx_graph = nx.Graph()
-
         self.nx_graph.add_nodes_from(self.get_nodes())
         self.nx_graph.add_edges_from(self.get_edges())
         self.pos = nx.spring_layout(self.nx_graph)
+
 
     # Common functions
     def get_node(self, c_node_id):
@@ -145,95 +185,76 @@ class Graph(ct.Structure):
             if node.node_id == c_node_id:
                 return node
 
+
     def get_edge(self, c_source_id, c_target_id):
         for edge in self.edges:
-
             if (edge.source.node_id == c_source_id) and (edge.target.node_id == c_target_id):
                 return edge
-
             if self.directed:
                 continue
-
             if (edge.source.node_id == c_target_id) and (edge.target.node_id == c_source_id):
                 return edge
+
 
     def get_nodes(self):
         return [node.node_id for node in self.nodes]
 
-    def get_edges(self, with_weight=False):
-        if with_weight:
+
+    def get_edges(self):
+        if self.weighted:
             return [(edge.source.node_id, edge.target.node_id, edge.weight) for edge in self.edges]
+        else:
+            return [(edge.source.node_id, edge.target.node_id) for edge in self.edges]
 
-        return [(edge.source.node_id, edge.target.node_id) for edge in self.edges]
 
-    def UpdateNodesColor(self):
+    def update_nodes_colors(self):
         self.nodes_color = [node.color for node in self.nodes]
 
-    def UpdateEdgesColor(self):
+
+    def update_edges_colors(self):
         self.edges_color = [edge.color for edge in self.edges]
 
-    def RestoreNodesColor(self):
+
+    def restore_nodes_colors(self):
         for node in self.nodes:
             node.color = self.nodes_default_color
-        self.UpdateNodesColor()
+        self.update_nodes_colors()
 
-    def RestoreEdgesColor(self):
+
+    def restore_edges_colors(self):
         for edge in self.edges:
             edge.color = self.edges_default_color
-        self.UpdateEdgesColor()
-
+        self.update_edges_colors()
 
 
 #########################################################################
+# Algorithms DLL funcitons:
 
 # define types of functions' arguments
-lib.NodeSet.argtypes  = [ct.c_int, ct.c_int] # node_id, value
-lib.EdgeSet.argtypes  = [ct.POINTER(Node), ct.POINTER(Node), ct.c_int] # NODE*, NODE*, weight
-
-lib.GraphSet.argtypes = [ct.c_int, ct.POINTER(ct.POINTER(Node)),       # nodes_num, NODE*
-                         ct.c_int, ct.POINTER(ct.POINTER(Edge)),       # edges_num, EDGE*
-                         ct.c_int]                                     # info
+alg_dll.NodeSet.argtypes  = [ct.c_int, ct.c_int] # node_id, value
+alg_dll.EdgeSet.argtypes  = [ct.POINTER(Node), ct.POINTER(Node), ct.c_int] # NODE*, NODE*, weight
+alg_dll.GraphSet.argtypes = [ct.c_int, ct.POINTER(ct.POINTER(Node)),       # nodes_num, NODE*
+                             ct.c_int, ct.POINTER(ct.POINTER(Edge)),       # edges_num, EDGE*
+                             ct.c_int]                                     # info
 
 # define types of functions' returns
-lib.NodeSet.restype  = ct.POINTER(Node)
-lib.EdgeSet.restype  = ct.POINTER(Edge)
-lib.GraphSet.restype = ct.POINTER(Graph)
-
-#########################################################################
-
-
-class AMATRIX(ct.Structure):
-
-    ptr = None
-    _fields_ = [("C_ADJ", ct.POINTER(ct.POINTER(ct.c_int))),
-                ("C_N", ct.c_int),
-                ("C_E", ct.c_int)]
-
-    matrix = []
-
-    def __init__(self, nodes_num, edges_num, weight_min, weight_max):
-        self.ptr = gen.AMatrixSet(nodes_num)
-        gen.RandomGraph(edges_num, nodes_num, self.ptr, weight_min, weight_max)
-
-        arr_ptr_int = ct.cast(self.ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int)*nodes_num)).contents
-        for i in range(nodes_num):
-            self.matrix.append(ct.cast(arr_ptr_int[i], ct.POINTER(ct.c_int * nodes_num)).contents)
-
-        for i in range(nodes_num):
-            for j in range(nodes_num):
-                print(self.matrix[i][j], end=' ')
-            print()
-
-
-#define Amatrix functions
-gen.AMatrixSet.argtypes = [ct.c_int]
-gen.AMatrixSet.restype = ct.POINTER(AMATRIX)
-
-gen.RandomGraph.argtypes = [ct.c_int, ct.c_int, ct.POINTER(AMATRIX), ct.c_int, ct.c_int]
-
+alg_dll.NodeSet.restype  = ct.POINTER(Node)
+alg_dll.EdgeSet.restype  = ct.POINTER(Edge)
+alg_dll.GraphSet.restype = ct.POINTER(Graph)
 
 ########################################################################
 
+
+
+
+
+
+
+# TODO: That's needed for refactoring:
+
+
+########################################################################
+# App functions:
 
 def generate_graph(app):
     app.clear_figure_canvas()

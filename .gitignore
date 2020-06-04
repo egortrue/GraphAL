@@ -1,3 +1,7 @@
+*.dll
+
+# Python
+__pycache__/
 
 # Visual Studio:
 *.sln
