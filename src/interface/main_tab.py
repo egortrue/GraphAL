@@ -100,11 +100,9 @@ algorithms = psg.Frame('Algorithms', layout_algorithms, font=FONT_14, element_ju
 
 # ----------------------- Create layout -------------------------------- #
 
-layout_visualization = [[psg.Column(layout=[[psg.Canvas(key='-CANVAS-', size=(970, 545))],
+layout_visualization = [[psg.Column(layout=[[psg.Canvas(key='-CANVAS-', size=(970, 590))],
                                             [psg.Canvas(key='-TOOLBAR-')]],
-                                    size=(1010, 610))],
-                        [psg.Button(button_text="Clear", font=FONT_14, key='-CLEAR-', size=SIZE_BUTTON)]
-                        ]
+                                    size=(1010, 655))]]
 visualization = psg.Frame('Visualization', layout_visualization, font=FONT_14, element_justification='right')
 
 

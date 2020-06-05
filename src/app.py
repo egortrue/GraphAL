@@ -99,14 +99,13 @@ class App(psg.Window):
         self.fig_agg, self.ax = self.create_figure_canvas()
         self.draw_graph_flag = False
 
-        self.graph = nx.Graph()
-        self.pos = nx.spring_layout(self.graph)
+        self.graph = None
 
         self.callback_of_events = {'-WEIGHTED-Y-': lambda: self.range_of_weight_visible(True),
                                    '-WEIGHTED-N-': lambda: self.range_of_weight_visible(False),
-                                   '-GENERATE-': lambda: cg.generate_graph(self),
-                                   '-START-': '''func_alg.start_algorithm''',
-                                   '-CLEAR-': self.clear_figure_canvas,
+                                   '-GENERATE-': lambda: graphs.generate_graph(self),
+                                   '-START-': 1,  # func_alg.start_algorithm,
+
                                    '-COMBO-ALGORITHMS-': self.choice_algorithm,
                                    'Open': self.open_file,
                                    'Save': self.save_file,
@@ -118,7 +117,7 @@ class App(psg.Window):
         canvas_toolbar = self['-TOOLBAR-'].TKCanvas
 
         # draw the initial plot in the window
-        figure = plt.figure(figsize=(9.75, 5.5))
+        figure = plt.figure(figsize=(9.75, 6))
         ax = figure.add_axes([0, 0, 1, 1])
 
         figure_canvas_agg = FigureCanvasTkAgg(figure, canvas_fig)
@@ -265,56 +264,56 @@ class App(psg.Window):
             pass
 
     def save_file(self):
+        settings = dict()
 
-        settings = {}
+        if self.graph is not None:
+            settings = self.graph.save_graph()
 
         for key in self.DEFAULT_SETTINGS_GRAPH_ELEMENT_KEYS:  # save settings graph element
-            try:
-                settings[key] = self[key].get()
-                print(type(self[key].get()))
-            except Exception as e:
-                print(f'Problem saving settings graph elements. Key = {key}')
+            settings[key] = self[key].get()
 
-        """for key in self.DEFAULT_ALGORITHM_ELEMENT_KEYS:  # save algorithms element
-            try:
-                settings[key] = self[key].get()
-            except Exception as e:
-                print(f'Problem saving algorithms elements. Key = {key}')"""
-
-        # невозможно сохранить граф, как объект nx.Graph поэтому приходится делать запоминать вершины и ребра отдельно
-        settings['nodes'] = list(nx.nodes(self.graph))  # список вершин
-        settings['edges'] = func_graph.to_list_edges(nx.to_dict_of_dicts(self.graph), self['-WEIGHTED-Y-'].get())  # список ребер
-
-        settings['pos'] = self.pos  # словарь с позициями вершин на холсте
         settings['draw_graph_flag'] = self.draw_graph_flag
 
-        with open(psg.popup_get_file("", file_types=(("Config File", "*.cfg"),), no_window=True, save_as=True), 'w') as f:
-            jsondump(settings, f)
+        try:
+            with open(psg.popup_get_file("", file_types=(("Config File", "*.cfg"),), no_window=True, save_as=True),
+                      'w') as f:
+                jsondump(settings, f)
+        except FileNotFoundError:  # when user didn't choose file
+            pass
 
     def open_file(self):
 
-        with open(psg.popup_get_file("", file_types=(("Config File", "*.cfg"),), no_window=True), 'r') as f:
-            settings = jsonload(f)
-            for key, value in settings.items():
-                if key == 'nodes' or key == 'edges':
-                    continue
-                elif key == 'pos':
-                    self.pos = value
-                elif key == 'draw_graph_flag':
-                    self.draw_graph_flag = value
-                else:
-                    self[key].update(value=value)
+        try:
+            settings = dict()
 
-            # self.choice_algorithm()
-            self.range_of_weight_visible(self['-WEIGHTED-Y-'].get())
+            with open(psg.popup_get_file("", file_types=(("Config File", "*.cfg"),), no_window=True), 'r') as f:
+                settings = jsonload(f)
 
-            self.graph = cg.graph_from_dict(settings)
-            cg.preview(self, self.graph, self['-WEIGHTED-Y-'].get())
+            if 'matrix' in settings:
+                matrix = settings['matrix']
+                info = settings['info']
 
-            if self.draw_graph_flag:
-                pass
-                # cg.draw_graph(self, self.fig_agg, self.graph, self.pos, self.ax)
+                self.graph = graphs.convert_from_matrix_to_graph(matrix, info)
 
+                # после хранения в pos  ключи стали объектом str, а надо int,
+                # поэтому такой костыль в виде копирования словаря
+
+                pos = dict()
+                for key in settings['pos']:
+                    pos[int(key)] = settings['pos'][key].copy()
+
+                self.graph.pos = pos
+
+                if settings['draw_graph_flag']:
+                    graphs.draw_graph(self, self.graph, self.fig_agg, self.ax)
+
+            for key in self.DEFAULT_SETTINGS_GRAPH_ELEMENT_KEYS:
+                self[key].update(value=settings[key])
+
+            self.range_of_weight_visible(settings['-WEIGHTED-Y-'])
+
+        except FileNotFoundError:  # when user didn't choose file
+            pass
 
 def main():
 

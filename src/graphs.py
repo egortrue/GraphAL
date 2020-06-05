@@ -173,9 +173,7 @@ class Graph(ct.Structure):
         self.ptr = alg_dll.GraphSet(self.nodes_num, nodes_row, self.edges_num, edges_row, info)
 
         # Init the networkx class Graph
-        self.nx_graph = nx.Graph()
-        self.nx_graph.add_nodes_from(self.get_nodes())
-        self.nx_graph.add_edges_from(self.get_edges())
+        self.nx_graph = self.networkx_graph()
         self.pos = nx.spring_layout(self.nx_graph)
 
 
@@ -206,6 +204,66 @@ class Graph(ct.Structure):
         else:
             return [(edge.source.node_id, edge.target.node_id) for edge in self.edges]
 
+    def get_adjacency_matrix(self):
+        return self.matrix
+
+    def get_adjacency_list(self):
+        dict_adj_list = dict()
+
+        for node in self.nodes:
+            dict_adj_list[node.node_id] = []
+
+        if self.weighted:
+
+            for edge in self.get_edges():
+                # edge[0] - source_id, edge[1] - target_id, edge[2] - weight
+                dict_adj_list[edge[0]].append((edge[1], edge[2]))
+
+            return dict_adj_list
+
+        for edge in self.get_edges():
+            # edge[0] - source_id, edge[1] - target_id
+            dict_adj_list[edge[0]].append(edge[1])
+
+        return dict_adj_list
+
+    def get_list_edges(self):
+        return self.get_edges()
+
+    def save_graph(self):
+
+        graph_settings = dict()
+        graph_settings['matrix'] = self.matrix
+        graph_settings['info'] = self.connected + self.weighted + self.directed
+
+        for key in self.pos:
+            self.pos[key] = list(self.pos[key])  # from numpy.ndarray to list, because json don't support it
+
+        graph_settings['pos'] = self.pos
+
+        return graph_settings
+
+    def networkx_graph(self):
+
+        graph = None
+
+        if self.directed:
+            graph = nx.DiGraph()
+
+        else:
+            graph = nx.Graph()
+
+        graph.add_nodes_from(self.get_nodes())
+
+        if self.weighted:
+            for edge in self.get_edges():
+                graph.add_edge(v_of_edge=edge[0],
+                               u_of_edge=edge[1],
+                               weight=edge[2])
+        else:
+            graph.add_edges_from(self.get_edges())
+
+        return graph
 
     def update_nodes_colors(self):
         self.nodes_color = [node.color for node in self.nodes]
@@ -259,75 +317,51 @@ alg_dll.GraphSet.restype = ct.POINTER(Graph)
 def generate_graph(app):
     app.clear_figure_canvas()
 
-    vertexes = int(app['-VERTEX-IN-'].get())
-    edges = int(app['-EDGES-IN-'].get())
+    # checking errors
+    info = 0
 
-    # app.graph, app.pos = create_graph()
+    nodes_num = int(app['-VERTEX-IN-'].get())
+    edges_num = int(app['-EDGES-IN-'].get())
 
-    """nodes = [Node(i) for i in range(1, 7)]
+    min_weight = 1
+    max_weight = 1
 
-    edges = [Edge(nodes[0], nodes[i], 1) for i in range(1, 4)]
-    edges.extend(Edge(nodes[2], nodes[i], 1) for i in range(3, 6))
+    if app['-CONNECTED-Y-'].get():
+        info += 1
 
-    edges.append(Edge(nodes[2], nodes[0], 109))
+    if app['-WEIGHTED-Y-'].get():
+        info += 2
 
-    edges.append(Edge(nodes[1], nodes[0], 198))
-    edges.append(Edge(nodes[5], nodes[2], 98))
-    edges.append(Edge(nodes[4], nodes[2], 123))
-    edges.append(Edge(nodes[3], nodes[2], 1))
-    edges.append(Edge(nodes[3], nodes[0], 76))
+        min_weight = int(app['-MIN-WEIGHT-IN-'].get())
+        max_weight = int(app['-MAX-WEIGHT-IN-'].get())
 
-    my_graph = Graph(nodes, edges, 6)
+    if app['-DIRECTED-Y-'].get():
+        info += 4
 
-    preview(app, my_graph)
+    matrix = AMATRIX(nodes_num, edges_num, min_weight, max_weight)
 
-    draw_graph(app, my_graph, app.fig_agg, app.ax)
-    """
-    matrix = AMATRIX(vertexes, edges, 1, 1)
+    graph = convert_from_matrix_to_graph(matrix.matrix, info)
+    graph.matrix = matrix.matrix
+
+    preview(app, graph)
+
+    draw_graph(app, graph, app.fig_agg, app.ax)
+
+    app.graph = graph  # like return
 
 
+def convert_from_matrix_to_graph(matrix, info=0):
 
-def create_graph(vertexes=None, edges=None, max_degree=None, connected=False, directed=False, weighted=False,
-                 min_weight=0, max_weight=100):
-    """
+    nodes = [Node(i) for i in range(1, len(matrix) + 1)]  # nodes = [1, 2, ...]
+    edges = []
 
-    :param vertexes: amount of vertex in graph
-    :type vertexes: (int)
-    :param edges: amount of vertex in graph
-    :type edges: (int)
-    :param max_degree: max degree of vertex in graph
-    :type max_degree: (int)
-    :param connected: if True graph is connected, default False
-    :type connected: (bool)
-    :param directed: if True graph is directed, default False
-    :type directed: (bool)
-    :param weighted: if True edges with weight, default False
-    :type weighted: (bool)
-    :param min_weight: min weight of edges in graph
-    :type min_weight: (int)
-    :param max_weight: max weight of edges in graph
-    :type max_weight: (int)
-    :return: nx.Graph, pos
-    """
+    for source in range(len(matrix)):
+        for target in range(len(matrix)):
 
-    # example graph
-    G = nx.Graph()
+            if matrix[source][target]:
+                edges.append(Edge(nodes[source], nodes[target], matrix[source][target]))
 
-    G.add_edge('1', '2', weight=0.6)
-    G.add_edge('1', '3', weight=0.2)
-    G.add_edge('3', '4', weight=0.1)
-    G.add_edge('3', '5', weight=0.7)
-    G.add_edge('3', '6', weight=0.9)
-    G.add_edge('1', '4', weight=0.3)
-
-    graph = G
-    # graph = nx.path_graph(13)
-    pos = nx.spring_layout(graph)
-
-    for key in pos:
-        pos[key] = list(pos[key])
-
-    return graph, pos
+    return Graph(nodes, edges, info)
 
 
 def draw_graph(app, graph, fig_agg: FigureCanvasTkAgg, ax: plt.Axes):  # delete arg pos
@@ -343,18 +377,23 @@ def draw_graph(app, graph, fig_agg: FigureCanvasTkAgg, ax: plt.Axes):  # delete 
 
     nx.draw_networkx(graph.nx_graph,
                      pos=graph.pos,
+                     ax=ax,
                      arrows=True,
                      with_labels=True,
-                     ax=ax,
                      node_color=graph.nodes_color,
                      edge_color=graph.edges_color,
                      node_size=800,
                      width=2)
-    # nx.draw(graph, pos, ax)
+    if graph.weighted:
+        nx.draw_networkx_edge_labels(graph.nx_graph,
+                                     pos=graph.pos,
+                                     ax=ax,
+                                     edge_labels=nx.get_edge_attributes(graph.nx_graph, 'weight'))
+
     fig_agg.draw()
 
 
-def to_adjacency_matrix(graph: Graph):  # todo definition
+def adjacency_matrix_to_preview(graph: Graph):  # todo definition
     """
 
     :param graph: graph
@@ -362,30 +401,19 @@ def to_adjacency_matrix(graph: Graph):  # todo definition
     """
     data_to_adjacency_matrix_preview = ""
 
-    matrix = [[0] * (graph.nodes_num + 1) for i in range(graph.nodes_num + 1)]
+    # matrix = [[i for i in range(graph.nodes_num + 1)]]
 
-    for i in range(1, graph.nodes_num + 1):
-        matrix[0][i] = i
-        matrix[i][0] = i
+    """for i in range(1, graph.nodes_num + 1):
+        matrix.append([i])
+        matrix[i].extend(graph.matrix[i - 1])"""
 
-    if graph.weighted:
-
-        for edge in graph.get_edges(with_weight=True):
-            # edge[0] - source_id, edge[1] - target, edge[2] - weight
-            matrix[edge[0]][edge[1]] = edge[2]
-    else:
-
-        for edge in graph.get_edges(with_weight=False):
-            # edge[0] - source_id, edge[1] - target
-            matrix[edge[0]][edge[1]] = 1
-
-    for row in matrix:
+    for row in graph.get_adjacency_matrix():
         data_to_adjacency_matrix_preview += " ".join([str(elem) for elem in row]) + "\n"
 
     return data_to_adjacency_matrix_preview
 
 
-def to_adjacency_list(graph: Graph):  # todo definition
+def adjacency_list_to_preview(graph: Graph):  # todo definition
     """
 
     :param graph: graph
@@ -394,42 +422,33 @@ def to_adjacency_list(graph: Graph):  # todo definition
 
     data_to_adjacency_list_preview = ""
 
-    dict_adj_list = dict()
-
-    for node in graph.nodes:
-        dict_adj_list[node.node_id] = []
+    dict_adj_list = graph.get_adjacency_list()
 
     if graph.weighted:
-        for edge in graph.get_edges(with_weight=True):
-            # edge[0] - source_id, edge[1] - target_id, edge[3] - weight
-            dict_adj_list[edge[0]].append((edge[1], edge[2]))
 
-        for node_id, neighbors in dict_adj_list.items():
+        for node_id, tuples_target_id_and_weight in dict_adj_list.items():
             data_to_adjacency_list_preview += f"{node_id}: "
 
-            for neighbor, weight, in neighbors:
-                data_to_adjacency_list_preview += f"{neighbor}  {weight}, "
+            for target_id, weight, in tuples_target_id_and_weight:
+                data_to_adjacency_list_preview += f"{target_id}  {weight}, "
 
             data_to_adjacency_list_preview += "\n"
 
         return data_to_adjacency_list_preview
 
-    for edge in graph.get_edges(with_weight=True):
-        # edge[0] - source_id, edge[1] - target_id
-        dict_adj_list[edge[0]].append(edge[1])
+    for node_id, list_target_id in dict_adj_list.items():
 
-    for node_id, neighbors in dict_adj_list.items():
         data_to_adjacency_list_preview += f"{node_id}: "
 
-        for neighbor in neighbors:
-            data_to_adjacency_list_preview += f"{neighbor}, "
+        for target_id in list_target_id:
+            data_to_adjacency_list_preview += f"{target_id}, "
 
         data_to_adjacency_list_preview += "\n"
 
     return data_to_adjacency_list_preview
 
 
-def to_list_edges(graph: Graph):  # todo definition
+def list_edges_to_preview(graph: Graph):  # todo definition
     """
 
     :param graph: graph
@@ -438,14 +457,15 @@ def to_list_edges(graph: Graph):  # todo definition
 
     list_edges = ""
 
-    if graph.weighted:
+    for edge in graph.get_list_edges():
 
-        for edge in graph.get_edges(with_weight=True):
+        if graph.weighted:
+            # edge[0] - source_id, edge[1] - target_id, edge[3] - weight
             list_edges += f"{edge[0]} {edge[1]}  {edge[2]},\n"
-        return list_edges
 
-    for edge in graph.get_edges():
-        list_edges += f"{edge[0]} {edge[1]},\n"
+        else:
+            # edge[0] - source_id, edge[1] - target_id
+            list_edges += f"{edge[0]} {edge[1]},\n"
 
     return list_edges
 
@@ -455,42 +475,8 @@ def preview(app, graph: Graph):  # todo definition
 
     :param app:
     :param graph:
-    :param weighted:
-    :return:
     """
 
-    app['-MATRIX-ADJ-'].update(value=to_adjacency_matrix(graph))
-    app['-LIST-ADJ-'].update(value=to_adjacency_list(graph))
-    app['-LIST-EDGES-'].update(value=to_list_edges(graph))
-
-
-def graph_from_dict(settings):
-    """
-
-    :param settings:  dict of settings graph - vertexes, edges, weighted, connected, directed
-    :type settings: (dict)
-    :return: graph (nx.Graph)
-    """
-
-    graph = nx.Graph()
-
-    edges = settings['edges'].split('\n')
-    edges.pop()  # delete last empty element
-
-    if settings['-WEIGHTED-Y-']:
-
-        for edge in edges:
-            u_vertex, v_vertex, weight = map(str, edge.split())
-            graph.add_edge(u_of_edge=u_vertex,
-                           v_of_edge=v_vertex,
-                           weight=float(weight))
-    else:
-
-        for edge in edges:
-            u_vertex, v_vertex = map(str, edge.split())
-            graph.add_edge(u_of_edge=u_vertex,
-                           v_of_edge=v_vertex)
-
-    graph.add_nodes_from(settings['nodes'])
-
-    return graph
+    app['-MATRIX-ADJ-'].update(value=adjacency_matrix_to_preview(graph))
+    app['-LIST-ADJ-'].update(value=adjacency_list_to_preview(graph))
+    app['-LIST-EDGES-'].update(value=list_edges_to_preview(graph))
