@@ -3,21 +3,30 @@
 #include "random_graphs.h"
 
 //------------------------------------------------------------------------------------------------------
-
- AMATRIX *AMatrixSet(int nodes, int edges)
+int AMatrixDegree(AMATRIX *adj_matrix, int v)
 {
-    AMATRIX * tmp = malloc(sizeof(AMATRIX));
-    tmp->adj = (int**)malloc(nodes* sizeof(int*));
+    int countdegree = 0;
+    for (int j = 0; j < adj_matrix->nodes_num; j++){
+        if (adj_matrix->adj[v][j] != 0)
+            countdegree++;
+    }
+    return countdegree;
+}
+
+DLL_EXPORT AMATRIX *AMatrixSet(int nodes, int edges)
+{
+    AMATRIX *tmp = malloc(sizeof(AMATRIX));
+    tmp->adj = (int**)calloc(nodes, sizeof(int*));
     tmp->nodes_num = nodes;
     tmp->edges_num = edges;
     for (int i = 0; i < tmp->nodes_num; i++){
-        tmp->adj[i] = calloc(nodes, sizeof(int));
+        tmp->adj[i] = (int*)calloc(nodes, sizeof(int));
     }
 
     return tmp;
 }
 
- AMATRIX *AMatrixDelete(AMATRIX *m){
+DLL_EXPORT AMATRIX *AMatrixDelete(AMATRIX *m){
 
     if (m) {
         m->edges_num = 0;

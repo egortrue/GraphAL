@@ -2,6 +2,7 @@
 #define GRAPHAL_RANDOM_GRAPHS_H
 #include <stdio.h>
 #define DLL_EXPORT __declspec(dllexport)
+//#define DLL_EXPORT
 //Structures
 //------------------------------------------------------------------------------------------------------
 

@@ -16,11 +16,11 @@ int main() {
 
     graph = ChoiceRand(graph, 0, r1, r2);
     PrintRandMatrix(graph, v);
-    graph = AMatrixDelete(graph);
+   // graph = AMatrixDelete(graph);
 
-    graph = AMatrixSet(2, 3);
-    graph = ChoiceRand(graph, 0, r1, r2);
-    PrintRandMatrix(graph, 3);
+    AMATRIX *graph1 = AMatrixSet(10, 10);
+    graph1 = ChoiceRand(graph1, 0, r1, r2);
+    PrintRandMatrix(graph1, 10);
 
    /* RandomGraph(graph, r1, r2);
     PrintRandMatrix(graph, v);
