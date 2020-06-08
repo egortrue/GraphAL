@@ -1,16 +1,16 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include "random_graphs.h"
 
 //------------------------------------------------------------------------------------------------------
 int AMatrixDegree(AMATRIX *adj_matrix, int v)
 {
-    int countdegree = 0;
+    int count_degree = 0;
     for (int j = 0; j < adj_matrix->nodes_num; j++){
-        if (adj_matrix->adj[v][j] != 0)
-            countdegree++;
+        if (adj_matrix->adj[v][j] != 0) {
+            count_degree++;
+        }
     }
-    return countdegree;
+    return count_degree;
 }
 
 DLL_EXPORT AMATRIX *AMatrixSet(int nodes, int edges)
@@ -26,62 +26,15 @@ DLL_EXPORT AMATRIX *AMatrixSet(int nodes, int edges)
     return tmp;
 }
 
-DLL_EXPORT AMATRIX *AMatrixDelete(AMATRIX *m){
-
-    if (m) {
-        m->edges_num = 0;
-        for (int i = 0; i < m->nodes_num; i++)
-                free(m->adj[i]);
-        m->nodes_num = 0;
-        free(m->adj);
-        free(m);
+DLL_EXPORT AMATRIX *AMatrixDelete(AMATRIX *g){
+    if (g) {
+        g->edges_num = 0;
+        for (int i = 0; i < g->nodes_num; i++)
+                free(g->adj[i]);
+        g->nodes_num = 0;
+        free(g->adj);
+        free(g);
     }
-    return m;
-}
-//------------------------------------------------------------------------------------------------------
-ALISTNODE* AListNewNode(int dest, int weight)
-{
-    ALISTNODE* newNode = (ALISTNODE*)malloc(sizeof(ALISTNODE));
-    newNode->weight = weight;
-    newNode->dest = dest;
-    newNode->next = NULL;
-    return newNode;
-}
-
-ALISTG* AListGSet(int V)
-{
-    ALISTG* graph = (ALISTG*)malloc(sizeof(ALISTG));
-    graph->V = V;
-    graph->array = (ALIST*)calloc(V, sizeof(ALIST));
-    return graph;
-}
-
-void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight)
-{
-    ALISTNODE* newNode = AListNewNode(dest, weight);
-    newNode->next = graph->array[src].head;
-    graph->array[src].head = newNode;
-
-}
-
-void AListPrint(ALISTG* graph, FILE* output)
-{
-    fprintf(output, "[nodes]\n");
-    for (int v = 0; v < graph->V; v++) {
-        ALISTNODE *pointer = graph->array[v].head;
-        if (pointer)
-            fprintf(output, "%d %d\n", v, 1);
-    }
-
-    fprintf(output, "\n[edges]\n");
-    for (int v = 0; v < graph->V; v++) {
-        ALISTNODE *pointer = graph->array[v].head;
-        if (pointer) {
-            while (pointer) {
-                fprintf(output, "%d %d %d\n", v,  pointer->dest, pointer->weight);
-                pointer = pointer->next;
-            }
-        }
-    }
+    return g;
 }
 //------------------------------------------------------------------------------------------------------
