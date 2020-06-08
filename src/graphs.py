@@ -7,55 +7,53 @@ import _ctypes as ct_deb
 import time
 from operator import attrgetter
 
-# Linking of DLL
-gen_dll = ct.CDLL(r"./generation.dll")
-alg_dll = ct.CDLL(r"./algorithms.dll")
-
 #########################################################################
 # Generation DLL:
 
 class AMATRIX(ct.Structure):
-
-    # Data for NetworkX/UI
-    matrix = []
-
-
-    # Data from DLL
-    ptr = None # AMATRIX*
     _fields_ = [("C_ADJ", ct.POINTER(ct.POINTER(ct.c_int))),
                 ("C_N", ct.c_int),
                 ("C_E", ct.c_int)]
 
 
-    def __init__(self, nodes_num, edges_num, weight_min, weight_max):
-        self.ptr = gen_dll.AMatrixSet(nodes_num)
-        gen_dll.RandomGraph(edges_num, nodes_num, self.ptr, weight_min, weight_max)
+
+def generate_random_matrix(nodes_num, edges_num, weight_min, weight_max):
+
+    gen_dll = ct.CDLL(r"./generation.dll") # Attach the DLL
+
+    # define types of functions' arguments
+    gen_dll.AMatrixSet.argtypes = [ct.c_int]
+    gen_dll.RandomGraph.argtypes = [ct.c_int, ct.c_int, ct.POINTER(AMATRIX), ct.c_int, ct.c_int]
+
+    # define types of functions' returns
+    gen_dll.AMatrixSet.restype = ct.POINTER(AMATRIX)
 
 
-        # Translate int** from DLL to matrix with ints on Python
-        arr_ptr_int = ct.cast(self.ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int)*nodes_num)).contents
-        for i in range(nodes_num):
-            self.matrix.append(ct.cast(arr_ptr_int[i], ct.POINTER(ct.c_int * nodes_num)).contents)
+    # Generate matrix
+    matrix = []
+    ptr = gen_dll.AMatrixSet(nodes_num)
+    gen_dll.RandomGraph(edges_num, nodes_num, ptr, weight_min, weight_max)
 
 
-        for i in range(nodes_num):
-            for j in range(nodes_num):
-                print(self.matrix[i][j], end=' ')
-            print()
+    # Translate int** from DLL to matrix with ints on Python
+    arr_ptr_int = ct.cast(ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int)*nodes_num)).contents
+    for i in range(nodes_num):
+        matrix.append(ct.cast(arr_ptr_int[i], ct.POINTER(ct.c_int * nodes_num)).contents)
+
+    # debug print
+    for i in range(nodes_num):
+        for j in range(nodes_num):
+            print(matrix[i][j], end=' ')
+        print()
 
 
-########################################################################
-# Generation DLL funcitons:
+    ct_deb.FreeLibrary(gen_dll._handle) # Detach the DLL
+    return matrix
 
-# define types of functions' arguments
-gen_dll.AMatrixSet.argtypes = [ct.c_int]
-gen_dll.RandomGraph.argtypes = [ct.c_int, ct.c_int, ct.POINTER(AMATRIX), ct.c_int, ct.c_int]
-
-# define types of functions' returns
-gen_dll.AMatrixSet.restype = ct.POINTER(AMATRIX)
 
 #########################################################################
 # Algorithms DLL:
+alg_dll = ct.CDLL(r"./algorithms.dll") # attach the DLL
 
 class Node(ct.Structure):
 
@@ -302,52 +300,34 @@ alg_dll.GraphSet.restype = ct.POINTER(Graph)
 
 ########################################################################
 
-
-
-
-
-
-
-# TODO: That's needed for refactoring:
-
-
-########################################################################
-# App functions:
-
 def generate_graph(app):
     app.clear_figure_canvas()
 
-    # checking errors
-    info = 0
-
+    # Common options
     nodes_num = int(app['-VERTEX-IN-'].get())
     edges_num = int(app['-EDGES-IN-'].get())
 
     min_weight = 1
     max_weight = 1
 
-    if app['-CONNECTED-Y-'].get():
-        info += 1
+    info = 0
+    if app['-DIRECTED-Y-'].get():
+        info += 0b01
 
     if app['-WEIGHTED-Y-'].get():
-        info += 2
+        info += 0b10
 
         min_weight = int(app['-MIN-WEIGHT-IN-'].get())
         max_weight = int(app['-MAX-WEIGHT-IN-'].get())
 
-    if app['-DIRECTED-Y-'].get():
-        info += 4
+    # Generate random graph
+    matrix = generate_random_matrix(nodes_num, edges_num, min_weight, max_weight)
+    graph = convert_from_matrix_to_graph(matrix, info)
+    graph.matrix = matrix
 
-    matrix = AMATRIX(nodes_num, edges_num, min_weight, max_weight)
-
-    graph = convert_from_matrix_to_graph(matrix.matrix, info)
-    graph.matrix = matrix.matrix
-
+    app.graph = graph
+    app.draw_graph()
     preview(app, graph)
-
-    draw_graph(app, graph, app.fig_agg, app.ax)
-
-    app.graph = graph  # like return
 
 
 def convert_from_matrix_to_graph(matrix, info=0):
@@ -364,34 +344,8 @@ def convert_from_matrix_to_graph(matrix, info=0):
     return Graph(nodes, edges, info)
 
 
-def draw_graph(app, graph, fig_agg: FigureCanvasTkAgg, ax: plt.Axes):  # delete arg pos
-    """
-
-    :param fig_agg:
-    :param app:
-    :param graph:
-    :param ax:
-    :return:
-    """
-    app.draw_graph_flag = True
-
-    nx.draw_networkx(graph.nx_graph,
-                     pos=graph.pos,
-                     ax=ax,
-                     arrows=True,
-                     with_labels=True,
-                     node_color=graph.nodes_color,
-                     edge_color=graph.edges_color,
-                     node_size=800,
-                     width=2)
-    if graph.weighted:
-        nx.draw_networkx_edge_labels(graph.nx_graph,
-                                     pos=graph.pos,
-                                     ax=ax,
-                                     edge_labels=nx.get_edge_attributes(graph.nx_graph, 'weight'))
-
-    fig_agg.draw()
-
+#########################################################################
+# Preview tab funcions
 
 def adjacency_matrix_to_preview(graph: Graph):  # todo definition
     """

@@ -1,4 +1,6 @@
+####################################################################
 # Standart imports
+
 import PySimpleGUI as psg
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -11,10 +13,12 @@ from json import (load as jsonload, dump as jsondump)
 import pyautogui as pag
 from time import sleep
 
+####################################################################
 # Our imports
+
 from constants import *
-import graphs as cg
-#import function_algorithms as func_alg
+import graphs
+import algorithms
 
 import sys
 sys.path.append("./interface")
@@ -22,6 +26,7 @@ from main_tab import main_tab
 from preview_tab import preview_tab
 from text_for_algorithms import *
 
+####################################################################
 
 # todo попробовать перехватить нажатие кнопки сетингс в тулбаре!!! и выставить там разные цвета и тд
 
@@ -87,12 +92,13 @@ class App(psg.Window):
                                              '-LIST-ADJ-': '',
                                              '-LIST-EDGES-': ''}
 
-        self.vertexes = 0
-        self.edges = 0
-        self.max_degree = 0
-        self.connected = False
+        self.nodes_num = 0
+        self.edges_num = 0
+
         self.directed = False
         self.weighted = False
+
+        self.max_degree = 0
         self.min_weighted = 0
         self.max_weighted = 0
 
@@ -104,7 +110,7 @@ class App(psg.Window):
         self.callback_of_events = {'-WEIGHTED-Y-': lambda: self.range_of_weight_visible(True),
                                    '-WEIGHTED-N-': lambda: self.range_of_weight_visible(False),
                                    '-GENERATE-': lambda: graphs.generate_graph(self),
-                                   '-START-': 1,  # func_alg.start_algorithm,
+                                   '-START-': lambda: self.start_algorthm(),
 
                                    '-COMBO-ALGORITHMS-': self.choice_algorithm,
                                    'Open': self.open_file,
@@ -128,6 +134,31 @@ class App(psg.Window):
         figure_canvas_agg.get_tk_widget().pack(side='top', fill='both')
 
         return figure_canvas_agg, ax
+
+    def draw_graph(self):
+
+        self.draw_graph_flag = True
+
+        nx.draw_networkx(self.graph.nx_graph,
+                         pos=self.graph.pos,
+                         ax=self.ax,
+                         arrows=True,
+                         with_labels=True,
+                         node_color=self.graph.nodes_color,
+                         edge_color=self.graph.edges_color,
+                         node_size=800,
+                         width=2)
+        if self.graph.weighted:
+            nx.draw_networkx_edge_labels(self.graph.nx_graph,
+                                         pos=self.graph.pos,
+                                         ax=self.ax,
+                                         edge_labels=nx.get_edge_attributes(self.graph.nx_graph, 'weight'))
+
+        self.fig_agg.draw()
+
+    def start_algorthm(self):
+        algorithms.BFS(self, self.graph.nodes[0])
+
 
     def clear_file(self):
 
