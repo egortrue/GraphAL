@@ -117,6 +117,7 @@ class App(psg.Window):
                                    'Save': self.save_file,
                                    'Clear': self.clear_file}
 
+
     def create_figure_canvas(self):
 
         canvas_fig = self['-CANVAS-'].TKCanvas
@@ -134,6 +135,7 @@ class App(psg.Window):
         figure_canvas_agg.get_tk_widget().pack(side='top', fill='both')
 
         return figure_canvas_agg, ax
+
 
     def draw_graph(self):
 
@@ -156,8 +158,18 @@ class App(psg.Window):
 
         self.fig_agg.draw()
 
+
     def start_algorthm(self):
-        algorithms.BFS(self, self.graph.nodes[0])
+        # Choosing of algoirthm:
+
+        #algorithms.BFS(self, self.graph.nodes[0])
+        #algorithms.DFS(self, self.graph.nodes[0])
+        algorithms.Dijkstra(self, self.graph.nodes[0])
+        #algorithms.Prim(self, self.graph.nodes[0])
+        #algorithms.Kruskal(self)
+
+        self.graph.restore_nodes_colors()
+        self.graph.restore_edges_colors()
 
 
     def clear_file(self):

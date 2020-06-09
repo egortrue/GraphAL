@@ -53,6 +53,7 @@ def generate_random_matrix(nodes_num, edges_num, weight_min, weight_max):
 
 #########################################################################
 # Algorithms DLL:
+
 alg_dll = ct.CDLL(r"./algorithms.dll") # attach the DLL
 
 class Node(ct.Structure):
@@ -124,8 +125,8 @@ class Graph(ct.Structure):
     nodes_color = []
     edges_color = []
 
-    directed  = 0
-    weighted  = 0
+    directed = 0
+    weighted = 0
 
 
     # Data from DLL
@@ -141,8 +142,8 @@ class Graph(ct.Structure):
         self.nodes_num = len(nodes)
         self.edges_num = len(edges)
 
-        edges = sorted(edges, key=attrgetter('source.node_id', 'target.node_id'))
         nodes = sorted(nodes, key=lambda node: node.node_id)
+        edges = sorted(edges, key=attrgetter('source.node_id', 'target.node_id'))
 
         self.nodes = nodes
         self.edges = edges
@@ -153,14 +154,14 @@ class Graph(ct.Structure):
         self.directed  = info & 0b01
         self.weighted  = info & 0b10
 
-        # Init nodes
+        # Init nodes for assigning the memory in C
         nodes_row = ct.POINTER(Node) * self.nodes_num
         nodes_row = nodes_row()
         for i in range(self.nodes_num):
             nodes_row[i] = nodes[i].ptr
         nodes_row = ct.cast(nodes_row, ct.POINTER(ct.POINTER(Node)))
 
-        # Init edges
+        # Init edges for assigning the memory in C
         edges_row = ct.POINTER(Edge) * self.edges_num
         edges_row = edges_row()
         for i in range(self.edges_num):
@@ -175,13 +176,13 @@ class Graph(ct.Structure):
         self.pos = nx.spring_layout(self.nx_graph)
 
 
-    # Common functions
+    # Get instance of node which have current id
     def get_node(self, c_node_id):
         for node in self.nodes:
             if node.node_id == c_node_id:
                 return node
 
-
+    # Get instance of edge which have current source and target id
     def get_edge(self, c_source_id, c_target_id):
         for edge in self.edges:
             if (edge.source.node_id == c_source_id) and (edge.target.node_id == c_target_id):
@@ -191,19 +192,37 @@ class Graph(ct.Structure):
             if (edge.source.node_id == c_target_id) and (edge.target.node_id == c_source_id):
                 return edge
 
-
-    def get_nodes(self):
+    # Get array of nodes' id
+    def get_arr_nodes(self):
         return [node.node_id for node in self.nodes]
 
-
-    def get_edges(self):
+    # Get array of tuples with sorces' and target's id
+    def get_arr_edges(self):
         if self.weighted:
             return [(edge.source.node_id, edge.target.node_id, edge.weight) for edge in self.edges]
         else:
             return [(edge.source.node_id, edge.target.node_id) for edge in self.edges]
 
-    def get_adjacency_matrix(self):
-        return self.matrix
+    #------------------------------------------------------------
+    # Graph's colors menagement
+
+    def update_nodes_colors(self):
+        self.nodes_color = [node.color for node in self.nodes]
+
+    def update_edges_colors(self):
+        self.edges_color = [edge.color for edge in self.edges]
+
+    def restore_nodes_colors(self):
+        for node in self.nodes:
+            node.color = self.nodes_default_color
+        self.update_nodes_colors()
+
+    def restore_edges_colors(self):
+        for edge in self.edges:
+            edge.color = self.edges_default_color
+        self.update_edges_colors()
+
+    #------------------------------------------------------------
 
     def get_adjacency_list(self):
         dict_adj_list = dict()
@@ -213,20 +232,17 @@ class Graph(ct.Structure):
 
         if self.weighted:
 
-            for edge in self.get_edges():
+            for edge in self.get_arr_edges():
                 # edge[0] - source_id, edge[1] - target_id, edge[2] - weight
                 dict_adj_list[edge[0]].append((edge[1], edge[2]))
 
             return dict_adj_list
 
-        for edge in self.get_edges():
+        for edge in self.get_arr_edges():
             # edge[0] - source_id, edge[1] - target_id
             dict_adj_list[edge[0]].append(edge[1])
 
         return dict_adj_list
-
-    def get_list_edges(self):
-        return self.get_edges()
 
     def save_graph(self):
 
@@ -251,36 +267,19 @@ class Graph(ct.Structure):
         else:
             graph = nx.Graph()
 
-        graph.add_nodes_from(self.get_nodes())
+        graph.add_nodes_from(self.get_arr_nodes())
 
         if self.weighted:
-            for edge in self.get_edges():
+            for edge in self.get_arr_edges():
                 graph.add_edge(v_of_edge=edge[0],
                                u_of_edge=edge[1],
                                weight=edge[2])
         else:
-            graph.add_edges_from(self.get_edges())
+            graph.add_edges_from(self.get_arr_edges())
 
         return graph
 
-    def update_nodes_colors(self):
-        self.nodes_color = [node.color for node in self.nodes]
 
-
-    def update_edges_colors(self):
-        self.edges_color = [edge.color for edge in self.edges]
-
-
-    def restore_nodes_colors(self):
-        for node in self.nodes:
-            node.color = self.nodes_default_color
-        self.update_nodes_colors()
-
-
-    def restore_edges_colors(self):
-        for edge in self.edges:
-            edge.color = self.edges_default_color
-        self.update_edges_colors()
 
 
 #########################################################################
@@ -361,7 +360,7 @@ def adjacency_matrix_to_preview(graph: Graph):  # todo definition
         matrix.append([i])
         matrix[i].extend(graph.matrix[i - 1])"""
 
-    for row in graph.get_adjacency_matrix():
+    for row in graph.matrix:
         data_to_adjacency_matrix_preview += " ".join([str(elem) for elem in row]) + "\n"
 
     return data_to_adjacency_matrix_preview
@@ -411,7 +410,7 @@ def list_edges_to_preview(graph: Graph):  # todo definition
 
     list_edges = ""
 
-    for edge in graph.get_list_edges():
+    for edge in graph.get_arr_edges():
 
         if graph.weighted:
             # edge[0] - source_id, edge[1] - target_id, edge[3] - weight
