@@ -1,8 +1,8 @@
 #ifndef GRAPHAL_RANDOM_GRAPHS_H
 #define GRAPHAL_RANDOM_GRAPHS_H
 #include <stdio.h>
-#define DLL_EXPORT __declspec(dllexport)
-//#define DLL_EXPORT
+//#define DLL_EXPORT __declspec(dllexport)
+#define DLL_EXPORT
 //Structures
 //------------------------------------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ DLL_EXPORT AMATRIX *AMatrixSet           (int nodes_num, int edges_num);
 DLL_EXPORT AMATRIX *AMatrixDelete        (AMATRIX *graph);
 int AMatrixDegree                        (AMATRIX *adj_matrix, int v);
 
+extern double random64();
 //------------------------------------------------------------------------------------------------------
 DLL_EXPORT AMATRIX *ChoiceRand           (AMATRIX *g, int oriented, int weight_min, int weight_max, int max_degree);
 
