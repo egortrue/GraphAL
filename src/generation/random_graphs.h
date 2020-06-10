@@ -1,69 +1,35 @@
 #ifndef GRAPHAL_RANDOM_GRAPHS_H
 #define GRAPHAL_RANDOM_GRAPHS_H
 #include <stdio.h>
-
+#define DLL_EXPORT __declspec(dllexport)
+//#define DLL_EXPORT
 //Structures
 //------------------------------------------------------------------------------------------------------
 
 typedef struct aMatrix
 {
     int** adj;
-    int n; //Number of nodes in AMatrix.
-    int e; //Number of edges
+    int nodes_num; //Number of nodes in AMatrix.
+    int edges_num; //Number of edges
 }AMATRIX;
 
-AMATRIX *AMatrixSet           (int nodes);
-AMATRIX *AMatrixRead          (FILE *input); //read adjmatrix from file
-AMATRIX *AMatrixDelete        (AMATRIX *m);
-
-
-int     CountNodes            (FILE *input, int count_lines);
-int     AMatrixDegree         (AMATRIX *adj_matrix, int v); //count degree of chosen vertex
-void    AMatrixPrint          (AMATRIX *m, FILE *output);
-double  AMatrixDensity        (AMATRIX *adj_matrix); //calculate density
-//------------------------------------------------------------------------------------------------------
-typedef struct AListNode
-{
-    int weight;
-    int dest;
-    struct AListNode* next;
-} ALISTNODE;
-
-typedef struct AList
-{
-    struct AListNode *head;
-} ALIST;
-
-typedef struct AListG
-{
-    int V; //
-    struct AList* array;
-} ALISTG;
-
-ALISTNODE* AListNewNode(int dest, int weight);
-ALISTG* AListGSet(int V);
-void AListEdgeAdd(ALISTG* graph, int src, int dest, int weight);
-void AListPrint(ALISTG* graph, FILE* output);
+DLL_EXPORT AMATRIX *AMatrixSet           (int nodes_num, int edges_num);
+DLL_EXPORT AMATRIX *AMatrixDelete        (AMATRIX *graph);
+int AMatrixDegree                        (AMATRIX *adj_matrix, int v);
 
 //------------------------------------------------------------------------------------------------------
-//ORIENTED GRAPHS
-AMATRIX* RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2);
-AMATRIX* RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2);
+DLL_EXPORT AMATRIX *ChoiceRand           (AMATRIX *g, int oriented, int weight_min, int weight_max, int max_degree);
 
-AMATRIX* RandConnectedOr(AMATRIX *g, int v, int n, int r1, int r2);
-void dfs(AMATRIX *g, int v, int ost, int used[], int *count, int *comp, int *pr, int *cycle);
-AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2);
+//RANDOM GRAPHS
+DLL_EXPORT AMATRIX* RandomGraph          (AMATRIX *graph, int weight_min, int weight_max, int max_degree);
 
-//FOR TEST
-void TestConnection(AMATRIX *graph, int e, int v, int r1, int r2);
-void dfs2(AMATRIX *g, int v, int ost, int used[]);
-void FindComp(AMATRIX *g, int v, int n);
+AMATRIX* RandConnectedOrGraph            (AMATRIX *g, int weight_min, int weight_max, int max_degree);
+AMATRIX* RandConnectedGraph              (AMATRIX *g, int weight_min, int weight_max, int max_degree);
+
+void     dfs                             (AMATRIX *g, int node_num, int used[], int *count, int *comp, int *pr,
+                                          int *cycle);
 
 //PRINT
-void PrintRandMatrix(AMATRIX *graph, int v, FILE *output);
-void PrintRandVertexList(AMATRIX *graph, int v, FILE *output);
-void PrintRandAdjList(AMATRIX *graph, int v, FILE *output);
-void PrintRandSNodEdg(AMATRIX *graph, int v, FILE *output);
-
+void     PrintRandMatrix                  (AMATRIX *graph, int nodes_num);
 
 #endif //GRAPHAL_RANDOM_GRAPHS_H

@@ -2,225 +2,217 @@
 #include <time.h>
 #include <stdlib.h>
 
-AMATRIX* RandConnectedOr(AMATRIX *g, int v, int n, int r1, int r2){ //connnected oriented graph
-    if (v < n-1)
+AMATRIX* RandConnectedOrGraph(AMATRIX *g, int weight_min, int weight_max, int max_degree){
+    if (g->edges_num < g->nodes_num - 1 || g->nodes_num <= 1 || g->edges_num > (g->nodes_num -1)*g->nodes_num/2)
         return NULL;
-    int *used = (int*)calloc(n, sizeof(int));
-    srand(time(0));
-    int od = rand() % n, dos = rand() % n;
-    int first = od;
-    used[od] = 1;
+
+    int *used = (int*)calloc(g->nodes_num, sizeof(int));
+    int start = rand() % g->nodes_num;
+    int dir = rand() % g->nodes_num;
+    int first = start;
+    used[start] = 1;
     int count = 1;
-    while(count < n){
-        while (g->adj[od][dos] || used[dos] || od == dos){
-            dos = rand() % n;
+
+    while (count < g->nodes_num){
+        while (g->adj[start][dir] || used[dir] || start == dir){
+            dir = rand() % g->nodes_num;
         }
-        g->adj[od][dos] = r1 + rand()%(r2-r1+1);
+        g->adj[start][dir] = weight_min + rand() % (weight_max - weight_min + 1);
         count++;
-        used[dos] = 1;
-        od = dos;
+        used[dir] = 1;
+        start = dir;
     }
 
-    if (v >= n){
-        count = v - n ;
-        g->adj[dos][first] = r1 + rand()%(r2-r1+1);
+    if (g->edges_num >= g->nodes_num){
+        count = g->edges_num - g->nodes_num;
+        g->adj[dir][first] = weight_min + rand() % (weight_max - weight_min + 1);
+        start = 0;
+        dir = 0;
         for (int i = 0; i < count; i++){
-            srand(time(0));
-            while (g->adj[od][dos] || dos == od)
-                dos = rand() % n;
-            g->adj[od][dos] = r1 + rand()%(r2-r1+1);
-            od = dos;
-            dos = rand() % n;
+            while (g->adj[start][dir] || dir == start ||
+                    ((AMatrixDegree(g, start) >= max_degree && AMatrixDegree(g, dir) >= max_degree)
+                    || !g->adj[dir][start])) {
+                dir = rand() % g->nodes_num;
+                start = rand() % g->nodes_num;
+            }
+            g->adj[start][dir] = weight_min + rand() % (weight_max - weight_min + 1);
         }
     }
+
     return g;
 }
 
-void dfs(AMATRIX *g, int v, int ost, int used[], int *count, int *comp, int *pr, int *cycle){
-    used[v] = 1;
-    comp[*count] = v; //save vertex in components
-    *count += 1; //count vertex in 1 comp
-    for (int i = 0; i < ost; i++ ){
-        int to = i;
-        if (used[to] == 0 && g->adj[v][to]) {
-            pr[to] = v;
-            dfs(g, to, ost, used, count, comp, pr, cycle);
-        }
-        else if (used[to] == 1 && to != pr[v] && g->adj[v][to]){
-            cycle[0] = v;
-            cycle[1] = to;
-        }
-
-    }
-    used[v] = 2;
-}
-
-AMATRIX* ConnectGraph(AMATRIX *g, int v, int n, int r1, int r2){ //just connected graph
-    if (v <= 1/2*(n-2)*(n-1))
+AMATRIX *RandConnectedGraph(AMATRIX *g, int weight_min, int weight_max, int max_degree){
+    if (g->edges_num < g->nodes_num - 1 || g->nodes_num <= 1 || g->edges_num > (g->nodes_num -1)*g->nodes_num/2)
         return NULL;
-    RandomGraph(v, n, g, r1,  r2);
-    int *used = (int*)calloc(n,sizeof(int));
-    int *comp = (int*)calloc(n,sizeof(int));
-    int *pr = (int*)calloc(n,sizeof(int));
-    int count = 0;
-    int ost = n;
-    int prevcycle = 0;
-    int tmpprevcycle = 0;
-    int cycle[2] = {0, 0};
-    int neededg = 0;
-    int last = 0;
-    for (int i = 0; i < n; i++){
-        if (!used[i]){
-            if (prevcycle && (cycle[0] || cycle[1])) {
-                g->adj[cycle[0]][i] = g->adj[cycle[0]][cycle[1]];
-                g->adj[i][cycle[0]] = g->adj[cycle[0]][i];
-                g->adj[cycle[0]][cycle[1]] = 0;
-                g->adj[cycle[1]][cycle[0]] = 0;
-                cycle[0] = 0;
-                cycle[1] = 0;
-                prevcycle = 0;
-            }
-            comp = (int*)calloc(n, sizeof(int));
-            dfs(g, i, ost, used, &count, comp, pr, cycle);
-            if ((cycle[0] || cycle[1]) && tmpprevcycle == 1){
-                g->adj[cycle[0]][i-1] = g->adj[cycle[0]][cycle[1]];
-                g->adj[i-1][cycle[0]] = g->adj[cycle[0]][i-1];
-                g->adj[cycle[0]][cycle[1]] = 0;
-                g->adj[cycle[1]][cycle[0]] = 0;
-                cycle[0] = 0;
-                cycle[1] = 0;
-                tmpprevcycle = 0;
-            }
-            else if (tmpprevcycle == 1 && !(cycle[0] || cycle[1])) {
-                neededg++;
-                g->adj[i-1][i] = r1 + rand()%(r2-r1+1);
-                g->adj[i][i-1] = r1 + rand()%(r2-r1+1);
-            }
-            else if (cycle[0] || cycle[1])
-                prevcycle = 1; //can give a connect
-            else
-                tmpprevcycle = 1; //need connect
+    RandomGraph(g, weight_min, weight_max, max_degree);
 
-            last = i;
+    int *pr = (int*)calloc(g->nodes_num, sizeof(int));
+    int *used = (int*)calloc(g->nodes_num, sizeof(int));
+    int *nodes_comp = (int*)calloc(g->nodes_num, sizeof(int));
+    int *tmpnodes_comp = (int*)calloc(g->nodes_num, sizeof(int));
+
+    int count_nodes = 0;
+    int cycle[2] = {0, 0};
+    int j = 0, k = 0;
+    int new_edges = 0;
+    int count_comps = 0;
+    int tmpcount_nodes = 0;
+    
+    for (int i = 0; i < g->nodes_num; i++){
+        if (!used[i]) {
+            if ((cycle[0] || cycle[1]) && new_edges > 0) {
+                g->adj[cycle[0]][cycle[1]] = 0;
+                g->adj[cycle[1]][cycle[0]] = 0;
+                cycle[0] = 0;
+                cycle[1] = 0;
+                new_edges--;
+            }
+
+            tmpcount_nodes = count_nodes;
+            for (int m = 0; m < tmpcount_nodes; m++)
+                tmpnodes_comp[m] = nodes_comp[m];
+
+            count_nodes = 0;
+            nodes_comp = (int*)calloc(g->nodes_num, sizeof(int));
+            dfs(g, i, used, &count_nodes, nodes_comp, pr, cycle);
+
+            if (count_nodes != g->nodes_num && (cycle[0] || cycle[1])){
+                g->adj[cycle[0]][cycle[1]] = 0;
+                g->adj[cycle[1]][cycle[0]] = 0;
+                cycle[0] = 0;
+                cycle[1] = 0;
+                new_edges--;
+            }
+            count_comps++;
         }
-        count = 0;
-        pr = (int*)calloc(n, sizeof(int));
     }
-    if (tmpprevcycle == 1 && !(cycle[0] || cycle[1])) {
-        neededg++;
-        g->adj[last-1][last] = r1 + rand()%(r2-r1+1);
-        g->adj[last][last-1] = r1 + rand()%(r2-r1+1);
+
+    if (new_edges < count_comps - 1){
+        j = rand() % (g->nodes_num - count_nodes);
+        k = nodes_comp[rand() % count_nodes];
+        while (j == k || AMatrixDegree(g, j) >= max_degree || AMatrixDegree(g, k) >= max_degree ) {
+            j = rand() % (g->nodes_num - count_nodes);
+            k = nodes_comp[rand() % count_nodes];
+        }
+        g->adj[k][j] = weight_min + rand()%(weight_max - weight_min + 1);
+        g->adj[j][k] =  g->adj[k][j];
+        new_edges++;
     }
+   if (new_edges < 0){
+        j = rand() % g->nodes_num;
+        k = rand() % g->nodes_num;
+        while (j == k || AMatrixDegree(g, j) >= max_degree || AMatrixDegree(g, k) >= max_degree ) {
+            j = rand() % g->nodes_num;
+            k = rand() % g->nodes_num;
+        }
+        g->adj[k][j] = weight_min + rand()%(weight_max - weight_min + 1);
+        g->adj[j][k] =  g->adj[k][j];
+        new_edges++;
+    }
+
     int i = 0;
-    while (neededg != 0 && i < ost){
-        count = 0;
-        dfs(g, i, ost, used, &count, comp, pr, cycle);
+    cycle[0] = 0;
+    cycle[1] = 0;
+    used = (int*)calloc(g->nodes_num, sizeof(int));
+    nodes_comp = (int*)calloc(g->nodes_num, sizeof(int));
+    pr = (int*)calloc(g->nodes_num, sizeof(int));
+    while (new_edges > 0 && i < g->nodes_num){
+        count_nodes = 0;
+        dfs(g, i, used, &count_nodes, nodes_comp, pr, cycle);
         if (cycle[0] || cycle[1]) {
             g->adj[cycle[0]][cycle[1]] = 0;
             g->adj[cycle[1]][cycle[0]] = 0;
-            neededg--;
+            new_edges--;
+            cycle[0] = 0;
+            cycle[1] = 0;
+            used = (int*)calloc(g->nodes_num, sizeof(int));
+            nodes_comp = (int*)calloc(g->nodes_num, sizeof(int));
+            pr = (int*)calloc(g->nodes_num, sizeof(int));
         }
         i++;
     }
+
     free(pr);
     free(used);
-    free(comp);
+    free(nodes_comp);
 
     return g;
 }
 
-void PrintRandMatrix(AMATRIX *graph, int v, FILE *output){
-    fprintf(output, "\n[adjacency matrix]: \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            fprintf(output, "%d ", graph->adj[i][j]);
+void dfs(AMATRIX *g, int node_num, int used[], int *count, int *comp, int *pr, int *cycle)
+{
+    used[node_num] = 1;
+    comp[*count] = node_num;
+    *count += 1;
+    for (int i = 0; i < g->nodes_num; i++ ){
+        int dest = i;
+        if (used[dest] == 0 && g->adj[node_num][dest]) {
+            pr[dest] = node_num;
+            dfs(g, dest, used, count, comp, pr, cycle);
         }
-        fprintf(output, "\n");
+        else if (used[dest] == 1 && dest != pr[node_num] && g->adj[node_num][dest]){
+            cycle[0] = node_num;
+            cycle[1] = dest;
+        }
+
     }
+    used[node_num] = 2;
 }
 
-void PrintRandVertexList(AMATRIX *graph, int v, FILE *output){
-    fprintf(output, "\n[vertex list] \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            if (graph->adj[i][j])
-                fprintf(output, "%d %d \n", i, j);
-        }
-    }
-}
-
-void PrintRandAdjList(AMATRIX *graph, int v, FILE *output){
-    int flag = 0;
-    fprintf(output, "\n[adjacency list]: \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            if (graph->adj[i][j]) {
-                if (flag == 0) {
-                    fprintf(output, "%d - ", i);
-                    flag = 1;
-                }
-                fprintf(output, "%d ", j);
+void PrintRandMatrix(AMATRIX *graph, int nodes_num){
+    printf( "\n[adjacency matrix]: \n");
+    if (graph) {
+        for (int i = 0; i < nodes_num; i++) {
+            for (int j = 0; j < nodes_num; j++) {
+                printf("%d ", graph->adj[i][j]);
             }
+            printf("\n");
         }
-        if (flag == 1) {
-            flag = 0;
-            fprintf(output, "\n");
-        }
+        printf("\n");
     }
 }
 
-void PrintRandSNodEdg(AMATRIX *graph, int v, FILE *output){
-    fprintf(output, "\n[nodes]: \n");
-    for (int i = 0; i < v; i++){
-        fprintf(output,"%d %d\n", i, 1);
-    }
-    fprintf(output, "\n[edges]: \n");
-    for (int i = 0; i < v; i++){
-        for (int j = 0; j < v; j++){
-            if (graph->adj[i][j])
-                fprintf(output, "%d %d %d \n", i, j, graph->adj[i][j]);
-        }
-    }
-}
-
-AMATRIX* RandomGraph(int e, int v, AMATRIX *graph, int r1, int r2)
+DLL_EXPORT AMATRIX* RandomGraph(AMATRIX *graph, int weight_min, int weight_max, int max_degree)
 {
     int i, j;
     int counter = 0;
-    srand(time(0));
-    while (counter < e){
-
-        i = rand() % v;
-        j = rand() % v;
-
-        if ((!graph->adj[i][j]) && (i != j)){
-            graph->adj[i][j] = r1 + rand()%(r2-r1+1);
-            graph->adj[j][i] = graph->adj[i][j];
-            counter++;
+    int fail = 0;
+    while (counter < graph->edges_num){
+        i = rand() % graph->nodes_num;
+        j = rand() % graph->nodes_num;
+        if ((!graph->adj[i][j]) && (i != j))
+        {
+            if ((AMatrixDegree(graph, i) < max_degree) && (AMatrixDegree(graph, j) < max_degree))
+            {
+                graph->adj[i][j] = weight_min + rand() % (weight_max - weight_min + 1);
+                graph->adj[j][i] = graph->adj[i][j];
+                counter++;
+                fail = 0;
+            }
         }
+        else if (fail > 10 && i!=j){
+            graph->adj[j][i] = 0;
+            graph->adj[i][j] = 0;
+            fail = 0;
+            counter--;
+        }
+        else
+            fail++;
     }
     return graph;
 }
 
-AMATRIX* RandomOrientedGraph(int e, int v, AMATRIX *graph, int r1, int r2)
+DLL_EXPORT AMATRIX *ChoiceRand(AMATRIX *g, int oriented, int weight_min, int weight_max, int max_degree)
 {
-    int i = 0, j = 0;
-    int counter = 0;
-    srand(time(0));
-    while (counter < e){
+    if (!oriented && g->nodes_num * max_degree < 2 * g->edges_num)
+        return 0;
+    if (oriented && g->nodes_num * max_degree < g->edges_num)
+        return 0;
+    if (oriented)
+        g = RandConnectedOrGraph(g,  weight_min, weight_max, max_degree);
+    else
+        g = RandConnectedGraph(g, weight_min, weight_max, max_degree);
 
-        i = rand() % v;
-        j = rand() % v;
-
-        if ((!graph->adj[i][j]) && (i != j) && (!graph->adj[j][i])){
-            graph->adj[i][j] = r1 + rand()%(r2-r1+1);
-            counter++;
-        }
-
-        else if ((!graph->adj[j][i]) && (i != j) && (graph->adj[i][j])){
-            graph->adj[j][i] = r1 + rand()%(r2-r1+1);
-            counter++;
-        }
-    }
-    return graph;
+    return g;
 }
