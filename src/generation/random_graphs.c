@@ -1,7 +1,6 @@
 #include "random_graphs.h"
 #include <time.h>
 #include <stdlib.h>
-#include <math.h>
 
 AMATRIX* RandConnectedOrGraph(AMATRIX *g, int weight_min, int weight_max, int max_degree){
     if (g->edges_num < g->nodes_num - 1 || g->nodes_num <= 1 || g->edges_num > (g->nodes_num -1)*g->nodes_num/2)
