@@ -11,9 +11,9 @@ int main() {
     int r1 = rand() % 100;
     int r2 = rand() % 100;
 
-    AMATRIX *graph1 = AMatrixSet(50, 51);
+    AMATRIX *graph1 = AMatrixSet(15, 15);
     graph1 = ChoiceRand(graph1, 0, r1, r2,10);
-    PrintRandMatrix(graph1, 50);
+    PrintRandMatrix(graph1, 15);
     for (int i = 0; i < graph1->nodes_num; i++)
         printf("%d ", AMatrixDegree(graph1, i));
    /* int a[25];
