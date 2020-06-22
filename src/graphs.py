@@ -17,7 +17,7 @@ class AMATRIX(ct.Structure):
 
 
 
-def generate_random_matrix(nodes_num, edges_num, weight_min, weight_max):
+def generate_random_matrix(nodes_num, edges_num, info, max_degree, weight_min, weight_max):
 
     gen_dll = ct.CDLL(r"./generation.dll") # Attach the DLL
 
@@ -304,27 +304,25 @@ alg_dll.GraphSet.restype = ct.POINTER(Graph)
 
 ########################################################################
 
-def generate_graph(nodes_num, edges_num, info, min_weight=1, max_weight=1):
+def generate_graph(nodes_num, edges_num, max_degree, info=0, min_weight=1, max_weight=1):
 
-    matrix = generate_random_matrix(nodes_num, edges_num, min_weight, max_weight)
-
-    graph = convert_from_matrix_to_graph(matrix, info)
-
+    matrix = generate_random_matrix(nodes_num, edges_num, info, max_degree, min_weight, max_weight)
+    graph = convert_from_matrix_to_graph(matrix, min_weight, max_weight, info)   
     graph.matrix = matrix
 
     return graph
 
 
-def convert_from_matrix_to_graph(matrix, info=0):
+def convert_from_matrix_to_graph(matrix, min_weight, max_weight, info=0):
 
     nodes = [Node(i) for i in range(1, len(matrix) + 1)]  # nodes = [1, 2, ...]
     edges = []
 
     for source in range(len(matrix)):
         for target in range(len(matrix)):
-
             if matrix[source][target]:
                 edges.append(Edge(nodes[source], nodes[target], matrix[source][target]))
+
 
     return Graph(nodes, edges, info, min_weight, max_weight)
 

@@ -13,14 +13,14 @@ int AMatrixDegree(AMATRIX *adj_matrix, int v)
     return count_degree;
 }
 
-DLL_EXPORT AMATRIX *AMatrixSet(int nodes, int edges)
+DLL_EXPORT AMATRIX *AMatrixSet(int nodes_num, int edges_num)
 {
     AMATRIX *tmp = malloc(sizeof(AMATRIX));
-    tmp->adj = (int**)calloc(nodes, sizeof(int*));
-    tmp->nodes_num = nodes;
-    tmp->edges_num = edges;
+    tmp->adj = (int**)calloc(nodes_num, sizeof(int*));
+    tmp->nodes_num = nodes_num;
+    tmp->edges_num = edges_num;
     for (int i = 0; i < tmp->nodes_num; i++){
-        tmp->adj[i] = (int*)calloc(nodes, sizeof(int));
+        tmp->adj[i] = (int*)calloc(nodes_num, sizeof(int));
     }
 
     return tmp;

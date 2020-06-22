@@ -109,11 +109,11 @@ class App(psg.Window):
         self.func_algorithms = {"DFS": algorithms.DFS,
                                 "BFS": algorithms.BFS,
                                 "Dijkstra's Algorithm": algorithms.Dijkstra,
-                                "Ford-Bellman Algorithm": self.passing,
-                                "Floyd–Warshall Algorithm": self.passing,
+                                "Ford-Bellman Algorithm": algorithms.BellmanFord,
+                                #"Floyd–Warshall Algorithm": self.passing,
                                 "Prim's Algorithm": algorithms.Prim,
                                 "Kruskal's Algorithm": algorithms.Kruskal,
-                                "Ford–Fulkerson Algorithm": self.passing}
+                                "Ford–Fulkerson Algorithm": algorithms.FordFulkerson}
 
         self.fig_agg, self.ax = self.create_figure_canvas()
         self.draw_graph_flag = False
@@ -151,11 +151,10 @@ class App(psg.Window):
         if self['-DEGREE-IN-'].get():
             max_degree = int(self['-DEGREE-IN-'].get())
 
-        self.graph = graphs.generate_graph(nodes_num,
-                                           edges_num,
-                                           info,
+        self.graph = graphs.generate_graph(nodes_num, edges_num,
                                            max_degree,
-                                           min_weight=min_weight, max_weight=max_weight)
+                                           info,
+                                           min_weight, max_weight)
         if not self.graph:
             self.window_error("Граф не был сгенерирован")
             return
@@ -366,14 +365,14 @@ class App(psg.Window):
         algorithm = self['-COMBO-ALGORITHMS-'].get()
 
         algorithms = {"--select--": "",
-                      "DFS": dfs,
-                      "BFS": bfs,
-                      "Dijkstra's Algorithm": Dijkstra_algorithm,
-                      "Ford-Bellman Algorithm": Ford_Bellman_algorithm,
-                      "Floyd–Warshall Algorithm": Floyd_Warshall_algorithm,
-                      "Prim's Algorithm": Prim_algorithm,
-                      "Kruskal's Algorithm": Kruskal_algorithm,
-                      "Ford–Fulkerson Algorithm": Ford_Fulkerson_algorithm, }
+                      "DFS": dfs_main_tab,
+                      "BFS": bfs_main_tab,
+                      "Dijkstra's Algorithm": Dijkstra_algorithm_main_tab,
+                      "Ford-Bellman Algorithm": Ford_Bellman_algorithm_main_tab,
+                      "Floyd–Warshall Algorithm": Floyd_Warshall_algorithm_main_tab,
+                      "Prim's Algorithm": Prim_algorithm_main_tab,
+                      "Kruskal's Algorithm": Kruskal_algorithm_main_tab,
+                      "Ford–Fulkerson Algorithm": Ford_Fulkerson_algorithm_main_tab, }
 
         if algorithm in ("DFS", "BFS", "Dijkstra's Algorithm", "Ford-Bellman Algorithm", "Prim's Algorithm"):
 
