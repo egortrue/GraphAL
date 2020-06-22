@@ -3,6 +3,32 @@
 #include <stdlib.h>
 #include <math.h>
 
+DLL_EXPORT AMATRIX* RandFlowNetwork(AMATRIX* g, int weight_min, int weight_max, int max_degree){
+    //add extra nodes
+    g->adj = (int**)realloc(g->adj, (g->nodes_num + 2)*sizeof(int**));
+    for (int i = g->nodes_num; i < g->nodes_num + 2; i++){
+        g->adj[i] = (int*)calloc(g->nodes_num + 2, sizeof(int));
+    }
+    g->nodes_num += 2;
+
+    int source = g->nodes_num - 2;
+    int sink = g->nodes_num - 1;
+
+    //connect source & sink w/ graph
+    int start = rand() % g->nodes_num, dir = rand() % g->nodes_num;
+    while (g->adj[source][dir] || dir == source || dir == sink || AMatrixDegree(g, dir) >= max_degree)
+        dir = rand() % g->nodes_num;
+    while (g->adj[source][dir] == 0)
+        g->adj[source][dir] = weight_min + rand() % (weight_max - weight_min + 1);
+
+    while (g->adj[start][sink] || start == source || start == sink || AMatrixDegree(g, start) >= max_degree)
+        start = rand() % g->nodes_num;
+    while (g->adj[start][sink] == 0)
+        g->adj[start][sink] = weight_min + rand() % (weight_max - weight_min + 1);
+
+    return g;
+}
+
 AMATRIX* RandConnectedOrGraph(AMATRIX *g, int weight_min, int weight_max, int max_degree){
     if (g->edges_num < g->nodes_num - 1 || g->nodes_num <= 1 || g->edges_num > (g->nodes_num - 1)*g->nodes_num/2)
         return NULL;
@@ -33,8 +59,8 @@ AMATRIX* RandConnectedOrGraph(AMATRIX *g, int weight_min, int weight_max, int ma
         dir = 0;
         for (int i = 0; i < count; i++){
             while (g->adj[start][dir] || dir == start ||
-                    ((AMatrixDegree(g, start) >= max_degree && AMatrixDegree(g, dir) >= max_degree)
-                    || !g->adj[dir][start])) {
+                    AMatrixDegree(g, start) >= max_degree || AMatrixDegree(g, dir) >= max_degree || g->adj[dir][start])
+            {
                 dir = rand() % g->nodes_num;
                 start = rand() % g->nodes_num;
             }
@@ -122,7 +148,7 @@ AMATRIX *RandConnectedGraph(AMATRIX *g, int weight_min, int weight_max, int max_
     used = (int*)calloc(g->nodes_num, sizeof(int));
     nodes_comp = (int*)calloc(g->nodes_num, sizeof(int));
     pr = (int*)calloc(g->nodes_num, sizeof(int));
-    while (new_edges > 0 ){
+    while (new_edges > 0){
         count_nodes = 0;
         dfs(g, i, used, &count_nodes, nodes_comp, pr, cycle);
         if (cycle[0] || cycle[1]) {
