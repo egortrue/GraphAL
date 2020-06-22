@@ -22,17 +22,19 @@ def generate_random_matrix(nodes_num, edges_num, weight_min, weight_max):
     gen_dll = ct.CDLL(r"./generation.dll") # Attach the DLL
 
     # define types of functions' arguments
-    gen_dll.AMatrixSet.argtypes = [ct.c_int]
-    gen_dll.RandomGraph.argtypes = [ct.c_int, ct.c_int, ct.POINTER(AMATRIX), ct.c_int, ct.c_int]
-
-    # define types of functions' returns
+    gen_dll.AMatrixSet.argtypes = [ct.c_int, ct.c_int]
     gen_dll.AMatrixSet.restype = ct.POINTER(AMATRIX)
+    gen_dll.AMatrixDelete.argtypes = [ct.POINTER(AMATRIX)]
+    gen_dll.AMatrixDelete.restype = ct.POINTER(AMATRIX)
+    gen_dll.RandomGraph.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int]
 
+    gen_dll.ChoiceRand.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int, ct.c_int]
+    gen_dll.ChoiceRand.restype = ct.POINTER(AMATRIX)
 
     # Generate matrix
     matrix = []
-    ptr = gen_dll.AMatrixSet(nodes_num)
-    gen_dll.RandomGraph(edges_num, nodes_num, ptr, weight_min, weight_max)
+    ptr = gen_dll.AMatrixSet(nodes_num, edges_num)
+    gen_dll.ChoiceRand(ptr, info & 0b01, weight_min, weight_max, max_degree)
 
 
     # Translate int** from DLL to matrix with ints on Python
@@ -138,7 +140,7 @@ class Graph(ct.Structure):
                 ("C_EDGES", ct.POINTER(ct.POINTER(Edge)))]  # EDGE**
 
 
-    def __init__(self, nodes, edges, info=0):
+    def __init__(self, nodes, edges, info=0, min_weight=1, max_weight=1):
 
         self.nodes_num = len(nodes)
         self.edges_num = len(edges)
@@ -154,6 +156,11 @@ class Graph(ct.Structure):
 
         self.directed  = info & 0b01
         self.weighted  = info & 0b10
+
+        self.min_weight = min_weight
+        self.max_weight = max_weight
+
+        self.matrix = []
 
         # Init nodes for assigning the memory in C
         nodes_row = ct.POINTER(Node) * self.nodes_num
@@ -249,7 +256,7 @@ class Graph(ct.Structure):
 
         graph_settings = dict()
         graph_settings['matrix'] = self.matrix
-        graph_settings['info'] = self.connected + self.weighted + self.directed
+        graph_settings['info'] = self.weighted + self.directed
 
         for key in self.pos:
             self.pos[key] = list(self.pos[key])  # from numpy.ndarray to list, because json don't support it
@@ -271,10 +278,7 @@ class Graph(ct.Structure):
         graph.add_nodes_from(self.get_arr_nodes())
 
         if self.weighted:
-            for edge in self.get_arr_edges():
-                graph.add_edge(v_of_edge=edge[0],
-                               u_of_edge=edge[1],
-                               weight=edge[2])
+            graph.add_weighted_edges_from(self.get_arr_edges())
         else:
             graph.add_edges_from(self.get_arr_edges())
 
@@ -300,34 +304,15 @@ alg_dll.GraphSet.restype = ct.POINTER(Graph)
 
 ########################################################################
 
-def generate_graph(app):
-    app.clear_figure_canvas()
+def generate_graph(nodes_num, edges_num, info, min_weight=1, max_weight=1):
 
-    # Common options
-    nodes_num = int(app['-VERTEX-IN-'].get())
-    edges_num = int(app['-EDGES-IN-'].get())
-
-    min_weight = 1
-    max_weight = 1
-
-    info = 0
-    if app['-DIRECTED-Y-'].get():
-        info += 0b01
-
-    if app['-WEIGHTED-Y-'].get():
-        info += 0b10
-
-        min_weight = int(app['-MIN-WEIGHT-IN-'].get())
-        max_weight = int(app['-MAX-WEIGHT-IN-'].get())
-
-    # Generate random graph
     matrix = generate_random_matrix(nodes_num, edges_num, min_weight, max_weight)
+
     graph = convert_from_matrix_to_graph(matrix, info)
+
     graph.matrix = matrix
 
-    app.graph = graph
-    app.draw_graph()
-    preview(app, graph)
+    return graph
 
 
 def convert_from_matrix_to_graph(matrix, info=0):
@@ -341,25 +326,15 @@ def convert_from_matrix_to_graph(matrix, info=0):
             if matrix[source][target]:
                 edges.append(Edge(nodes[source], nodes[target], matrix[source][target]))
 
-    return Graph(nodes, edges, info)
+    return Graph(nodes, edges, info, min_weight, max_weight)
 
 
 #########################################################################
-# Preview tab funcions
+# Preview tab functions
 
-def adjacency_matrix_to_preview(graph: Graph):  # todo definition
-    """
+def adjacency_matrix_to_preview(graph: Graph):
 
-    :param graph: graph
-    :return: adjacency matrix (str)
-    """
-    data_to_adjacency_matrix_preview = ""
-
-    # matrix = [[i for i in range(graph.nodes_num + 1)]]
-
-    """for i in range(1, graph.nodes_num + 1):
-        matrix.append([i])
-        matrix[i].extend(graph.matrix[i - 1])"""
+    data_to_adjacency_matrix_preview = "Matrix - Nodes_num*Nodes_num, matrix[node1][node2] = weight\n"
 
     for row in graph.matrix:
         data_to_adjacency_matrix_preview += " ".join([str(elem) for elem in row]) + "\n"
@@ -367,18 +342,15 @@ def adjacency_matrix_to_preview(graph: Graph):  # todo definition
     return data_to_adjacency_matrix_preview
 
 
-def adjacency_list_to_preview(graph: Graph):  # todo definition
-    """
-
-    :param graph: graph
-    :return: adjacency list (str)
-    """
+def adjacency_list_to_preview(graph: Graph):
 
     data_to_adjacency_list_preview = ""
 
     dict_adj_list = graph.get_adjacency_list()
 
     if graph.weighted:
+
+        data_to_adjacency_list_preview += "{Node}:_{neighbour1}__{weight1},_{neighbour2}__{weight2},...\n"
 
         for node_id, tuples_target_id_and_weight in dict_adj_list.items():
             data_to_adjacency_list_preview += f"{node_id}: "
@@ -389,6 +361,8 @@ def adjacency_list_to_preview(graph: Graph):  # todo definition
             data_to_adjacency_list_preview += "\n"
 
         return data_to_adjacency_list_preview
+
+    data_to_adjacency_list_preview += "{Node}:_{neighbour1},_{neighbour2},...\n"
 
     for node_id, list_target_id in dict_adj_list.items():
 
@@ -402,14 +376,13 @@ def adjacency_list_to_preview(graph: Graph):  # todo definition
     return data_to_adjacency_list_preview
 
 
-def list_edges_to_preview(graph: Graph):  # todo definition
-    """
-
-    :param graph: graph
-    :return: list edges (str)
-    """
+def list_edges_to_preview(graph: Graph):
 
     list_edges = ""
+    if graph.weighted:
+        list_edges = "{Node1}_{node2}__{weight},\n"
+    else:
+        list_edges = "{Node1}_{node2},\n"
 
     for edge in graph.get_arr_edges():
 
@@ -422,15 +395,3 @@ def list_edges_to_preview(graph: Graph):  # todo definition
             list_edges += f"{edge[0]} {edge[1]},\n"
 
     return list_edges
-
-
-def preview(app, graph: Graph):  # todo definition
-    """
-
-    :param app:
-    :param graph:
-    """
-
-    app['-MATRIX-ADJ-'].update(value=adjacency_matrix_to_preview(graph))
-    app['-LIST-ADJ-'].update(value=adjacency_list_to_preview(graph))
-    app['-LIST-EDGES-'].update(value=list_edges_to_preview(graph))

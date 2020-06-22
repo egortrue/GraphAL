@@ -30,5 +30,3 @@ frame_list_of_edges = psg.Frame(title='List of edges', layout=layout_list_of_edg
 
 
 preview_tab = [[frame_adjacency_matrix, frame_adjacency_list, frame_list_of_edges]]
-
-

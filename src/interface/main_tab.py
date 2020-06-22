@@ -12,9 +12,9 @@ psg.theme('DefaultNoMoreNagging')  # 'Default1'
 # ----------------------- Create layout -------------------------------- #
 
 
-layout_setting_graph = [[psg.Column(layout=[[psg.Text('Vertexes:*', font=FONT_12, size=SIZE_LABEL_MAIN_TAB,
+layout_setting_graph = [[psg.Column(layout=[[psg.Text('Nodes:*', font=FONT_12, size=SIZE_LABEL_MAIN_TAB,
                                                       tooltip=" Necessarily "),
-                                             psg.Input(key='-VERTEX-IN-', size=SIZE_INPUT_MAIN_TAB,
+                                             psg.Input(key='-NODES-IN-', size=SIZE_INPUT_MAIN_TAB,
                                                        tooltip=" Necessarily ")],
 
                                             [psg.Text('Edges:*', font=FONT_12, size=SIZE_LABEL_MAIN_TAB,
@@ -24,11 +24,6 @@ layout_setting_graph = [[psg.Column(layout=[[psg.Text('Vertexes:*', font=FONT_12
 
                                             [psg.Text('Max degree:', font=FONT_12, size=SIZE_LABEL_MAIN_TAB),
                                              psg.Input(key='-DEGREE-IN-', size=SIZE_INPUT_MAIN_TAB)],
-
-                                            [psg.Text('Connected:', font=FONT_12, size=SIZE_LABEL_MAIN_TAB),
-                                             psg.Radio(text='Yes', group_id="connect", key='-CONNECTED-Y-'),
-                                             psg.Radio(text='No', group_id="connect", key='-CONNECTED-N-',
-                                                       default=True)],
 
                                             [psg.Text('Directed:', font=FONT_12, size=SIZE_LABEL_MAIN_TAB),
                                              psg.Radio(text='Yes', group_id="directed", key='-DIRECTED-Y-'),
@@ -79,12 +74,12 @@ layout_algorithms = [[psg.Column(layout=[[psg.Combo(values=["--select--", "DFS",
                                                         key='-EXPLANATION-ALGORITHM-')],
 
                                          [psg.Text(text='', size=SIZE_LABEL_MAIN_TAB, font=FONT_12,
-                                                   key='-START-VERTEX-LABEL-'),
-                                          psg.Input(key='-START-VERTEX-IN-', size=SIZE_INPUT_MAIN_TAB, visible=False)],
+                                                   key='-START-NODE-LABEL-'),
+                                          psg.Input(key='-START-NODE-IN-', size=SIZE_INPUT_MAIN_TAB, visible=False)],
 
                                          [psg.Text(text='', size=SIZE_LABEL_MAIN_TAB, font=FONT_12,
-                                                   key='-FINISH-VERTEX-LABEL-'),
-                                          psg.Input(key='-FINISH-VERTEX-IN-', size=SIZE_INPUT_MAIN_TAB, visible=False)]
+                                                   key='-FINISH-NODE-LABEL-'),
+                                          psg.Input(key='-FINISH-NODE-IN-', size=SIZE_INPUT_MAIN_TAB, visible=False)]
                                          ],
                                  size=(225, 295),
                                  )],

@@ -24,21 +24,22 @@ import sys
 sys.path.append("./interface")
 from main_tab import main_tab
 from preview_tab import preview_tab
-from text_for_algorithms import *
+from algorithms_tab import algorithms_tab
+from log_tab import log_tab
 
 ####################################################################
 
-# todo попробовать перехватить нажатие кнопки сетингс в тулбаре!!! и выставить там разные цвета и тд
 
-class NavigationToolbar(NavigationToolbar2Tk):  # edited NavigationToolbar
+
+class NavigationToolbar(NavigationToolbar2Tk):  # edited NavigationToolbar2Tk
     NavigationToolbar2Tk.toolitems = (
         ('Home', 'Reset original view', 'home', 'home'),
-        # ('Back', 'Back to previous view', 'back', 'back'), # remove this button
-        # ('Forward', 'Forward to next view', 'forward', 'forward'), # remove this button
+        ('Back', 'Back to previous view', 'back', 'back'), # remove this button
+        ('Forward', 'Forward to next view', 'forward', 'forward'), # remove this button
         (None, None, None, None),
         ('Pan', 'Pan axes with left mouse, zoom with right', 'move', 'pan'),
         ('Zoom', 'Zoom to rectangle', 'zoom_to_rect', 'zoom'),
-        ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
+        # ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
         # (None, None, None, None), # remove this separate
         # ('Save', 'Save the figure', 'file_save', 'save_figure'), # remove this button
     )
@@ -57,23 +58,22 @@ class App(psg.Window):
                              [psg.Menu(menu_def, key='-MENU-')],
                              [psg.TabGroup(layout=[[psg.Tab('Main', main_tab),
                                                     psg.Tab('Preview', preview_tab, element_justification='right'),
-                                                    psg.Tab('Log', [[]]),
-                                                    psg.Tab('Algorithms', [[]])]],
+                                                    psg.Tab('Log', log_tab, element_justification='left'),
+                                                    psg.Tab('Algorithms', algorithms_tab)]],
                                            tab_location="topleft",
                                            background_color='#f0f0f0',  # костыль
                                            key='-TAB-GROUP-'
                                            )]
                          ],
+                         icon=".\interface\pictures\GraphAL.ico",
                          size=(1300, 745),
                          finalize=True
                          )
 
         # default settings graph elements
-        self.DEFAULT_SETTINGS_GRAPH_ELEMENT_KEYS = {'-VERTEX-IN-': '',
+        self.DEFAULT_SETTINGS_GRAPH_ELEMENT_KEYS = {'-NODES-IN-': '',
                                                     '-EDGES-IN-': '',
                                                     '-DEGREE-IN-': '',
-                                                    '-CONNECTED-Y-': False,
-                                                    '-CONNECTED-N-': True,
                                                     '-DIRECTED-Y-': False,
                                                     '-DIRECTED-N-': True,
                                                     '-WEIGHTED-Y-': False,
@@ -84,39 +84,90 @@ class App(psg.Window):
         # default algorithms elements
         self.DEFAULT_ALGORITHM_ELEMENT_KEYS = {'-COMBO-ALGORITHMS-': '--select--',
                                                '-EXPLANATION-ALGORITHM-': '',
-                                               '-START-VERTEX-IN-': '',
-                                               '-FINISH-VERTEX-IN-': ''}
+                                               '-START-NODE-IN-': '',
+                                               '-FINISH-NODE-IN-': ''}
 
         # default preview elements
         self.DEFAULT_PREVIEW_ELEMENT_KEYS = {'-MATRIX-ADJ-': '',
                                              '-LIST-ADJ-': '',
                                              '-LIST-EDGES-': ''}
 
-        self.nodes_num = 0
-        self.edges_num = 0
+        self.DEFAULT_LOG_ELEMENT_KEYS = {'-LOG-OUT-': '',
+                                         '-LOG-ALGORITHM-': ''}
 
-        self.directed = False
-        self.weighted = False
+        self.callback_of_events = {'-WEIGHTED-Y-': lambda: self.range_of_weight_visible(True),
+                                   '-WEIGHTED-N-': lambda: self.range_of_weight_visible(False),
+                                   '-GENERATE-': self.btn_generate_graph,
+                                   '-START-': self.start_algorithm,
+                                   '-COMBO-ALGORITHMS-': self.choice_algorithm,
+                                   '-COMBO-DEFINITION-ALGORITHMS-': self.choice_definition_algorithm,
+                                   'Open': self.open_file,
+                                   'Save': self.save_file,
+                                   'Clear': self.clear_file,
+                                   'Exit': self.close}
 
-        self.max_degree = 0
-        self.min_weighted = 0
-        self.max_weighted = 0
+        self.func_algorithms = {"DFS": algorithms.DFS,
+                                "BFS": algorithms.BFS,
+                                "Dijkstra's Algorithm": algorithms.Dijkstra,
+                                "Ford-Bellman Algorithm": self.passing,
+                                "Floyd–Warshall Algorithm": self.passing,
+                                "Prim's Algorithm": algorithms.Prim,
+                                "Kruskal's Algorithm": algorithms.Kruskal,
+                                "Ford–Fulkerson Algorithm": self.passing}
 
         self.fig_agg, self.ax = self.create_figure_canvas()
         self.draw_graph_flag = False
 
         self.graph = None
 
-        self.callback_of_events = {'-WEIGHTED-Y-': lambda: self.range_of_weight_visible(True),
-                                   '-WEIGHTED-N-': lambda: self.range_of_weight_visible(False),
-                                   '-GENERATE-': lambda: graphs.generate_graph(self),
-                                   '-START-': lambda: self.start_algorthm(),
+    def btn_generate_graph(self):
 
-                                   '-COMBO-ALGORITHMS-': self.choice_algorithm,
-                                   'Open': self.open_file,
-                                   'Save': self.save_file,
-                                   'Clear': self.clear_file}
+        if not self.check_settings_frame():
+            return
 
+        self.clear_figure_canvas()
+        self.clear_preview()
+        self.clear_log_tab()
+
+        info = 0
+
+        nodes_num = int(self['-NODES-IN-'].get())
+        edges_num = int(self['-EDGES-IN-'].get())
+
+        min_weight = 1
+        max_weight = 1
+
+        max_degree = nodes_num * 3  # default value
+
+        if self['-DIRECTED-Y-'].get():
+            info += 1
+
+        if self['-WEIGHTED-Y-'].get():
+            info += 2
+
+            min_weight = int(self['-MIN-WEIGHT-IN-'].get())
+            max_weight = int(self['-MAX-WEIGHT-IN-'].get())
+
+        if self['-DEGREE-IN-'].get():
+            max_degree = int(self['-DEGREE-IN-'].get())
+
+        self.graph = graphs.generate_graph(nodes_num,
+                                           edges_num,
+                                           info,
+                                           max_degree,
+                                           min_weight=min_weight, max_weight=max_weight)
+        if not self.graph:
+            self.window_error("Граф не был сгенерирован")
+            return
+
+        self.preview(self.graph)
+        self.draw_graph()
+
+    def preview(self, graph):
+
+        self['-MATRIX-ADJ-'].update(value=graphs.adjacency_matrix_to_preview(graph))
+        self['-LIST-ADJ-'].update(value=graphs.adjacency_list_to_preview(graph))
+        self['-LIST-EDGES-'].update(value=graphs.list_edges_to_preview(graph))
 
     def create_figure_canvas(self):
 
@@ -136,7 +187,6 @@ class App(psg.Window):
 
         return figure_canvas_agg, ax
 
-
     def draw_graph(self):
 
         self.draw_graph_flag = True
@@ -150,6 +200,7 @@ class App(psg.Window):
                          edge_color=self.graph.edges_color,
                          node_size=800,
                          width=2)
+
         if self.graph.weighted:
             nx.draw_networkx_edge_labels(self.graph.nx_graph,
                                          pos=self.graph.pos,
@@ -158,32 +209,81 @@ class App(psg.Window):
 
         self.fig_agg.draw()
 
+    def start_algorithm(self):
 
-    def start_algorthm(self):
-        # Choosing of algoirthm:
+        if not self.check_algorithm_frame():
+            return
 
-        algorithms.BFS(self, self.graph.nodes[0])
-        #algorithms.DFS(self, self.graph.nodes[0])
-        #algorithms.Dijkstra(self, self.graph.nodes[0])
-        #algorithms.Prim(self, self.graph.nodes[0])
-        #algorithms.Kruskal(self)
-        #algorithms.BellmanFord(self, self.graph.nodes[0])
-        #algorithms.FordFulkerson(self, self.graph.nodes[0], self.graph.nodes[self.graph.nodes_num-1])
+        algorithm = self['-COMBO-ALGORITHMS-'].get()
+
+        if algorithm in ("DFS", "BFS", "Dijkstra's Algorithm", "Ford-Bellman Algorithm", "Prim's Algorithm"):
+
+            start_node = int(self['-START-NODE-IN-'].get())
+            self.clear_log_tab()
+            self.func_algorithms[algorithm](self, self.graph.nodes[start_node - 1])
+
+        elif algorithm == "Ford–Fulkerson Algorithm":
+            start_node = int(self['-START-NODE-IN-'].get())
+            finish_node = int(self['-FINISH-NODE-IN-'].get())
+            self.clear_log_tab()
+            self.func_algorithms[algorithm](self, self.graph.nodes[start_node - 1], self.graph.nodes[finish_node - 1])
+
+        else:
+            self.clear_log_tab()
+            self.func_algorithms[algorithm](self)
+
+        self['-LOG-ALGORITHM-'].update(value=algorithm)
 
         self.graph.restore_nodes_colors()
         self.graph.restore_edges_colors()
 
+    def write_to_log_out(self, ind, info='nodes'):
+
+        output = self['-LOG-OUT-']
+        output.update(value=f"{ind} итерация: ", append=True)
+
+        # write nodes
+        if info == 'nodes':
+            for i in range(self.graph.nodes_num):
+                node = self.graph.nodes[i].node_id
+                color = self.graph.nodes_color[i]
+
+                if color == self.graph.nodes_default_color:
+                    color = 'black'
+
+                else:
+                    color = 'orange'
+
+                output.update(value=f"{node}    ", append=True, text_color_for_value=color)
+
+        # write edges
+        else:
+            for i in range(self.graph.edges_num):
+                edge = self.graph.edges[i]
+                color = self.graph.edges_color[i]
+
+                if color == self.graph.edges_default_color:
+                    color = 'black'
+
+                else:
+                    color = 'orange'
+
+                output.update(value=f"{edge}  ", append=True, text_color_for_value=color)
+
+        output.update(value="\n", append=True)
 
     def clear_file(self):
 
         self.clear_figure_canvas()
         self.clear_settings_graph()
-        self.clear_preview()
         self.clear_algorithms()
+        self.clear_preview()
+        self.clear_log_tab()
+        self.clear_algorithms_tab()
+
+        self.graph = None
 
     def clear_figure_canvas(self):
-
-        self.clear_preview()
 
         self.draw_graph_flag = False
         self.ax.clear()
@@ -208,6 +308,15 @@ class App(psg.Window):
 
         self.parameters_of_algorithms_visible(visible=False)
 
+    def clear_algorithms_tab(self):
+        self['-COMBO-DEFINITION-ALGORITHMS-'].update(value='--select--')
+        self['-DEFINITION-'].update(value="")
+        self['-PIC-CODE-'].update(filename="")
+
+    def clear_log_tab(self):
+        self['-LOG-OUT-'].update(value='')
+        self['-LOG-ALGORITHM-'].update(value='')
+
     def range_of_weight_visible(self, visible: bool):
 
         if visible:
@@ -223,37 +332,36 @@ class App(psg.Window):
         self['-MIN-WEIGHT-IN-'].update(value='0', visible=visible)
         self['-MAX-WEIGHT-IN-'].update(value='100', visible=visible)
 
-    def start_vertex_visible(self, visible: bool):
+    def start_node_visible(self, visible: bool):
 
         if visible:
-
-            self['-START-VERTEX-LABEL-'].update(value='Start vertex:')
+            self['-START-NODE-LABEL-'].update(value='Start node:')
 
         else:
+            self['-START-NODE-LABEL-'].update(value='')
 
-            self['-START-VERTEX-LABEL-'].update(value='')
+        self['-START-NODE-IN-'].update(value='', visible=visible)
 
-        self['-START-VERTEX-IN-'].update(value='', visible=visible)
-
-    def finish_vertex_visible(self, visible: bool):
+    def finish_node_visible(self, visible: bool):
 
         if visible:
-
-            self['-FINISH-VERTEX-LABEL-'].update(value='Finish vertex:')
+            self['-FINISH-NODE-LABEL-'].update(value='Finish node:')
 
         else:
-            self['-FINISH-VERTEX-LABEL-'].update(value='')
+            self['-FINISH-NODE-LABEL-'].update(value='')
 
-        self['-FINISH-VERTEX-IN-'].update(value='', visible=visible)
+        self['-FINISH-NODE-IN-'].update(value='', visible=visible)
 
     def parameters_of_algorithms_visible(self, visible: bool):
 
-        self.start_vertex_visible(visible)
-        self.finish_vertex_visible(visible)
+        self.start_node_visible(visible)
+        self.finish_node_visible(visible)
 
     def choice_algorithm(self):
 
         pag.press('left')  # неизбежный костыль
+
+        self.parameters_of_algorithms_visible(False)
 
         algorithm = self['-COMBO-ALGORITHMS-'].get()
 
@@ -269,44 +377,35 @@ class App(psg.Window):
 
         if algorithm in ("DFS", "BFS", "Dijkstra's Algorithm", "Ford-Bellman Algorithm", "Prim's Algorithm"):
 
-            self.parameters_of_algorithms_visible(False)  # чтобы не было лишнего параметра
-
-            self.start_vertex_visible(True)
+            self.start_node_visible(True)
 
         elif algorithm == "Ford–Fulkerson Algorithm":
 
-            self.parameters_of_algorithms_visible(False)
+            self.start_node_visible(True)
+            self.finish_node_visible(True)
 
-            self.start_vertex_visible(True)
-            self.finish_vertex_visible(True)
-
-        else:
-
-            self.parameters_of_algorithms_visible(False)
 
         self['-EXPLANATION-ALGORITHM-'].update(value=algorithms[algorithm])
 
-    def error_checking(self, frame=None):
+    def choice_definition_algorithm(self):
 
-        """
+        pag.press('left')  # неизбежный костыль
 
-        :param frame: name frame, where can be error
-        :type frame: (str)
-        :return: True or False
-        """
+        algorithms = {"--select--": "",
+                      "DFS": [dfs_algorithms_tab, code_dfs],
+                      "BFS": [bfs_algorithms_tab, code_bfs],
+                      "Dijkstra's Algorithm": [Dijkstra_algorithm_algorithms_tab, code_Dijkstra],
+                      "Ford-Bellman Algorithm": [Ford_Bellman_algorithm_algorithms_tab, code_Ford_Bellman],
+                      "Floyd–Warshall Algorithm": [Floyd_Warshall_algorithm_algorithms_tab, code_Floyd_Warshall],
+                      "Prim's Algorithm": [Prim_algorithm_algorithms_tab, code_Prim],
+                      "Kruskal's Algorithm": [Kruskal_algorithm_algorithms_tab, code_Kruskal],
+                      "Ford–Fulkerson Algorithm": [Ford_Fulkerson_algorithm_algorithms_tab, code_Ford_Fulkerson]}
 
-        if frame == "Settings":
-            try:
-                self.vertexes = int(self['-VERTEXES-IN-'].get())
-                self.edges = int(self['-EDGES-IN-'].get())
+        algorithm = self['-COMBO-DEFINITION-ALGORITHMS-'].get()
 
-            except ValueError as error:
-                psg.popup("Fill in the required fields with correct data", background_color='red', text_color='white',
-                          font=FONT_12)
-                # выдать сообщение об ошибки, аля введите корректное значение
+        self['-DEFINITION-'].update(value=algorithms[algorithm][0])
 
-        if frame == "Algorithms":
-            pass
+        self['-PIC-CODE-'].update(filename=algorithms[algorithm][1])
 
     def save_file(self):
         settings = dict()
@@ -320,9 +419,9 @@ class App(psg.Window):
         settings['draw_graph_flag'] = self.draw_graph_flag
 
         try:
-            with open(psg.popup_get_file("", file_types=(("Config File", "*.cfg"),), no_window=True, save_as=True),
-                      'w') as f:
-                jsondump(settings, f)
+            with open(psg.popup_get_file("", file_types=(("JSON File", "*.json"),), no_window=True, save_as=True),
+                                          'w') as f:
+                json.dump(settings, f)
         except FileNotFoundError:  # when user didn't choose file
             pass
 
@@ -331,34 +430,122 @@ class App(psg.Window):
         try:
             settings = dict()
 
-            with open(psg.popup_get_file("", file_types=(("Config File", "*.cfg"),), no_window=True), 'r') as f:
-                settings = jsonload(f)
-
-            if 'matrix' in settings:
-                matrix = settings['matrix']
-                info = settings['info']
-
-                self.graph = graphs.convert_from_matrix_to_graph(matrix, info)
-
-                # после хранения в pos  ключи стали объектом str, а надо int,
-                # поэтому такой костыль в виде копирования словаря
-
-                pos = dict()
-                for key in settings['pos']:
-                    pos[int(key)] = settings['pos'][key].copy()
-
-                self.graph.pos = pos
-
-                if settings['draw_graph_flag']:
-                    graphs.draw_graph(self, self.graph, self.fig_agg, self.ax)
-
-            for key in self.DEFAULT_SETTINGS_GRAPH_ELEMENT_KEYS:
-                self[key].update(value=settings[key])
-
-            self.range_of_weight_visible(settings['-WEIGHTED-Y-'])
-
+            with open(psg.popup_get_file("", file_types=(("JSON File", "*.json"),), no_window=True), 'r') as f:
+                settings = json.load(f)
         except FileNotFoundError:  # when user didn't choose file
-            pass
+            return
+
+        if 'matrix' in settings:
+            matrix = settings['matrix']
+            info = settings['info']
+
+            self.graph = graphs.convert_from_matrix_to_graph(matrix, info)
+
+            # после хранения в pos  ключи стали объектом str, а надо int,
+
+            pos = dict()
+            for key in settings['pos']:
+                pos[int(key)] = settings['pos'][key].copy()
+
+            self.graph.pos = pos
+
+            if settings['draw_graph_flag']:
+                self.draw_graph()
+
+        for key in self.DEFAULT_SETTINGS_GRAPH_ELEMENT_KEYS:
+            self[key].update(value=settings[key])
+
+        self.range_of_weight_visible(settings['-WEIGHTED-Y-'])
+
+    def window_error(self, text_error: str):
+
+        text_error = '\n' + text_error + '\n'
+
+        psg.theme('Default1')
+        window = psg.Window(title="Error", element_justification='center',
+                            icon=r".\interface\pictures\icon_error.ico")
+        window.AddRow(psg.Text(text=text_error, font=FONT_14, text_color='red'))
+        window.AddRow(
+            psg.Button(button_text='OK', button_color=psg.DEFAULT_ERROR_BUTTON_COLOR, font=FONT_14, size=(6, 0)))
+
+        while True:
+            event, value = window.read()
+            if event in (psg.WIN_CLOSED, 'OK'):
+                break
+        window.close()
+
+    def check_settings_frame(self):  # обработать степень
+
+        try:
+            # ------- Necessaries fields ------- #
+            nodes_num = int(self['-NODES-IN-'].get())
+            edges_num = int(self['-EDGES-IN-'].get())
+
+            # -------- Optional fields --------- #
+            max_degree = None
+
+            if self['-DEGREE-IN-'].get():
+                max_degree = int(self['-DEGREE-IN-'].get())
+
+            if self['-WEIGHTED-Y-'].get():
+                min_weight = int(self['-MIN-WEIGHT-IN-'].get())
+                max_weight = int(self['-MAX-WEIGHT-IN-'].get())
+
+                if min_weight > max_weight:
+                    raise ValueError
+
+        except ValueError as error:
+            self.window_error("Заполните обязательные поля(*)!\nВведите корректные значения!")
+            return False
+
+        return True
+
+    def check_algorithm_frame(self):
+
+        if self.graph is None:
+            self.window_error("Сгенерируйте граф!")
+            return False
+
+        algorithm = self['-COMBO-ALGORITHMS-'].get()
+
+        if algorithm == "--select--":
+            self.window_error("Выберите алгоритм")
+            return False
+
+        # error checking algorithms and settings graph
+        if algorithm == 'Ford–Fulkerson Algorithm' and not self.graph.directed:
+            self.window_error("Граф должен быть ориентированным!")
+            return False
+
+        if (algorithm in ("Prim's Algorithm", "Kruskal's Algorithm")) and self.graph.directed:
+            self.window_error("Граф должен быть неориентированным!")
+            return False
+
+        # error checking in input fields
+        if algorithm in ("DFS", "BFS", "Dijkstra's Algorithm", "Ford-Bellman Algorithm", "Prim's Algorithm"):
+            try:
+                start_node = int(self['-START-NODE-IN-'].get())
+
+                if start_node not in self.graph.get_arr_nodes():
+                    raise ValueError
+
+            except ValueError:
+                self.window_error("Введите корректные значения!")
+                return False
+
+        if algorithm == "Ford–Fulkerson Algorithm":
+            try:
+                start_node = int(self['-START-NODE-IN-'].get())
+                finish_node = int(self['-FINISH-NODE-IN-'].get())
+
+                if start_node not in self.graph.get_arr_nodes() or finish_node not in self.graph.get_arr_nodes():
+                    raise ValueError
+
+            except ValueError:
+                self.window_error("Введите корректные значения!")
+                return False
+
+        return True
 
 def main():
 
