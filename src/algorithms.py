@@ -185,7 +185,7 @@ def BellmanFord(app, start):
 #########################################################################
 # define Ford-Fulkerson function
 
-def FordFulkerson(app, source, target):
+def FordFulkerson(app):
 
     if app.graph.directed == 0:
         return 0
@@ -193,7 +193,7 @@ def FordFulkerson(app, source, target):
     alg_dll.FordFulkerson.argtypes = [ct.POINTER(Graph), ct.POINTER(Node), ct.POINTER(Node)]
     alg_dll.FordFulkerson.restype  = ct.POINTER(ct.POINTER(ct.POINTER(Node)))
 
-    paths = alg_dll.FordFulkerson(app.graph.ptr, source.ptr, target.ptr)
+    paths = alg_dll.FordFulkerson(app.graph.ptr, app.graph.nodes[app.graph.nodes_num-2].ptr, app.graph.nodes[app.graph.nodes_num-1].ptr)
     paths = ct.cast(paths, ct.POINTER(ct.POINTER(ct.POINTER(Node)) * (app.graph.nodes_num))).contents
 
     for path in paths:

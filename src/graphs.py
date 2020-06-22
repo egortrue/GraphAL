@@ -7,6 +7,9 @@ import _ctypes as ct_deb
 import time
 from operator import attrgetter
 
+gen_dll = ct.CDLL(r"./generation.dll")
+alg_dll = ct.CDLL(r"./algorithms.dll")
+
 #########################################################################
 # Generation DLL:
 
@@ -16,20 +19,23 @@ class AMATRIX(ct.Structure):
                 ("C_E", ct.c_int)]
 
 
+#########################################################################
+# Generation DLL funcitons:
+
+gen_dll.AMatrixSet.argtypes = [ct.c_int, ct.c_int]
+gen_dll.AMatrixSet.restype = ct.POINTER(AMATRIX)
+
+gen_dll.AMatrixDelete.argtypes = [ct.POINTER(AMATRIX)]
+gen_dll.AMatrixDelete.restype = ct.POINTER(AMATRIX)
+
+gen_dll.RandomGraph.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int]
+
+gen_dll.ChoiceRand.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int, ct.c_int]
+gen_dll.ChoiceRand.restype = ct.POINTER(AMATRIX)
+
+#########################################################################
 
 def generate_random_matrix(nodes_num, edges_num, info, max_degree, weight_min, weight_max):
-
-    gen_dll = ct.CDLL(r"./generation.dll") # Attach the DLL
-
-    # define types of functions' arguments
-    gen_dll.AMatrixSet.argtypes = [ct.c_int, ct.c_int]
-    gen_dll.AMatrixSet.restype = ct.POINTER(AMATRIX)
-    gen_dll.AMatrixDelete.argtypes = [ct.POINTER(AMATRIX)]
-    gen_dll.AMatrixDelete.restype = ct.POINTER(AMATRIX)
-    gen_dll.RandomGraph.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int]
-
-    gen_dll.ChoiceRand.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int, ct.c_int]
-    gen_dll.ChoiceRand.restype = ct.POINTER(AMATRIX)
 
     # Generate matrix
     matrix = []
@@ -49,14 +55,11 @@ def generate_random_matrix(nodes_num, edges_num, info, max_degree, weight_min, w
         print()
 
 
-    ct_deb.FreeLibrary(gen_dll._handle) # Detach the DLL
-    return matrix
-
+    #ct_deb.FreeLibrary(gen_dll._handle) # Detach the DLL
+    return matrix, ptr
 
 #########################################################################
 # Algorithms DLL:
-
-alg_dll = ct.CDLL(r"./algorithms.dll") # attach the DLL
 
 class Node(ct.Structure):
 
@@ -116,6 +119,9 @@ class Graph(ct.Structure):
     nodes_num = None
     edges_num = None
 
+    matrix = []
+    matrix_ptr = None
+
     nodes = []
     edges = []
 
@@ -159,8 +165,6 @@ class Graph(ct.Structure):
 
         self.min_weight = min_weight
         self.max_weight = max_weight
-
-        self.matrix = []
 
         # Init nodes for assigning the memory in C
         nodes_row = ct.POINTER(Node) * self.nodes_num
@@ -297,6 +301,8 @@ alg_dll.GraphSet.argtypes = [ct.c_int, ct.POINTER(ct.POINTER(Node)),       # nod
                              ct.c_int, ct.POINTER(ct.POINTER(Edge)),       # edges_num, EDGE*
                              ct.c_int]                                     # info
 
+alg_dll.GraphDestroy.argtypes = [ct.POINTER(Graph)]
+
 # define types of functions' returns
 alg_dll.NodeSet.restype  = ct.POINTER(Node)
 alg_dll.EdgeSet.restype  = ct.POINTER(Edge)
@@ -306,9 +312,10 @@ alg_dll.GraphSet.restype = ct.POINTER(Graph)
 
 def generate_graph(nodes_num, edges_num, max_degree, info=0, min_weight=1, max_weight=1):
 
-    matrix = generate_random_matrix(nodes_num, edges_num, info, max_degree, min_weight, max_weight)
+    matrix, matrix_ptr = generate_random_matrix(nodes_num, edges_num, info, max_degree, min_weight, max_weight)
     graph = convert_from_matrix_to_graph(matrix, min_weight, max_weight, info)   
     graph.matrix = matrix
+    graph.matrix_ptr = matrix_ptr
 
     return graph
 

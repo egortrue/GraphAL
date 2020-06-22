@@ -125,6 +125,10 @@ class App(psg.Window):
         if not self.check_settings_frame():
             return
 
+        if self.graph:
+            graphs.gen_dll.AMatrixDelete(self.graph.matrix_ptr)
+            graphs.alg_dll.GraphDestroy(self.graph.ptr)
+
         self.clear_figure_canvas()
         self.clear_preview()
         self.clear_log_tab()
@@ -213,26 +217,22 @@ class App(psg.Window):
         if not self.check_algorithm_frame():
             return
 
+        self.clear_log_tab()
+
         algorithm = self['-COMBO-ALGORITHMS-'].get()
 
         if algorithm in ("DFS", "BFS", "Dijkstra's Algorithm", "Ford-Bellman Algorithm", "Prim's Algorithm"):
-
             start_node = int(self['-START-NODE-IN-'].get())
-            self.clear_log_tab()
             self.func_algorithms[algorithm](self, self.graph.nodes[start_node - 1])
 
         elif algorithm == "Ford–Fulkerson Algorithm":
-            start_node = int(self['-START-NODE-IN-'].get())
-            finish_node = int(self['-FINISH-NODE-IN-'].get())
-            self.clear_log_tab()
-            self.func_algorithms[algorithm](self, self.graph.nodes[start_node - 1], self.graph.nodes[finish_node - 1])
+
+            self.func_algorithms[algorithm](self)
 
         else:
-            self.clear_log_tab()
             self.func_algorithms[algorithm](self)
 
         self['-LOG-ALGORITHM-'].update(value=algorithm)
-
         self.graph.restore_nodes_colors()
         self.graph.restore_edges_colors()
 
