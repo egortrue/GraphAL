@@ -250,9 +250,6 @@ class App(psg.Window):
                 if color == self.graph.nodes_default_color:
                     color = 'black'
 
-                else:
-                    color = 'orange'
-
                 output.update(value=f"{node}    ", append=True, text_color_for_value=color)
 
         # write edges
@@ -263,9 +260,6 @@ class App(psg.Window):
 
                 if color == self.graph.edges_default_color:
                     color = 'black'
-
-                else:
-                    color = 'orange'
 
                 output.update(value=f"{edge}  ", append=True, text_color_for_value=color)
 
@@ -378,12 +372,6 @@ class App(psg.Window):
 
             self.start_node_visible(True)
 
-        elif algorithm == "Ford–Fulkerson Algorithm":
-
-            self.start_node_visible(True)
-            self.finish_node_visible(True)
-
-
         self['-EXPLANATION-ALGORITHM-'].update(value=algorithms[algorithm])
 
     def choice_definition_algorithm(self):
@@ -477,16 +465,33 @@ class App(psg.Window):
 
     def check_settings_frame(self):  # обработать степень
 
+        nodes_num = None
+        edges_num = None
+
         try:
             # ------- Necessaries fields ------- #
-            nodes_num = int(self['-NODES-IN-'].get())
-            edges_num = int(self['-EDGES-IN-'].get())
+            if self['-NODES-IN-'].get() and self['-EDGES-IN-'].get():
+                nodes_num = int(self['-NODES-IN-'].get())
+                edges_num = int(self['-EDGES-IN-'].get())
+
+            else:
+                self.window_error("Заполните обязательные поля(*)!")
+                return False
+
+            if nodes_num <= 1 or edges_num < nodes_num - 1 or edges_num > (nodes_num - 1) * nodes_num / 2:
+                raise ValueError
 
             # -------- Optional fields --------- #
-            max_degree = None
+            max_degree = nodes_num * 3  # default value
 
             if self['-DEGREE-IN-'].get():
                 max_degree = int(self['-DEGREE-IN-'].get())
+
+            if self['-DIRECTED-N-'].get() and nodes_num * max_degree < 2 * edges_num:
+                raise ValueError
+
+            if self['-DIRECTED-Y-'].get() and nodes_num * max_degree < edges_num:
+                raise ValueError
 
             if self['-WEIGHTED-Y-'].get():
                 min_weight = int(self['-MIN-WEIGHT-IN-'].get())
@@ -496,12 +501,15 @@ class App(psg.Window):
                     raise ValueError
 
         except ValueError as error:
-            self.window_error("Заполните обязательные поля(*)!\nВведите корректные значения!")
+            self.window_error("Введите корректные значения!")
             return False
 
         return True
 
     def check_algorithm_frame(self):
+
+        start_node = None
+        finish_node = None
 
         if self.graph is None:
             self.window_error("Сгенерируйте граф!")
@@ -522,25 +530,27 @@ class App(psg.Window):
             self.window_error("Граф должен быть неориентированным!")
             return False
 
+        if algorithm == "Dijkstra's Algorithm" and self.graph.min_weight < 0:
+            self.window_error("Граф должен быть с положительными весами!")
+            return False
+
+        if algorithm in ("DFS", "BFS") and self.graph.weighted:
+            self.window_error("Граф должен быть невзвешенным!")
+            return False
+
         # error checking in input fields
         if algorithm in ("DFS", "BFS", "Dijkstra's Algorithm", "Ford-Bellman Algorithm", "Prim's Algorithm"):
             try:
-                start_node = int(self['-START-NODE-IN-'].get())
+
+                if self['-START-NODE-IN-'].get():
+                    start_node = int(self['-START-NODE-IN-'].get())
+                else:
+                    self.window_error("Укажите стартовую вершину!")
+                    return False
 
                 if start_node not in self.graph.get_arr_nodes():
-                    raise ValueError
-
-            except ValueError:
-                self.window_error("Введите корректные значения!")
-                return False
-
-        if algorithm == "Ford–Fulkerson Algorithm":
-            try:
-                start_node = int(self['-START-NODE-IN-'].get())
-                finish_node = int(self['-FINISH-NODE-IN-'].get())
-
-                if start_node not in self.graph.get_arr_nodes() or finish_node not in self.graph.get_arr_nodes():
-                    raise ValueError
+                    self.window_error("Выбранной вершины нет в графе!")
+                    return False
 
             except ValueError:
                 self.window_error("Введите корректные значения!")
