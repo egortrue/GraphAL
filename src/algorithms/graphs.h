@@ -5,7 +5,6 @@
 
 #define G_DIRECTED  0b00000001
 #define G_WEIGHTED  0b00000010
-#define G_CONNECTED 0b00000100
 
 //------------------------------------------------------------------------------------------------------
 
@@ -16,7 +15,6 @@ typedef struct node
 }NODE;
 
 DLL_EXPORT NODE* NodeSet(int name, int val);
-NODE* NodeGetAddress(NODE** arr, int name, int arr_size);
 
 //------------------------------------------------------------------------------------------------------
 
@@ -28,7 +26,6 @@ typedef struct edge
 }EDGE;
 
 DLL_EXPORT EDGE* EdgeSet(NODE* source, NODE* target, int weight);
-void EdgePrint (EDGE* E);
 
 //------------------------------------------------------------------------------------------------------
 
@@ -42,29 +39,15 @@ typedef struct graph
 
 	unsigned char directed  : 1;
 	unsigned char weighted  : 1;
-	unsigned char connected : 1;
 }GRAPH;
 
 DLL_EXPORT GRAPH* GraphSet(int nodes_num, NODE** nodes, int edges_num, EDGE** edges, char info);
 void   GraphPrint   (GRAPH* G);
-void   GraphDestroy (GRAPH* G);
+DLL_EXPORT void GraphDestroy (GRAPH* G);
 
 int    GraphGetEdgeWeight     (GRAPH* G, NODE* V1, NODE* V2);
 EDGE*  GraphGetEdge           (GRAPH* G, NODE* V1, NODE* V2);
 NODE** GraphGetNodeNeighbors  (GRAPH* G, NODE* node);
-
-//------------------------------------------------------------------------------------------------------
-
-typedef struct aMatrix
-{
-	int nodes; // number of nodes
-	int edges; // number of edges
-    int** adj;
-}AMATRIX;
-
-AMATRIX* aMatrixSet       (int nodes);
-AMATRIX* aMatrixGenerate  (int nodes, int edges, int directed);
-void     aMatrixDestroy   (AMATRIX* matrix);
 
 //------------------------------------------------------------------------------------------------------
 

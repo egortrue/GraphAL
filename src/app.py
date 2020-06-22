@@ -162,11 +162,13 @@ class App(psg.Window):
     def start_algorthm(self):
         # Choosing of algoirthm:
 
-        #algorithms.BFS(self, self.graph.nodes[0])
+        algorithms.BFS(self, self.graph.nodes[0])
         #algorithms.DFS(self, self.graph.nodes[0])
-        algorithms.Dijkstra(self, self.graph.nodes[0])
+        #algorithms.Dijkstra(self, self.graph.nodes[0])
         #algorithms.Prim(self, self.graph.nodes[0])
         #algorithms.Kruskal(self)
+        #algorithms.BellmanFord(self, self.graph.nodes[0])
+        #algorithms.FordFulkerson(self, self.graph.nodes[0], self.graph.nodes[self.graph.nodes_num-1])
 
         self.graph.restore_nodes_colors()
         self.graph.restore_edges_colors()

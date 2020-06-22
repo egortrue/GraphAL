@@ -3,10 +3,11 @@ import _ctypes as ct_deb
 
 import networkx as nx
 import matplotlib.pyplot as plt
-
 import time
 
 from graphs import *
+
+colors = ["cyan", "red", "green", "blue", "orange", "purple"]
 
 #########################################################################
 # define BFS function
@@ -19,17 +20,12 @@ def BFS(app, start):
     path = alg_dll.BFS(app.graph.ptr, start.ptr)
     path = ct.cast(path, ct.POINTER(ct.POINTER(Node) * app.graph.nodes_num)).contents
 
-    # the check
-    print("BFS")
-    for i in path:
-        print(i.contents.C_ID, end=" ")
-    print("\n")
-
     for node_ptr in path:
 
         c_node_id = node_ptr.contents.C_ID
+        c_node_val = node_ptr.contents.C_VALUE
         node = app.graph.get_node(c_node_id)
-        node.color = "cyan"
+        node.color = colors[c_node_val % 6]
         app.graph.update_nodes_colors()
 
         app.draw_graph()
@@ -139,7 +135,7 @@ def Prim(app, root):
 
 def Kruskal(app):
 
-    if graph.directed:
+    if app.graph.directed:
         return 0
 
 
@@ -175,5 +171,73 @@ def Kruskal(app):
 
     app.draw_graph()
 
+#########################################################################
+# define Bellman-Ford function
+
+def BellmanFord(app, start):
+
+    alg_dll.BellmanFord.argtypes = [ct.POINTER(Graph), ct.POINTER(Node)]
+    alg_dll.BellmanFord.restype  = ct.POINTER(ct.POINTER(Edge))
+
+    path = alg_dll.BellmanFord(app.graph.ptr, start.ptr)
+    path = ct.cast(path, ct.POINTER(ct.POINTER(Edge) * app.graph.nodes_num)).contents
+
+    # the check
+    print("BellmanFord")
+    for i in path:
+        print(i.contents.C_SOURCE.contents.C_ID, i.contents.C_TARGET.contents.C_ID)
+
+    for edge_ptr in path:
+
+        c_source_id = edge_ptr.contents.C_SOURCE.contents.C_ID
+        c_target_id = edge_ptr.contents.C_TARGET.contents.C_ID
+
+        edge = app.graph.get_edge(c_source_id, c_target_id)
+        edge.color = "#FF0000"
+        app.graph.update_edges_colors()
+
+        app.draw_graph()
+        time.sleep(0.5)
+
+#########################################################################
+# define Ford-Fulkerson function
+
+def FordFulkerson(app, source, target):
+
+    if app.graph.directed == 0:
+        return 0
+
+    alg_dll.FordFulkerson.argtypes = [ct.POINTER(Graph), ct.POINTER(Node), ct.POINTER(Node)]
+    alg_dll.FordFulkerson.restype  = ct.POINTER(ct.POINTER(ct.POINTER(Node)))
+
+    paths = alg_dll.FordFulkerson(app.graph.ptr, source.ptr, target.ptr)
+    paths = ct.cast(paths, ct.POINTER(ct.POINTER(ct.POINTER(Node)) * (app.graph.nodes_num))).contents
+
+    for path in paths:
+
+        path = ct.cast(path, ct.POINTER(ct.POINTER(Node) * (app.graph.nodes_num))).contents
+        path_len = 0
+
+        for node_ptr in path:
+            try:
+                c_node_id = node_ptr.contents.C_ID
+                node = app.graph.get_node(c_node_id)
+
+                path_len += 1
+                print(c_node_id)
+
+                if node == target:
+                    break
+
+                node.color = "cyan"
+                app.graph.update_nodes_colors()
+
+                app.draw_graph()
+                time.sleep(0.25)
+            except ValueError:
+                break
+
+        if path_len == 0:
+            return 0
 
 #########################################################################

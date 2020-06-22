@@ -42,6 +42,7 @@ QU_NODE* QueuePush(QU_NODE* Q, NODE* V)
 	tmp->node = V;
 	tmp->next = NULL;
 
+	// Connecting temp object
 	if (!Q) return tmp;
 	QU_NODE* ptr = Q;
 	while (ptr->next) ptr = ptr->next;
@@ -75,6 +76,7 @@ DLL_EXPORT NODE** BFS(GRAPH* G, NODE* start)
 	if (!checked) exit(EXIT_FAILURE);
 
 	// --------------------------------------------------------
+	// Log: path of visited nodes
 
 	int path_len = 0;
 	NODE** path = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
@@ -141,7 +143,11 @@ DLL_EXPORT NODE** BFS(GRAPH* G, NODE* start)
 	free(checked);
 	QueueDestroy(first);
 	for (int i = 0; i < G->SIZE_N; i++)
+	{
+		G->nodes[i]->value = COST[i]->weight;
 		free(COST[i]);
+	}
+		
 	free(COST);
 
 	return path;
@@ -201,6 +207,7 @@ DLL_EXPORT NODE** DFS(GRAPH* G, NODE* start)
 	if (!checked) exit(EXIT_FAILURE);
 
 	// --------------------------------------------------------
+	// Log: path of visited nodes
 
 	int path_len = 0;
 	NODE** path = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
@@ -300,6 +307,7 @@ DLL_EXPORT NODE** Dijkstra(GRAPH* G, NODE* start)
 	if (!checked) exit(EXIT_FAILURE);
 
 	// --------------------------------------------------------
+	// Log: path of visited nodes
 
 	int path_len = 0;
 	NODE** path = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
@@ -374,19 +382,18 @@ void Bellman_Relax(EDGE** COST, EDGE* E, GRAPH* G, int size, EDGE** path, int* p
 	int source_w = CostGet(COST, E->source, size);
 	if (source_w == INT_MAX)
 		return;
-	path[(*path_len)++] = E;
-
 
 	int new_cost = source_w + E->weight;
 	int old_cost = CostGet(COST, E->target, size);
 
 	if (new_cost < old_cost)
 	{
+		path[(*path_len)++] = E;
 		CostSet(COST, E->target, size, new_cost);
 	}
 		
 }
-EDGE** BellmanFord(GRAPH* G, NODE* start)
+DLL_EXPORT EDGE** BellmanFord(GRAPH* G, NODE* start)
 {
 
 	int path_len = 0;
@@ -446,7 +453,7 @@ void Floyd_MatrixFree(GRAPH* G, EDGE*** matrix)
 	free(matrix);
 }
 
-EDGE*** FloydWarshall(GRAPH* G)
+DLL_EXPORT EDGE*** FloydWarshall(GRAPH* G)
 {
 	// This is a matrix which includes weight between each two nodes
 	EDGE*** matrix = (EDGE***)calloc(G->SIZE_N, sizeof(EDGE**));
@@ -524,7 +531,7 @@ DLL_EXPORT EDGE** Prim(GRAPH* G, NODE* root)
 
 	// --------------------------------------------------------
 	// Init the tree
-	GRAPH* tree = GraphSet(G->SIZE_N, NULL, G->SIZE_E, NULL,  G_CONNECTED | G_WEIGHTED);
+	GRAPH* tree = GraphSet(G->SIZE_N, NULL, G->SIZE_E, NULL, G_WEIGHTED);
 	tree->SIZE_N = 0;
 	tree->SIZE_E = 0;
 
@@ -571,12 +578,12 @@ DLL_EXPORT EDGE** Kruskal(GRAPH* G)
 	if (G->directed)
 	{
 		printf("ERROR: This is directed graph\n");
-		return;
+		return NULL;
 	}
 
 	// --------------------------------------------------------
 	// Init the tree
-	GRAPH* tree = GraphSet(G->SIZE_N, NULL, G->SIZE_E, NULL, G_CONNECTED | G_WEIGHTED);
+	GRAPH* tree = GraphSet(G->SIZE_N, NULL, G->SIZE_E, NULL, G_WEIGHTED);
 	tree->SIZE_N = 0;
 	tree->SIZE_E = 0;
 
@@ -671,13 +678,10 @@ DLL_EXPORT EDGE** Kruskal(GRAPH* G)
 //------------------------------------------------------------------------------------------------------
 // Flow network
 
-void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
+DLL_EXPORT NODE*** FordFulkerson(GRAPH* G, NODE* source, NODE* target)
 {
 	if (!G->directed)
-	{
-		printf("ERROR: This is undirected graph\n");
-		return;
-	}
+		return NULL;
 
 	// --------------------------------------------------------
 	// Preparation
@@ -698,6 +702,17 @@ void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
 
 		flow_net[i]->edge = G->edges[i];
 		flow_net[i]->flow = 0;
+	}
+
+	// list of augmenting paths
+	int paths_num = 0;
+	NODE*** paths = (NODE***)calloc(G->SIZE_N, sizeof(NODE**));
+	if (!paths) exit(EXIT_FAILURE);
+
+	for (int i = 0; i < G->SIZE_N; i++)
+	{
+		paths[i] = (NODE**)calloc(G->SIZE_N, sizeof(NODE*));
+		if (!paths[i]) exit(EXIT_FAILURE);
 	}
 
 	// Nodes of current flow path
@@ -757,7 +772,11 @@ void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
 			free(path_fln);
 			StackDestroy(top);
 			for (int i = 0; i < path_len; i++)
+			{
+				paths[paths_num][i] = path[i];
 				path[i] = NULL;
+			}
+			paths_num++;
 			path_len = 0;
 
 			top = StackPush(NULL, source);	
@@ -823,13 +842,9 @@ void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
 
 
 	// --------------------------------------------------------
-	// Result
+	// Write down the flow for each edge instead of weight
 	for (int i = 0; i < G->SIZE_E; i++)
-	{
-		EdgePrint(flow_net[i]->edge);
-		printf(" %d / %d \n\n", flow_net[i]->flow, flow_net[i]->edge->weight);
-	}
-
+		flow_net[i]->edge->weight = flow_net[i]->flow;
 
 	free(old_values);
 	free(path);
@@ -837,6 +852,9 @@ void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
 	for (int i = 0; i < G->SIZE_E; i++)
 		free(flow_net[i]);
 	free(flow_net);
+
+	// return log: all of the augmenting paths
+	return paths;
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -845,7 +863,7 @@ void FordFalkerson(GRAPH* G, NODE* source, NODE* target)
 // Define the eccentricities of each node
 void Eccentricity(GRAPH* G)
 {
-	EDGE*** matrix = FloydWarshall(G, 0);
+	EDGE*** matrix = FloydWarshall(G);
 
 	for (int i = 0; i < G->SIZE_N; i++)
 	{

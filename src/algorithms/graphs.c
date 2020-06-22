@@ -12,16 +12,6 @@ DLL_EXPORT NODE* NodeSet(int name, int val)
 	return V;
 }
 
-NODE* NodeGetAddress(NODE** arr, int name, int arr_size)
-{
-	for (int i = 0; i < arr_size; i++)
-		if (arr[i]->name == name)
-			return arr[i];
-	
-	printf("\nNODE NOT FOUND: (%d)\n", name);
-	exit(EXIT_FAILURE);
-}
-
 //------------------------------------------------------------------------------------------------------
 
 DLL_EXPORT EDGE* EdgeSet(NODE* source, NODE* target, int weight)
@@ -64,8 +54,6 @@ DLL_EXPORT GRAPH* GraphSet(int nodes_num, NODE** nodes, int edges_num, EDGE** ed
 
 	G->directed = info & 1;
 	G->weighted = info & 2;
-	G->connected = info & 4;
-
 
 	return G;
 }
@@ -90,7 +78,7 @@ void GraphPrint(GRAPH* G)
 	printf("%s", i == 0 ? "None\n\n" : "\n");
 }
 
-void GraphDestroy(GRAPH* G)
+DLL_EXPORT void GraphDestroy(GRAPH* G)
 {
 	for (int i = 0; i < G->SIZE_N; i++)
 		free(G->nodes[i]);
@@ -154,74 +142,3 @@ NODE** GraphGetNodeNeighbors(GRAPH* G, NODE* node)
 }
 
 //------------------------------------------------------------------------------------------------------
-
-
-AMATRIX* aMatrixSet(int nodes)
-{
-	AMATRIX* aMatrix = (AMATRIX*)malloc(sizeof(AMATRIX));
-	if (!aMatrix) exit(EXIT_FAILURE);
-
-	aMatrix->nodes = nodes;
-	aMatrix->edges = 0;
-
-	aMatrix->adj = (int**)calloc(nodes, sizeof(int*));
-	if (!aMatrix->adj) exit(EXIT_FAILURE);
-	for (int i = 0; i < nodes; i++)
-	{
-		aMatrix->adj[i] = (int*)calloc(i, sizeof(int));
-		if (!aMatrix->adj[i]) exit(EXIT_FAILURE);
-	}
-		
-	return aMatrix;
-}
-
-
-AMATRIX* aMatrixGenerate(int nodes, int edges, int directed)
-{
-	AMATRIX* aMatrix = aMatrixSet(nodes);
-
-	int i, j;
-	int counter = 0;
-	srand(time(0));
-	while (counter < edges)
-	{
-
-		i = rand() % nodes;
-		j = rand() % nodes;
-
-		if (!directed)
-		{
-			if ((aMatrix->adj[i][j] != 1) && (i != j))
-			{
-				aMatrix->adj[i][j] = 1;
-				aMatrix->adj[j][i] = 1;
-				counter++;
-			}
-		}
-		else
-		{
-			if ((aMatrix->adj[i][j] != 1) && (i != j) && (aMatrix->adj[j][i] == 0))
-			{
-				aMatrix->adj[i][j] = 1;
-				counter++;
-			}
-
-			else if ((aMatrix->adj[j][i] != 1) && (i != j) && (aMatrix->adj[i][j] == 1))
-			{
-				aMatrix->adj[j][i] = 1;
-				counter++;
-			}
-		}
-	}
-
-	return aMatrix;
-}
-
-void aMatrixDestroy(AMATRIX* matrix)
-{
-	for (int i = 0; i < matrix->nodes; i++)
-		free(matrix->adj[i]);
-	free(matrix->adj);
-	free(matrix);
-}
-

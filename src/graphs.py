@@ -62,9 +62,7 @@ class Node(ct.Structure):
     node_id      = None
     name         = None
     value        = None
-    temp_value   = None
     degree       = None
-    eccentricity = None
     color        = "#999999"
 
     # Data from DLL
@@ -127,6 +125,9 @@ class Graph(ct.Structure):
 
     directed = 0
     weighted = 0
+
+    nx_graph = None
+    pos      = None
 
 
     # Data from DLL
