@@ -437,8 +437,10 @@ class App(psg.Window):
         if 'matrix' in settings:
             matrix = settings['matrix']
             info = settings['info']
+            min_weight = settings['min_weight']
+            max_weight = settings['max_weight']
 
-            self.graph = graphs.convert_from_matrix_to_graph(matrix, info)
+            self.graph = graphs.convert_from_matrix_to_graph(matrix, info, min_weight, max_weight)
 
             # после хранения в pos  ключи стали объектом str, а надо int,
 
