@@ -100,7 +100,7 @@ dfs_algorithms_tab = "\
 из которой запускается обход.\n\n\
     Пример реализации на C++:\n\n"
 
-code_dfs = ""
+code_dfs = ".\interface\pictures\DFS.png"
 
 #maximal
 bfs_algorithms_tab = "\
@@ -125,7 +125,7 @@ bfs_algorithms_tab = "\
 массив \"предков\" p[], в котором для каждой вершины хранить номер вершины, по которой мы попали в эту вершину).\n\n\
     Пример реализации на C++:\n\n"
 
-code_bfs = ""
+code_bfs = ".\interface\pictures\BFS.png"
 
 # фоксфорд
 Dijkstra_algorithm_algorithms_tab = "\
@@ -161,7 +161,7 @@ dist[j] = dist[i] + w[i][j].\n\n\
 веса ребер хранятся в матрице w.\n\n\
     Пример реализации на C++:\n\n"
 
-code_Dijkstra = ""
+code_Dijkstra = ".\interface\pictures\Dijkstra.png"
 
 #maximal
 Floyd_Warshall_algorithm_algorithms_tab = "\
@@ -209,7 +209,7 @@ d_{ij} — длины кратчайшего пути из вершины i в �
     Асимптотика алгоритма, очевидно, составляет O (n^3).\n\n\
     Пример реализации на C++:\n\n"
 
-code_Floyd_Warshall = ""
+code_Floyd_Warshall = ".\interface\pictures\Floyd_Warshall.png"
 
 Kruskal_algorithm_algorithms_tab = ""
 code_Kruskal = ""
