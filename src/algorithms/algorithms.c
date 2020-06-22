@@ -274,7 +274,10 @@ DLL_EXPORT NODE** DFS(GRAPH* G, NODE* start)
 	free(checked);
 	StackDestroy(top);
 	for (int i = 0; i < G->SIZE_N; i++)
+	{
+		G->nodes[i]->value = COST[i]->weight;
 		free(COST[i]);
+	}
 	free(COST);
 
 	return path;
@@ -368,7 +371,10 @@ DLL_EXPORT NODE** Dijkstra(GRAPH* G, NODE* start)
 	// Result
 	free(checked);
 	for (int i = 0; i < G->SIZE_N; i++)
+	{
+		G->nodes[i]->value = COST[i]->weight;
 		free(COST[i]);
+	}
 	free(COST);
 
 	return path;
@@ -433,7 +439,10 @@ DLL_EXPORT EDGE** BellmanFord(GRAPH* G, NODE* start)
 	}
 
 	for (int i = 0; i < G->SIZE_N; i++)
+	{
+		G->nodes[i]->value = COST[i]->weight;
 		free(COST[i]);
+	}
 	free(COST);
 
 	return path;
