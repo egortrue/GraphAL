@@ -3,8 +3,34 @@
 #include <stdlib.h>
 #include <math.h>
 
+DLL_EXPORT AMATRIX* RandFlowNetwork(AMATRIX* g, int weight_min, int weight_max, int max_degree){
+    //add extra nodes
+    g->adj = (int**)realloc(g->adj, (g->nodes_num + 2)*sizeof(int**));
+    for (int i = g->nodes_num; i < g->nodes_num + 2; i++){
+        g->adj[i] = (int*)calloc(g->nodes_num + 2, sizeof(int));
+    }
+    g->nodes_num += 2;
+
+    int source = g->nodes_num - 2;
+    int sink = g->nodes_num - 1;
+
+    //connect source & sink w/ graph
+    int start = rand() % g->nodes_num, dir = rand() % g->nodes_num;
+    while (g->adj[source][dir] || dir == source || dir == sink || AMatrixDegree(g, dir) >= max_degree)
+        dir = rand() % g->nodes_num;
+    while (g->adj[source][dir] == 0)
+        g->adj[source][dir] = weight_min + rand() % (weight_max - weight_min + 1);
+
+    while (g->adj[start][sink] || start == source || start == sink || AMatrixDegree(g, start) >= max_degree)
+        start = rand() % g->nodes_num;
+    while (g->adj[start][sink] == 0)
+        g->adj[start][sink] = weight_min + rand() % (weight_max - weight_min + 1);
+
+    return g;
+}
+
 AMATRIX* RandConnectedOrGraph(AMATRIX *g, int weight_min, int weight_max, int max_degree){
-    if (g->edges_num < g->nodes_num - 1 || g->nodes_num <= 1 || g->edges_num > (g->nodes_num -1)*g->nodes_num/2)
+    if (g->edges_num < g->nodes_num - 1 || g->nodes_num <= 1 || g->edges_num > (g->nodes_num - 1)*g->nodes_num/2)
         return NULL;
 
     int *used = (int*)calloc(g->nodes_num, sizeof(int));
@@ -18,7 +44,8 @@ AMATRIX* RandConnectedOrGraph(AMATRIX *g, int weight_min, int weight_max, int ma
         while (g->adj[start][dir] || used[dir] || start == dir){
             dir = rand() % g->nodes_num;
         }
-        g->adj[start][dir] = weight_min + rand() % (weight_max - weight_min + 1);
+        while (g->adj[start][dir] == 0)
+            g->adj[start][dir] = weight_min + rand() % (weight_max - weight_min + 1);
         count++;
         used[dir] = 1;
         start = dir;
@@ -26,17 +53,19 @@ AMATRIX* RandConnectedOrGraph(AMATRIX *g, int weight_min, int weight_max, int ma
 
     if (g->edges_num >= g->nodes_num){
         count = g->edges_num - g->nodes_num;
-        g->adj[dir][first] = weight_min + rand() % (weight_max - weight_min + 1);
+        while (g->adj[dir][first] == 0)
+            g->adj[dir][first] = weight_min + rand() % (weight_max - weight_min + 1);
         start = 0;
         dir = 0;
         for (int i = 0; i < count; i++){
             while (g->adj[start][dir] || dir == start ||
-                    ((AMatrixDegree(g, start) >= max_degree && AMatrixDegree(g, dir) >= max_degree)
-                    || !g->adj[dir][start])) {
+                    AMatrixDegree(g, start) >= max_degree || AMatrixDegree(g, dir) >= max_degree || g->adj[dir][start])
+            {
                 dir = rand() % g->nodes_num;
                 start = rand() % g->nodes_num;
             }
-            g->adj[start][dir] = weight_min + rand() % (weight_max - weight_min + 1);
+            while (g->adj[start][dir] == 0)
+                g->adj[start][dir] = weight_min + rand() % (weight_max - weight_min + 1);
         }
     }
 
@@ -44,7 +73,7 @@ AMATRIX* RandConnectedOrGraph(AMATRIX *g, int weight_min, int weight_max, int ma
 }
 
 AMATRIX *RandConnectedGraph(AMATRIX *g, int weight_min, int weight_max, int max_degree){
-    if (g->edges_num < g->nodes_num - 1 || g->nodes_num <= 1 || g->edges_num > (g->nodes_num -1)*g->nodes_num/2)
+    if (g->edges_num < g->nodes_num - 1 || g->nodes_num <= 1 || g->edges_num > (g->nodes_num - 1)*g->nodes_num/2)
         return NULL;
     RandomGraph(g, weight_min, weight_max, max_degree);
 
@@ -85,14 +114,16 @@ AMATRIX *RandConnectedGraph(AMATRIX *g, int weight_min, int weight_max, int max_
                 cycle[1] = 0;
                 new_edges--;
             }
-
             if (tmpcount_nodes > 0){
                 k = tmpnodes_comp[rand() % tmpcount_nodes];
-                while (i == k || AMatrixDegree(g, i) >= max_degree || AMatrixDegree(g, k) >= max_degree ) {
+                j = nodes_comp[rand() % count_nodes];
+                while (j == k || AMatrixDegree(g, j) >= max_degree || AMatrixDegree(g, k) >= max_degree ) {
                     k = tmpnodes_comp[rand() % tmpcount_nodes];
+                    j = nodes_comp[rand() % count_nodes];
                 }
-                g->adj[k][i] = weight_min + rand()%(weight_max - weight_min + 1);
-                g->adj[i][k] = g->adj[k][i];
+                while (g->adj[k][j] == 0)
+                    g->adj[k][j] = weight_min + rand()%(weight_max - weight_min + 1);
+                g->adj[j][k] = g->adj[k][j];
                 new_edges++;
             }
             count_comps++;
@@ -105,7 +136,8 @@ AMATRIX *RandConnectedGraph(AMATRIX *g, int weight_min, int weight_max, int max_
             j = rand() % g->nodes_num;
             k = rand() % g->nodes_num;
         }
-        g->adj[k][j] = weight_min + rand()%(weight_max - weight_min + 1);
+        while (g->adj[k][j] == 0)
+            g->adj[k][j] = weight_min + rand()%(weight_max - weight_min + 1);
         g->adj[j][k] =  g->adj[k][j];
         new_edges++;
     }
@@ -116,7 +148,7 @@ AMATRIX *RandConnectedGraph(AMATRIX *g, int weight_min, int weight_max, int max_
     used = (int*)calloc(g->nodes_num, sizeof(int));
     nodes_comp = (int*)calloc(g->nodes_num, sizeof(int));
     pr = (int*)calloc(g->nodes_num, sizeof(int));
-    while (new_edges > 0 ){
+    while (new_edges > 0){
         count_nodes = 0;
         dfs(g, i, used, &count_nodes, nodes_comp, pr, cycle);
         if (cycle[0] || cycle[1]) {
@@ -176,12 +208,15 @@ void PrintRandMatrix(AMATRIX *graph, int nodes_num){
 
 DLL_EXPORT AMATRIX* RandomGraph(AMATRIX *graph, int weight_min, int weight_max, int max_degree)
 {
-    int i, j, N;
-    double r;
+    int i = 0, j = 0, N = 0;
+    double r = 0;
     int counter = 0;
     int fail = 0;
     while (counter < graph->edges_num){
-        r = (double)(rand())/RAND_MAX*(1 - 0) + 0;
+
+       r = (double)(rand())/RAND_MAX;
+        if (r == 0 || r == 1)
+            continue;
         N = floor(pow(graph->nodes_num, 2) * r);
 
         i = floor(N/graph->nodes_num);
@@ -191,7 +226,8 @@ DLL_EXPORT AMATRIX* RandomGraph(AMATRIX *graph, int weight_min, int weight_max, 
         {
             if ((AMatrixDegree(graph, i) < max_degree) && (AMatrixDegree(graph, j) < max_degree))
             {
-                graph->adj[i][j] = weight_min + rand() % (weight_max - weight_min + 1);
+                while (graph->adj[i][j] == 0)
+                    graph->adj[i][j] = weight_min + rand() % (weight_max - weight_min + 1);
                 graph->adj[j][i] = graph->adj[i][j];
                 counter++;
                 fail = 0;

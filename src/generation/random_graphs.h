@@ -22,6 +22,7 @@ DLL_EXPORT AMATRIX *ChoiceRand           (AMATRIX *g, int oriented, int weight_m
 
 //RANDOM GRAPHS
 DLL_EXPORT AMATRIX* RandomGraph          (AMATRIX *graph, int weight_min, int weight_max, int max_degree);
+DLL_EXPORT AMATRIX* RandFlowNetwork      (AMATRIX* g, int weight_min, int weight_max, int max_degree);
 
 AMATRIX* RandConnectedOrGraph            (AMATRIX *g, int weight_min, int weight_max, int max_degree);
 AMATRIX* RandConnectedGraph              (AMATRIX *g, int weight_min, int weight_max, int max_degree);
