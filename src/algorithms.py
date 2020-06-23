@@ -7,7 +7,7 @@ import time
 
 from graphs import *
 
-colors = ["cyan", "red", "green", "blue", "orange", "purple"]
+colors = ["cyan", "red", "green", "yellow", "orange", "purple"]
 
 #########################################################################
 # define BFS function

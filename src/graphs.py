@@ -51,12 +51,8 @@ def generate_random_matrix(nodes_num, edges_num, info, max_degree, weight_min, w
     for i in range(nodes_num):
         matrix.append(ct.cast(arr_ptr_int[i], ct.POINTER(ct.c_int * nodes_num)).contents)
 
-    # debug print
     for i in range(nodes_num):
-        for j in range(nodes_num):
-            print(matrix[i][j], end=' ')
-        print()
-
+        matrix[i] = list(matrix[i])
 
     #ct_deb.FreeLibrary(gen_dll._handle) # Detach the DLL
     return matrix, ptr
@@ -286,6 +282,9 @@ class Graph(ct.Structure):
             self.pos[key] = list(self.pos[key])  # from numpy.ndarray to list, because json don't support it
 
         graph_settings['pos'] = self.pos
+
+        graph_settings['min_weight'] = self.min_weight
+        graph_settings['max_weight'] = self.max_weight
 
         return graph_settings
 
