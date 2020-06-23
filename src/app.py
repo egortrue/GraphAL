@@ -192,17 +192,23 @@ class App(psg.Window):
 
     def draw_graph(self):
 
+        self.clear_figure_canvas()
         self.draw_graph_flag = True
 
         nx.draw_networkx(self.graph.nx_graph,
                          pos=self.graph.pos,
                          ax=self.ax,
                          arrows=True,
-                         with_labels=True,
+                         with_labels=False,
                          node_color=self.graph.nodes_color,
                          edge_color=self.graph.edges_color,
                          node_size=800,
                          width=2)
+
+        nx.draw_networkx_labels(self.graph.nx_graph,
+                                pos=self.graph.pos,
+                                ax=self.ax,
+                                labels=self.graph.nodes_labels)
 
         if self.graph.weighted:
             nx.draw_networkx_edge_labels(self.graph.nx_graph,
@@ -226,7 +232,21 @@ class App(psg.Window):
             self.func_algorithms[algorithm](self, self.graph.nodes[start_node - 1])
 
         elif algorithm == "Ford–Fulkerson Algorithm":
+            # Create flow network
+            flow_network_ptr = graphs.gen_dll.RandFlowNetwork(self.graph.matrix_ptr, 1, 100, self.graph.nodes_num * 3)
+            flow_network = []
 
+            # Translate int** from DLL to matrix with ints on Python
+            arr_ptr_int = ct.cast(ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int)*self.graph.nodes_num+2)).contents
+            for i in range(nodes_num):
+                flow_network.append(ct.cast(arr_ptr_int[i], ct.POINTER(ct.c_int * self.graph.nodes_num+2)).contents)
+
+            graphs.gen_dll.AMatrixDelete(self.graph.matrix_ptr)
+            graphs.alg_dll.GraphDestroy(self.graph.ptr)
+
+
+            self.graph = graphs.convert_from_matrix_to_graph(flow_network, self.graph.min_weight, self.graph.max_weight, 0b11)
+            self.draw_graph()
             self.func_algorithms[algorithm](self)
 
         else:
@@ -235,6 +255,7 @@ class App(psg.Window):
         self['-LOG-ALGORITHM-'].update(value=algorithm)
         self.graph.restore_nodes_colors()
         self.graph.restore_edges_colors()
+        self.graph.restore_nodes_labels()
 
     def write_to_log_out(self, ind, info='nodes'):
 

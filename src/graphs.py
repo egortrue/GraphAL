@@ -33,6 +33,9 @@ gen_dll.RandomGraph.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_in
 gen_dll.ChoiceRand.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int, ct.c_int]
 gen_dll.ChoiceRand.restype = ct.POINTER(AMATRIX)
 
+gen_dll.RandFlowNetwork.argtypes = [ct.POINTER(AMATRIX), ct.c_int, ct.c_int, ct.c_int]
+gen_dll.RandFlowNetwork.restype = ct.POINTER(AMATRIX)
+
 #########################################################################
 
 def generate_random_matrix(nodes_num, edges_num, info, max_degree, weight_min, weight_max):
@@ -131,6 +134,8 @@ class Graph(ct.Structure):
     nodes_color = []
     edges_color = []
 
+    nodes_labels = {}
+
     directed = 0
     weighted = 0
 
@@ -159,6 +164,10 @@ class Graph(ct.Structure):
 
         self.nodes_color = [self.nodes_default_color for i in range(self.nodes_num)]
         self.edges_color = [self.edges_default_color for i in range(self.edges_num)]
+
+        self.nodes_labels = {node.node_id: node.node_id for node in nodes}
+        for node in self.nodes:
+            node.name = str(node.node_id)
 
         self.directed  = info & 0b01
         self.weighted  = info & 0b10
@@ -208,7 +217,7 @@ class Graph(ct.Structure):
     def get_arr_nodes(self):
         return [node.node_id for node in self.nodes]
 
-    # Get array of tuples with sorces' and target's id
+    # Get array of tuples with sources' and targets' id
     def get_arr_edges(self):
         if self.weighted:
             return [(edge.source.node_id, edge.target.node_id, edge.weight) for edge in self.edges]
@@ -233,6 +242,17 @@ class Graph(ct.Structure):
         for edge in self.edges:
             edge.color = self.edges_default_color
         self.update_edges_colors()
+
+    #------------------------------------------------------------
+    # Graph's naming menagement
+
+    def update_nodes_labels(self):
+        self.nodes_labels = {node.node_id: node.name for node in self.nodes}
+
+    def restore_nodes_labels(self):
+        for node in self.nodes:
+            node.name = str(node.node_id)
+        self.update_nodes_labels()
 
     #------------------------------------------------------------
 

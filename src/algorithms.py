@@ -20,6 +20,8 @@ def BFS(app, start):
     path = alg_dll.BFS(app.graph.ptr, start.ptr)
     path = ct.cast(path, ct.POINTER(ct.POINTER(Node) * app.graph.nodes_num)).contents
 
+    app.graph.networkx_graph()
+
     for iteration, node_ptr in enumerate(path):
 
         c_node_id = node_ptr.contents.C_ID
@@ -27,8 +29,10 @@ def BFS(app, start):
 
         node = app.graph.get_node(c_node_id)
         node.color = colors[c_node_val % 6]
+        node.name += f"|{c_node_val}"
         
         app.graph.update_nodes_colors()
+        app.graph.update_nodes_labels()
         app.draw_graph()
         app.write_to_log_out(iteration + 1)
         time.sleep(0.5)
@@ -52,8 +56,10 @@ def DFS(app, start):
 
         node = app.graph.get_node(c_node_id)
         node.color = colors[c_node_val % 6]
+        node.name += f"|{c_node_val}"
         
         app.graph.update_nodes_colors()
+        app.graph.update_nodes_labels()
         app.draw_graph()
         app.write_to_log_out(iteration + 1)
         time.sleep(0.5)
@@ -77,8 +83,10 @@ def Dijkstra(app, start):
 
         node = app.graph.get_node(c_node_id)
         node.color = colors[c_node_val % 6]
+        node.name += f"|{c_node_val}"
         
         app.graph.update_nodes_colors()
+        app.graph.update_nodes_labels()
         app.draw_graph()
         app.write_to_log_out(iteration + 1)
         time.sleep(0.5)
