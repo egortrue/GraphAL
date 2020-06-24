@@ -13,6 +13,8 @@ from json import (load as jsonload, dump as jsondump)
 import pyautogui as pag
 from time import sleep
 
+import ctypes as ct
+
 ####################################################################
 # Our imports
 
@@ -110,7 +112,7 @@ class App(psg.Window):
                                 "BFS": algorithms.BFS,
                                 "Dijkstra's Algorithm": algorithms.Dijkstra,
                                 "Ford-Bellman Algorithm": algorithms.BellmanFord,
-                                #"Floyd–Warshall Algorithm": self.passing,
+                                "Floyd–Warshall Algorithm": algorithms.FloydWarshall,
                                 "Prim's Algorithm": algorithms.Prim,
                                 "Kruskal's Algorithm": algorithms.Kruskal,
                                 "Ford–Fulkerson Algorithm": algorithms.FordFulkerson}
@@ -192,7 +194,6 @@ class App(psg.Window):
 
     def draw_graph(self):
 
-        self.clear_figure_canvas()
         self.draw_graph_flag = True
 
         nx.draw_networkx(self.graph.nx_graph,

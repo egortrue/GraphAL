@@ -47,7 +47,7 @@ def generate_random_matrix(nodes_num, edges_num, info, max_degree, weight_min, w
 
 
     # Translate int** from DLL to matrix with ints on Python
-    arr_ptr_int = ct.cast(ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int)*nodes_num)).contents
+    arr_ptr_int = ct.cast(ptr.contents.C_ADJ, ct.POINTER(ct.POINTER(ct.c_int) * nodes_num)).contents
     for i in range(nodes_num):
         matrix.append(ct.cast(arr_ptr_int[i], ct.POINTER(ct.c_int * nodes_num)).contents)
 
@@ -134,6 +134,9 @@ class Graph(ct.Structure):
 
     directed = 0
     weighted = 0
+
+    min_weight = 1
+    max_weight = 1
 
     nx_graph = None
     pos      = None
@@ -346,6 +349,8 @@ def convert_from_matrix_to_graph(matrix, min_weight, max_weight, info=0):
 
     for source in range(len(matrix)):
         for target in range(len(matrix)):
+            if source >= target:
+                continue
             if matrix[source][target]:
                 edges.append(Edge(nodes[source], nodes[target], matrix[source][target]))
 

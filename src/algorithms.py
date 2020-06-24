@@ -10,7 +10,6 @@ from graphs import *
 colors = ["cyan", "red", "green", "yellow", "orange", "purple"]
 
 #########################################################################
-# define BFS function
 
 def BFS(app, start):
 
@@ -24,6 +23,8 @@ def BFS(app, start):
 
     for iteration, node_ptr in enumerate(path):
 
+        app.clear_figure_canvas() 
+
         c_node_id = node_ptr.contents.C_ID
         c_node_val = node_ptr.contents.C_VALUE
 
@@ -39,7 +40,6 @@ def BFS(app, start):
         
 
 #########################################################################
-# define DFS function
 
 def DFS(app, start):
 
@@ -51,6 +51,8 @@ def DFS(app, start):
 
     for iteration, node_ptr in enumerate(path):
 
+        app.clear_figure_canvas() 
+
         c_node_id = node_ptr.contents.C_ID
         c_node_val = node_ptr.contents.C_VALUE
 
@@ -66,7 +68,6 @@ def DFS(app, start):
         
 
 #########################################################################
-# define Dijkstra function
 
 def Dijkstra(app, start):
 
@@ -78,6 +79,8 @@ def Dijkstra(app, start):
 
     for iteration, node_ptr in enumerate(path):
 
+        app.clear_figure_canvas()   
+
         c_node_id = node_ptr.contents.C_ID
         c_node_val = node_ptr.contents.C_VALUE
 
@@ -94,12 +97,8 @@ def Dijkstra(app, start):
 
 
 #########################################################################
-# define Prim function
 
 def Prim(app, root):
-
-    if app.graph.directed:
-        return 0
 
     alg_dll.Prim.argtypes = [ct.POINTER(Graph), ct.POINTER(Node)]
     alg_dll.Prim.restype  = ct.POINTER(ct.POINTER(Edge))
@@ -122,20 +121,14 @@ def Prim(app, root):
 
     # Hide non-releavant edges
     for i in range(app.graph.edges_num):
-        if app.graph.edges_color[i] == graph.edges_default_color:
+        if app.graph.edges_color[i] == app.graph.edges_default_color:
             app.graph.edges_color[i] = "#FFFFFF"  
 
     app.draw_graph()
 
-
-
 #########################################################################
-# define Kruskal function
 
 def Kruskal(app):
-
-    if app.graph.directed:
-        return 0
 
     alg_dll.Kruskal.argtypes = [ct.POINTER(Graph)]
     alg_dll.Kruskal.restype  = ct.POINTER(ct.POINTER(Edge))
@@ -155,9 +148,7 @@ def Kruskal(app):
         app.draw_graph()
         app.write_to_log_out(iteration + 1, info="edge")
         time.sleep(0.5)
-
-
-        
+   
     # Hide non-releavnt edges
     for i in range(app.graph.edges_num):
         if app.graph.edges_color[i] == app.graph.edges_default_color:
@@ -166,7 +157,44 @@ def Kruskal(app):
     app.draw_graph()
 
 #########################################################################
-# define Bellman-Ford function
+
+def FloydWarshall(app):
+
+    alg_dll.FloydWarshall.argtypes = [ct.POINTER(Graph)]
+    alg_dll.FloydWarshall.restype  = ct.POINTER(ct.POINTER(ct.POINTER(Edge)))
+
+    matrix_edge = alg_dll.FloydWarshall(app.graph.ptr)
+    rows_edge = ct.cast(matrix_edge, ct.POINTER(ct.POINTER(ct.POINTER(Edge)) * (app.graph.nodes_num))).contents
+
+    matrix = []
+
+    for row_edge in rows_edge:
+
+        row_edge = ct.cast(row_edge, ct.POINTER(ct.POINTER(Edge) * (app.graph.nodes_num))).contents
+        matrix_row = []
+
+        for edge_ptr in row_edge:
+            matrix_row.append(edge_ptr.contents.C_WEIGHT if edge_ptr.contents.C_WEIGHT <= app.graph.max_weight else None)
+
+        matrix.append(matrix_row)
+
+    graph = convert_from_matrix_to_graph(matrix, app.graph.min_weight, app.graph.max_weight, 0b11)
+
+    # Clear data of old graph
+    gen_dll.AMatrixDelete(app.graph.matrix_ptr)
+    alg_dll.GraphDestroy(app.graph.ptr)
+
+    app.graph = graph
+    app.clear_figure_canvas() 
+    app.draw_graph()
+
+
+#########################################################################
+##
+##                          BETA FUNCTIONS
+##             ( Here are a lot of problems with pointers )
+##
+#########################################################################
 
 def BellmanFord(app, start):
 
@@ -189,14 +217,7 @@ def BellmanFord(app, start):
         app.write_to_log_out(iteration + 1, info="edge")
         time.sleep(0.5)
 
-
-#########################################################################
-# define Ford-Fulkerson function
-
 def FordFulkerson(app):
-
-    if app.graph.directed == 0:
-        return 0
 
     alg_dll.FordFulkerson.argtypes = [ct.POINTER(Graph), ct.POINTER(Node), ct.POINTER(Node)]
     alg_dll.FordFulkerson.restype  = ct.POINTER(ct.POINTER(ct.POINTER(Node)))
@@ -231,4 +252,3 @@ def FordFulkerson(app):
         if path_len == 0:
             return 0
 
-#########################################################################
